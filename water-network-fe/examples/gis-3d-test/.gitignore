@@ -1,0 +1,6 @@
+web/node_modules/
+web/dist/
+data/dem/
+data/model/_run/
+__pycache__/
+*.pyc

@@ -1,0 +1,30 @@
+[workspace]
+resolver = "2"
+members = ["crates/topology-core", "crates/topology-service"]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+license = "proprietary"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+petgraph = { version = "0.6", features = ["serde-1"] }
+thiserror = "1"
+anyhow = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "signal"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+lapin = "2"
+futures-util = "0.3"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+axum = "0.7"
+proptest = "1"
+wiremock = "0.6"
+tonic = "0.12"
+prost = "0.13"
+tonic-health = "0.12"
+tonic-build = "0.12"
+protoc-bin-vendored = "3"
+tokio-stream = "0.1"

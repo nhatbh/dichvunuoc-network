@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - runtime.yaml
+images:
+  - name: water-network-import
+    newName: registry-dev.dichvunuoc.vn/water-platform/water-network-import
+    digest: sha256:ffeced457acad4891f4569a181ea154bb4fa48e9c1d3ad5cdf67f184321c85f6

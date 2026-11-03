@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../WaterNetwork.Asset.Application/WaterNetwork.Asset.Application.csproj" />
+    <ProjectReference Include="../WaterNetwork.Asset.Domain/WaterNetwork.Asset.Domain.csproj" />
+    <ProjectReference Include="../WaterNetwork.Asset.Contracts/WaterNetwork.Asset.Contracts.csproj" />
+    <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.Infrastructure/WaterPlatform.BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.EventBus/WaterPlatform.BuildingBlocks.EventBus.csproj" />
+    <ProjectReference Include="../../../water-network-gis-be/src/WaterNetwork.Gis.Contracts/WaterNetwork.Gis.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CA1861</NoWarn>
+  </PropertyGroup>
+</Project>

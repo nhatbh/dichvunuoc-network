@@ -1,0 +1,21 @@
+# Build context = water-network-fe/. Keep host build artifacts and installed
+# deps out so the image installs + builds them fresh (and host node_modules
+# never shadow the image's). dist/ is rebuilt in-image, so host dist must not
+# leak in stale.
+**/node_modules
+**/dist
+**/.git
+**/.env
+**/.env.local
+**/.env.*.local
+**/*.log
+**/.DS_Store
+**/coverage
+**/playwright-report
+**/test-results
+**/.claude
+**/.cursor
+**/.codegraph
+**/.eslintcache
+**/.tanstack
+harness.db

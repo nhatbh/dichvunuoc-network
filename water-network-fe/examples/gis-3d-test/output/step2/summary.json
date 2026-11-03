@@ -1,0 +1,32 @@
+{
+ "n_polylines": 764,
+ "n_nodes": 1012,
+ "n_pipes": 1012,
+ "length_by_od": {
+  "50": 28726,
+  "63": 12822,
+  "90": 3922,
+  "110": 2655,
+  "160": 2032,
+  "225": 4504,
+  "315": 1816
+ },
+ "total_length": 56476,
+ "n_components": 1,
+ "source": "SRC",
+ "n_bit_ends": 397,
+ "n_daudai_nodes": 180,
+ "n_junction_via_inner_vertex": 21,
+ "errors": {
+  "dau_ho|do": 4,
+  "dau_ho|vang": 5,
+  "doan_thua|info": 8,
+  "giao_cat_khong_nut|do": 2,
+  "nhan_chieu_dai|info": 81,
+  "nhan_khac_layer|vang": 16,
+  "nut_treo|do": 1,
+  "nut_treo|vang": 3
+ },
+ "labels_total": 585,
+ "labels_matched": 572
+}

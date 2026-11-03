@@ -1,0 +1,158 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks: [wn-network]
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks: [wn-network]
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports: ["5672:5672", "15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [wn-network]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    ports: ["4317:4317", "16686:16686"]
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    networks: [wn-network]
+
+  water-network-gis-be:
+    build:
+      context: .
+      dockerfile: src/services/water-network-gis-be/Dockerfile
+    ports: ["8081:8080"]
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__PostgreSQL=Host=postgres;Port=5432;Database=wn_gis;Username=postgres;Password=postgres
+      - ConnectionStrings__Redis=redis:6379,abortConnect=false
+      - MassTransit__RabbitMq__Host=rabbitmq
+      - OpenTelemetry__OtlpEndpoint=http://jaeger:4317
+      - Database__ApplyMigrationsOnStartup=true
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    networks: [wn-network]
+
+  water-network-asset-be:
+    build:
+      context: .
+      dockerfile: src/services/water-network-asset-be/Dockerfile
+    ports: ["8082:8080"]
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__PostgreSQL=Host=postgres;Port=5432;Database=wn_asset;Username=postgres;Password=postgres
+      - ConnectionStrings__Redis=redis:6379,abortConnect=false
+      - MassTransit__RabbitMq__Host=rabbitmq
+      - OpenTelemetry__OtlpEndpoint=http://jaeger:4317
+      - Database__ApplyMigrationsOnStartup=true
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    networks: [wn-network]
+
+  water-network-bff:
+    build:
+      context: .
+      dockerfile: src/services/water-network-bff/Dockerfile
+    ports: ["8083:8080"]
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Downstream__Gis__BaseUrl=http://water-network-gis-be:8080
+      - Downstream__Asset__BaseUrl=http://water-network-asset-be:8080
+      - OpenTelemetry__OtlpEndpoint=http://jaeger:4317
+    depends_on:
+      - water-network-gis-be
+      - water-network-asset-be
+    networks: [wn-network]
+
+  water-network-design-be:
+    build:
+      context: .
+      dockerfile: src/services/water-network-design-be/Dockerfile
+    ports: ["8084:8080"]
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__PostgreSQL=Host=postgres;Port=5432;Database=wn_design;Username=postgres;Password=postgres
+      - ConnectionStrings__Redis=redis:6379,abortConnect=false
+      - MassTransit__RabbitMq__Host=rabbitmq
+      - OpenTelemetry__OtlpEndpoint=http://jaeger:4317
+      - Database__ApplyMigrationsOnStartup=true
+      - FileStorage__LocalDisk__RootPath=/app/design-files
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    networks: [wn-network]
+
+  water-network-incident-be:
+    build:
+      context: .
+      dockerfile: src/services/water-network-incident-be/Dockerfile
+    ports: ["8086:8080"]
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__PostgreSQL=Host=postgres;Port=5432;Database=wn_incident;Username=postgres;Password=postgres
+      - ConnectionStrings__Redis=redis:6379,abortConnect=false
+      - MassTransit__RabbitMq__Host=rabbitmq
+      - OpenTelemetry__OtlpEndpoint=http://jaeger:4317
+      - Database__ApplyMigrationsOnStartup=true
+      - Topology__Provider=Grpc
+      - Topology__BaseUrl=http://water-network-topology-rs:50051
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      water-network-topology-rs: { condition: service_started }
+    networks: [wn-network]
+
+  water-network-topology-rs:
+    build:
+      context: .
+      dockerfile: src/services/water-network-topology-rs/Dockerfile
+    ports: ["8085:8080", "50051:50051"]
+    environment:
+      - TOPOLOGY_AMQP_URL=amqp://guest:guest@rabbitmq:5672/%2f
+      - TOPOLOGY_QUEUE=water-network-topology-rs
+      - TOPOLOGY_EXCHANGE=WaterPlatform.BuildingBlocks.EventBus.Integration:IntegrationEventEnvelope
+      - TOPOLOGY_GIS_BASE_URL=http://water-network-gis-be:8080
+      - TOPOLOGY_SNAPSHOT_PATH=/app/data/topology-snapshot.json
+      - TOPOLOGY_GRPC_BIND=0.0.0.0:50051
+      - RUST_LOG=info
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+    networks: [wn-network]
+
+volumes:
+  postgres-data:
+
+networks:
+  wn-network:
+    driver: bridge

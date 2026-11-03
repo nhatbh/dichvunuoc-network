@@ -1,0 +1,17 @@
+{
+  "apiUrl": "https://gis-dev.dichvunuoc.vn/api/gis",
+  "keycloakUrl": "https://auth-dev.dichvunuoc.vn",
+  "keycloakRealm": "water-platform",
+  "keycloakClientId": "water-network-gis-fe",
+  "gisDataSource": "legacy",
+  "gisViewerMode": "rich",
+  "organization": {
+    "context": "required",
+    "allowLegacyTenantIdFallback": false
+  },
+  "menuAppUrl": "https://apps-dev.dichvunuoc.vn",
+  "appName": "Bản đồ GIS — Mạng lưới cấp nước",
+  "flags": {
+    "newEditor": false
+  }
+}

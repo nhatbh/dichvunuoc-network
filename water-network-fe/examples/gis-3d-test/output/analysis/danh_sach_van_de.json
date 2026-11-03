@@ -1,0 +1,770 @@
+[
+ {
+  "id": "I001",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0011",
+  "lonlat": [
+   105.4836148,
+   21.1880368
+  ],
+  "title": "Nước tù: 837 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D225 dài 837 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0016",
+   "P0011",
+   "P0013",
+   "P0014",
+   "P0012",
+   "P0015"
+  ]
+ },
+ {
+  "id": "I002",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0052",
+  "lonlat": [
+   105.5066215,
+   21.1623134
+  ],
+  "title": "Nước tù: 1056 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D225 dài 1056 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0040",
+   "P0041",
+   "P0051",
+   "P0052",
+   "P0049",
+   "P0050",
+   "P0047",
+   "P0048",
+   "P0042",
+   "P0043",
+   "P0044",
+   "P0045",
+   "P0046"
+  ]
+ },
+ {
+  "id": "I003",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0070",
+  "lonlat": [
+   105.4954025,
+   21.183071
+  ],
+  "title": "Nước tù: 248 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D160 dài 248 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0070",
+   "P0065"
+  ]
+ },
+ {
+  "id": "I004",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0077",
+  "lonlat": [
+   105.4819959,
+   21.1718404
+  ],
+  "title": "Nước tù: 166 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D160 dài 166 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0074",
+   "P0075",
+   "P0071",
+   "P0072",
+   "P0073",
+   "P0076",
+   "P0077"
+  ]
+ },
+ {
+  "id": "I005",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0091",
+  "lonlat": [
+   105.4954863,
+   21.1937033
+  ],
+  "title": "Nước tù: 247 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D110 dài 247 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0091",
+   "P0092",
+   "P0096",
+   "P0097",
+   "P0093"
+  ]
+ },
+ {
+  "id": "I006",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0107",
+  "lonlat": [
+   105.4871127,
+   21.1909658
+  ],
+  "title": "Nước tù: 60 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D110 dài 60 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0107",
+   "P0111",
+   "P0112",
+   "P0109",
+   "P0110"
+  ]
+ },
+ {
+  "id": "I007",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0120",
+  "lonlat": [
+   105.4819466,
+   21.1753196
+  ],
+  "title": "Nước tù: 182 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D110 dài 182 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0121",
+   "P0117",
+   "P0118",
+   "P0116",
+   "P0119",
+   "P0120"
+  ]
+ },
+ {
+  "id": "I008",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0139",
+  "lonlat": [
+   105.500759,
+   21.1651765
+  ],
+  "title": "Nước tù: 215 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D110 dài 215 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0141",
+   "P0142",
+   "P0143",
+   "P0144",
+   "P0140",
+   "P0138",
+   "P0139"
+  ]
+ },
+ {
+  "id": "I009",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0148",
+  "lonlat": [
+   105.49221,
+   21.1928533
+  ],
+  "title": "Nước tù: 207 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D90 dài 207 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0147",
+   "P0146",
+   "P0149",
+   "P0148",
+   "P0150"
+  ]
+ },
+ {
+  "id": "I010",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0156",
+  "lonlat": [
+   105.495333,
+   21.1915634
+  ],
+  "title": "Nước tù: 140 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D90 dài 140 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0156",
+   "P0158",
+   "P0155"
+  ]
+ },
+ {
+  "id": "I011",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0161",
+  "lonlat": [
+   105.4939097,
+   21.1901567
+  ],
+  "title": "Nước tù: 56 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D90 dài 56 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0161",
+   "P0162"
+  ]
+ },
+ {
+  "id": "I012",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0168",
+  "lonlat": [
+   105.4888513,
+   21.1877825
+  ],
+  "title": "Nước tù: 204 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D90 dài 204 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0163",
+   "P0164",
+   "P0166",
+   "P0167",
+   "P0165",
+   "P0168"
+  ]
+ },
+ {
+  "id": "I013",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0175",
+  "lonlat": [
+   105.5013769,
+   21.1849817
+  ],
+  "title": "Nước tù: 69 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D90 dài 69 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0176",
+   "P0175"
+  ]
+ },
+ {
+  "id": "I014",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0195",
+  "lonlat": [
+   105.4903605,
+   21.1741772
+  ],
+  "title": "Nước tù: 191 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D90 dài 191 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0197",
+   "P0194",
+   "P0195",
+   "P0196"
+  ]
+ },
+ {
+  "id": "I015",
+  "kind": "nuoc_tu",
+  "severity": "vang",
+  "obj": "P0199",
+  "lonlat": [
+   105.4891782,
+   21.1680454
+  ],
+  "title": "Nước tù: 241 m ống chính v<0.1 m/s",
+  "detail": "Tuyến D90 dài 241 m có vận tốc lớn nhất < 0.1 m/s cả ngày → nguy cơ lắng cặn, suy giảm clo dư",
+  "pipes": [
+   "P0202",
+   "P0203",
+   "P0201",
+   "P0199",
+   "P0200"
+  ]
+ },
+ {
+  "id": "I016",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0035",
+  "lonlat": [
+   105.4974923,
+   21.1930934
+  ],
+  "title": "Tuổi nước 72 h",
+  "detail": "Nút cuối J0035: tuổi nước 72 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I017",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0044",
+  "lonlat": [
+   105.4915867,
+   21.1926241
+  ],
+  "title": "Tuổi nước 51 h",
+  "detail": "Nút cuối J0044: tuổi nước 51 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I018",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0151",
+  "lonlat": [
+   105.4963409,
+   21.1911032
+  ],
+  "title": "Tuổi nước 52 h",
+  "detail": "Nút cuối J0151: tuổi nước 52 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I019",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0174",
+  "lonlat": [
+   105.4871056,
+   21.1907091
+  ],
+  "title": "Tuổi nước 72 h",
+  "detail": "Nút cuối J0174: tuổi nước 72 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I020",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0204",
+  "lonlat": [
+   105.4828877,
+   21.1882651
+  ],
+  "title": "Tuổi nước 72 h",
+  "detail": "Nút cuối J0204: tuổi nước 72 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I021",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0205",
+  "lonlat": [
+   105.4873777,
+   21.1879252
+  ],
+  "title": "Tuổi nước 65 h",
+  "detail": "Nút cuối J0205: tuổi nước 65 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I022",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0501",
+  "lonlat": [
+   105.4805127,
+   21.1758189
+  ],
+  "title": "Tuổi nước 72 h",
+  "detail": "Nút cuối J0501: tuổi nước 72 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I023",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0581",
+  "lonlat": [
+   105.4917964,
+   21.1739108
+  ],
+  "title": "Tuổi nước 53 h",
+  "detail": "Nút cuối J0581: tuổi nước 53 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I024",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0605",
+  "lonlat": [
+   105.4808868,
+   21.1723437
+  ],
+  "title": "Tuổi nước 72 h",
+  "detail": "Nút cuối J0605: tuổi nước 72 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I025",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0742",
+  "lonlat": [
+   105.4906309,
+   21.1676624
+  ],
+  "title": "Tuổi nước 57 h",
+  "detail": "Nút cuối J0742: tuổi nước 57 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I026",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0870",
+  "lonlat": [
+   105.5019226,
+   21.1650583
+  ],
+  "title": "Tuổi nước 72 h",
+  "detail": "Nút cuối J0870: tuổi nước 72 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I027",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J0938",
+  "lonlat": [
+   105.5052351,
+   21.1643117
+  ],
+  "title": "Tuổi nước 63 h",
+  "detail": "Nút cuối J0938: tuổi nước 63 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I028",
+  "kind": "tuoi_nuoc",
+  "severity": "vang",
+  "obj": "J1012",
+  "lonlat": [
+   105.5072953,
+   21.1624596
+  ],
+  "title": "Tuổi nước 72 h",
+  "detail": "Nút cuối J1012: tuổi nước 72 h > 24 h — cần xả cặn định kỳ"
+ },
+ {
+  "id": "I029",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0204",
+  "lonlat": [
+   105.4828877,
+   21.1882651
+  ],
+  "title": "Ống chính cụt D225",
+  "detail": "Nút J0204: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I030",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J1012",
+  "lonlat": [
+   105.5072953,
+   21.1624596
+  ],
+  "title": "Ống chính cụt D225",
+  "detail": "Nút J1012: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I031",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0605",
+  "lonlat": [
+   105.4808868,
+   21.1723437
+  ],
+  "title": "Ống chính cụt D160",
+  "detail": "Nút J0605: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I032",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0035",
+  "lonlat": [
+   105.4974923,
+   21.1930934
+  ],
+  "title": "Ống chính cụt D110",
+  "detail": "Nút J0035: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I033",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0174",
+  "lonlat": [
+   105.4871056,
+   21.1907091
+  ],
+  "title": "Ống chính cụt D110",
+  "detail": "Nút J0174: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I034",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0501",
+  "lonlat": [
+   105.4805127,
+   21.1758189
+  ],
+  "title": "Ống chính cụt D110",
+  "detail": "Nút J0501: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I035",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0870",
+  "lonlat": [
+   105.5019226,
+   21.1650583
+  ],
+  "title": "Ống chính cụt D110",
+  "detail": "Nút J0870: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I036",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0044",
+  "lonlat": [
+   105.4915867,
+   21.1926241
+  ],
+  "title": "Ống chính cụt D90",
+  "detail": "Nút J0044: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I037",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0151",
+  "lonlat": [
+   105.4963409,
+   21.1911032
+  ],
+  "title": "Ống chính cụt D90",
+  "detail": "Nút J0151: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I038",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0205",
+  "lonlat": [
+   105.4873777,
+   21.1879252
+  ],
+  "title": "Ống chính cụt D90",
+  "detail": "Nút J0205: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I039",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0581",
+  "lonlat": [
+   105.4917964,
+   21.1739108
+  ],
+  "title": "Ống chính cụt D90",
+  "detail": "Nút J0581: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I040",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0742",
+  "lonlat": [
+   105.4906309,
+   21.1676624
+  ],
+  "title": "Ống chính cụt D90",
+  "detail": "Nút J0742: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I041",
+  "kind": "ong_cut",
+  "severity": "vang",
+  "obj": "J0938",
+  "lonlat": [
+   105.5052351,
+   21.1643117
+  ],
+  "title": "Ống chính cụt D90",
+  "detail": "Nút J0938: đầu ống chính cụt — điểm nước tù, cần van xả/trụ xả cặn"
+ },
+ {
+  "id": "I042",
+  "kind": "mot_tuyen",
+  "severity": "do",
+  "obj": "P0010",
+  "lonlat": [
+   105.4933976,
+   21.1949279
+  ],
+  "title": "Một tuyến cấp: 2770 hộ",
+  "detail": "Ống P0010 D315 là tuyến duy nhất cấp cho 2770 hộ (100%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I043",
+  "kind": "mot_tuyen",
+  "severity": "do",
+  "obj": "P0001",
+  "lonlat": [
+   105.4931135,
+   21.1923016
+  ],
+  "title": "Một tuyến cấp: 2452 hộ",
+  "detail": "Ống P0001 D315 là tuyến duy nhất cấp cho 2452 hộ (89%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I044",
+  "kind": "mot_tuyen",
+  "severity": "do",
+  "obj": "P0002",
+  "lonlat": [
+   105.4918822,
+   21.1899401
+  ],
+  "title": "Một tuyến cấp: 2227 hộ",
+  "detail": "Ống P0002 D315 là tuyến duy nhất cấp cho 2227 hộ (80%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I045",
+  "kind": "mot_tuyen",
+  "severity": "do",
+  "obj": "P0003",
+  "lonlat": [
+   105.4908246,
+   21.1869077
+  ],
+  "title": "Một tuyến cấp: 2144 hộ",
+  "detail": "Ống P0003 D315 là tuyến duy nhất cấp cho 2144 hộ (77%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I046",
+  "kind": "mot_tuyen",
+  "severity": "do",
+  "obj": "P0008",
+  "lonlat": [
+   105.4903141,
+   21.1853731
+  ],
+  "title": "Một tuyến cấp: 1585 hộ",
+  "detail": "Ống P0008 D315 là tuyến duy nhất cấp cho 1585 hộ (57%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I047",
+  "kind": "mot_tuyen",
+  "severity": "do",
+  "obj": "P0009",
+  "lonlat": [
+   105.4901419,
+   21.1848568
+  ],
+  "title": "Một tuyến cấp: 1507 hộ",
+  "detail": "Ống P0009 D315 là tuyến duy nhất cấp cho 1507 hộ (54%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I048",
+  "kind": "mot_tuyen",
+  "severity": "do",
+  "obj": "P0018",
+  "lonlat": [
+   105.4881552,
+   21.1739098
+  ],
+  "title": "Một tuyến cấp: 1381 hộ",
+  "detail": "Ống P0018 D225 là tuyến duy nhất cấp cho 1381 hộ (50%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I049",
+  "kind": "mot_tuyen",
+  "severity": "do",
+  "obj": "P0019",
+  "lonlat": [
+   105.4876666,
+   21.171399
+  ],
+  "title": "Một tuyến cấp: 1171 hộ",
+  "detail": "Ống P0019 D225 là tuyến duy nhất cấp cho 1171 hộ (42%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I050",
+  "kind": "mot_tuyen",
+  "severity": "do",
+  "obj": "P0021",
+  "lonlat": [
+   105.4873003,
+   21.1690289
+  ],
+  "title": "Một tuyến cấp: 844 hộ",
+  "detail": "Ống P0021 D225 là tuyến duy nhất cấp cho 844 hộ (30%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I051",
+  "kind": "mot_tuyen",
+  "severity": "vang",
+  "obj": "P0029",
+  "lonlat": [
+   105.4877225,
+   21.167421
+  ],
+  "title": "Một tuyến cấp: 643 hộ",
+  "detail": "Ống P0029 D225 là tuyến duy nhất cấp cho 643 hộ (23%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I052",
+  "kind": "mot_tuyen",
+  "severity": "vang",
+  "obj": "P0055",
+  "lonlat": [
+   105.4904119,
+   21.1854729
+  ],
+  "title": "Một tuyến cấp: 498 hộ",
+  "detail": "Ống P0055 D160 là tuyến duy nhất cấp cho 498 hộ (18%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I053",
+  "kind": "mot_tuyen",
+  "severity": "vang",
+  "obj": "P0038",
+  "lonlat": [
+   105.496372,
+   21.1645962
+  ],
+  "title": "Một tuyến cấp: 338 hộ",
+  "detail": "Ống P0038 D225 là tuyến duy nhất cấp cho 338 hộ (12%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I054",
+  "kind": "mot_tuyen",
+  "severity": "vang",
+  "obj": "P0090",
+  "lonlat": [
+   105.4870911,
+   21.169642
+  ],
+  "title": "Một tuyến cấp: 316 hộ",
+  "detail": "Ống P0090 D160 là tuyến duy nhất cấp cho 316 hộ (11%) — hỏng ống là mất nước toàn bộ phía sau"
+ },
+ {
+  "id": "I055",
+  "kind": "mot_tuyen",
+  "severity": "vang",
+  "obj": "P0066",
+  "lonlat": [
+   105.4946192,
+   21.1842014
+  ],
+  "title": "Một tuyến cấp: 302 hộ",
+  "detail": "Ống P0066 D160 là tuyến duy nhất cấp cho 302 hộ (11%) — hỏng ống là mất nước toàn bộ phía sau"
+ }
+]

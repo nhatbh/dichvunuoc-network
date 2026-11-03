@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/services/water-network-bff/">
+    <Project Path="src/WaterNetwork.Bff.Api/WaterNetwork.Bff.Api.csproj" />
+    <Folder Name="/src/services/water-network-bff/tests/">
+      <Project Path="tests/WaterNetwork.Bff.IntegrationTests/WaterNetwork.Bff.IntegrationTests.csproj" />
+      <Project Path="tests/WaterNetwork.Bff.UnitTests/WaterNetwork.Bff.UnitTests.csproj" />
+    </Folder>
+  </Folder>
+</Solution>

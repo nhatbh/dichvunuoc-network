@@ -1,0 +1,28 @@
+{
+ "leak_coef_per_m": 1.4625096848763058e-09,
+ "households": 2770,
+ "persons": 11079,
+ "q_avg_consumption_lps": 14.11,
+ "q_design_per_pump_lps": 14.36,
+ "supply_avg_lps": 16.86,
+ "supply_peak_lps": 26.89,
+ "leak_avg_lps": 3.06,
+ "nrw_model": 0.182,
+ "mass_balance_max_err_lps": 0.0,
+ "converged": true,
+ "epanet_warnings": [],
+ "pressure_min": 26.57,
+ "pressure_max": 44.86,
+ "pressure_p5_peak": 27.57,
+ "pressure_min_node_peak": "J0736",
+ "velocity_max": 0.47,
+ "age_mean_h": 6.5,
+ "age_max_h": 72.0,
+ "pump_head_range": [
+  33.3,
+  41.7
+ ],
+ "n_junctions": 1012,
+ "n_pipes": 1013,
+ "n_pumps": 2
+}

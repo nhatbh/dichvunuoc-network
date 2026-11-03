@@ -1,0 +1,21 @@
+DXF version: AC1032 | $INSUNITS: 0
+Header EXTMIN/EXTMAX: (0.0, -325.3126433815487, 0.0) (552486.2617534577, 2344742.32152095, 0.0)
+
+LAYER                                  TOTAL  ENTITY TYPES
+50                                      1799  {'LWPOLYLINE': 534, 'INSERT': 1255, 'POLYLINE': 2, 'TEXT': 2, 'LINE': 6}  X[549413..552458] Y[2341097..2344474]
+Text D-L                                1707  {'MTEXT': 541, 'POLYLINE': 577, 'TEXT': 584, 'LWPOLYLINE': 5}  X[549425..552460] Y[2341105..2344474]
+Text phu kien                            736  {'TEXT': 731, 'MTEXT': 2, 'LWPOLYLINE': 3}  X[549410..552456] Y[2341096..2344470]
+ten dai khoi thuy                        595  {'ELLIPSE': 183, 'TEXT': 186, 'INSERT': 180, 'LWPOLYLINE': 43, 'POLYLINE': 3}  X[549693..552297] Y[2341130..2344477]
+63                                       329  {'LWPOLYLINE': 209, 'INSERT': 118, 'POLYLINE': 1, 'TEXT': 1}  X[549413..552458] Y[2341097..2344473]
+Text an                                  136  {'TEXT': 136}  X[549693..552303] Y[2341436..2344476]
+DEFPOINTS                                 55  {'TEXT': 27, 'LWPOLYLINE': 28}  X[549621..552471] Y[2340860..2344484]
+90                                        10  {'LWPOLYLINE': 10}  X[550409..552295] Y[2341202..2344427]
+160                                        6  {'LWPOLYLINE': 6}  X[549740..551572] Y[2341798..2344428]
+110                                        4  {'LWPOLYLINE': 4}  X[549700..551927] Y[2341273..2344478]
+225                                        3  {'LWPOLYLINE': 3}  X[549943..552486] Y[2341006..2343871]
+0                                          1  {'INSERT': 1}  X[0..0] Y[0..0]
+315                                        1  {'LWPOLYLINE': 1}  X[550618..551039] Y[2342999..2344742]
+
+Z values (top 10): [(0.0, 8411)]
+
+Block INSERT names: [('pt', 835), ('bit', 400), ('Daudai', 180), ('Mc5-5', 42), ('Mc4-4', 30), ('Mc3-3', 29), ('con', 20), ('Mc1-1', 12), ('Mc2-2', 5), ('Xrf. Nen BDDC Vinh Thinh', 1)]

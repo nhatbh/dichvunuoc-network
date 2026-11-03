@@ -1,0 +1,60 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Production
+dist
+build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Public, credential-free settings for running the local UI against dev VPS.
+!.env.vps
+# Credential-free mode files: dev:mock, the Playwright build and the frontend-only demo build.
+!.env.mock
+!.env.e2e
+!.env.demo
+
+# Vercel
+.vercel
+
+# Typescript
+*.tsbuildinfo
+
+# Husky
+.husky/_
+
+# TanStack Router — route tree is committed; refresh with `npm run routes:generate` (also runs before typecheck / vitest run).
+
+# Playwright
+test-results/
+playwright-report/
+playwright-report-3d/
+
+# TanStack
+.tanstack/
+
+# Codegraph
+.codegraph/codegraph.db
+
+# Stray tooling artifacts
+app.config.timestamp*.js
+e2e/.generated/

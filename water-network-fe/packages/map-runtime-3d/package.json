@@ -1,0 +1,53 @@
+{
+  "name": "@wn/map-runtime-3d",
+  "version": "0.1.0",
+  "description": "3D map engine (MapLibre GL + deck.gl) behind MapEnginePort for the water-network fleet. Sibling of @wn/map-runtime (OpenLayers); the 2D package is untouched.",
+  "private": false,
+  "type": "module",
+  "license": "UNLICENSED",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./solid": {
+      "types": "./dist/solid/use-map-runtime.d.ts",
+      "import": "./dist/solid/use-map-runtime.js"
+    },
+    "./maplibre-gl.css": "./dist/maplibre-gl.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync(require.resolve('maplibre-gl/dist/maplibre-gl.css'),'dist/maplibre-gl.css')\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.9.0"
+  },
+  "dependencies": {
+    "@deck.gl/core": "9.3.11",
+    "@deck.gl/extensions": "9.3.11",
+    "@deck.gl/geo-layers": "9.3.11",
+    "@deck.gl/layers": "9.3.11",
+    "@deck.gl/mapbox": "9.3.11",
+    "@deck.gl/mesh-layers": "9.3.11",
+    "@wn/contracts": "file:../contracts",
+    "@wn/map-runtime": "file:../map-runtime",
+    "maplibre-gl": "6.13.0"
+  },
+  "devDependencies": {
+    "@solidjs/testing-library": "^0.8.10",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@types/geojson": "^7946.0.14",
+    "jsdom": "^25.0.1",
+    "solid-js": "^1.9.3",
+    "typescript": "^5.6.3",
+    "vite-plugin-solid": "^2.11.0",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <NoWarn>$(NoWarn);CA1707;CA1822;CA1852;CA2211</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/WaterNetwork.Gis.Api/WaterNetwork.Gis.Api.csproj" />
+    <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.Testing/WaterPlatform.BuildingBlocks.Testing.csproj" />
+    <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.Security/WaterPlatform.BuildingBlocks.Security.csproj" />
+    <ProjectReference Include="../../../water-network-asset-be/src/WaterNetwork.Asset.Contracts/WaterNetwork.Asset.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <NoWarn>$(NoWarn);CA1707;CA1822;CA1852;CA2211</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/WaterNetwork.Gis.Domain/WaterNetwork.Gis.Domain.csproj" />
+    <ProjectReference Include="../../src/WaterNetwork.Gis.Application/WaterNetwork.Gis.Application.csproj" />
+    <ProjectReference Include="../../src/WaterNetwork.Gis.Api/WaterNetwork.Gis.Api.csproj" />
+    <ProjectReference Include="../../src/WaterNetwork.Gis.Infrastructure/WaterNetwork.Gis.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

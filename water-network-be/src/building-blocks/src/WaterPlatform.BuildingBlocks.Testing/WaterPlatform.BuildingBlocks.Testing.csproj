@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <EnableDefaultTestItems>false</EnableDefaultTestItems>
+    <NoWarn>$(NoWarn);CA1707;CA1822;CA1852;CA2211</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.RabbitMq" />
+    <PackageReference Include="SSH.NET" PrivateAssets="all" />
+    <PackageReference Include="xunit" />
+  </ItemGroup>
+</Project>

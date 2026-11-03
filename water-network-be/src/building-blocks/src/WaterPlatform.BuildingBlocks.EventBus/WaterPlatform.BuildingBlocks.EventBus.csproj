@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.RabbitMQ" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../WaterPlatform.BuildingBlocks.Infrastructure/WaterPlatform.BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="../WaterPlatform.BuildingBlocks.MultiTenancy/WaterPlatform.BuildingBlocks.MultiTenancy.csproj" />
+  </ItemGroup>
+</Project>

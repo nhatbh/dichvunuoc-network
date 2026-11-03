@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>WaterPlatform.BuildingBlocks.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>

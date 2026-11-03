@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="WaterNetwork.GisBff/WaterNetwork.GisBff.csproj" />
+  <Project Path="WaterNetwork.GisBff.Tests/WaterNetwork.GisBff.Tests.csproj" />
+</Solution>

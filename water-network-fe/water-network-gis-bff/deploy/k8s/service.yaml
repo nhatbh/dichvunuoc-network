@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: water-network-gis-bff
+  namespace: platform-core
+  labels: { app: water-network-gis-bff }
+spec:
+  selector: { app: water-network-gis-bff }
+  ports: [{ port: 8080, targetPort: 8080 }]

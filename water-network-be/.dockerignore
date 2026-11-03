@@ -1,0 +1,10 @@
+# Build outputs — regenerated inside the image, never needed in the build context.
+# Rust (topology-rs workspace) — this alone is ~1GB.
+**/target/
+# .NET build outputs (services build from source via `dotnet publish`).
+**/bin/
+**/obj/
+# VCS and editor noise.
+.git/
+**/.vs/
+**/.idea/

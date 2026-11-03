@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/building-blocks/">
+    <Project Path="src/building-blocks/src/WaterPlatform.BuildingBlocks.Application/WaterPlatform.BuildingBlocks.Application.csproj" />
+    <Project Path="src/building-blocks/src/WaterPlatform.BuildingBlocks.Domain/WaterPlatform.BuildingBlocks.Domain.csproj" />
+    <Project Path="src/building-blocks/src/WaterPlatform.BuildingBlocks.EventBus/WaterPlatform.BuildingBlocks.EventBus.csproj" />
+    <Project Path="src/building-blocks/src/WaterPlatform.BuildingBlocks.Infrastructure/WaterPlatform.BuildingBlocks.Infrastructure.csproj" />
+    <Project Path="src/building-blocks/src/WaterPlatform.BuildingBlocks.MultiTenancy/WaterPlatform.BuildingBlocks.MultiTenancy.csproj" />
+    <Project Path="src/building-blocks/src/WaterPlatform.BuildingBlocks.Observability/WaterPlatform.BuildingBlocks.Observability.csproj" />
+    <Project Path="src/building-blocks/src/WaterPlatform.BuildingBlocks.Security/WaterPlatform.BuildingBlocks.Security.csproj" />
+    <Project Path="src/building-blocks/src/WaterPlatform.BuildingBlocks.Testing/WaterPlatform.BuildingBlocks.Testing.csproj" />
+    <Project Path="src/building-blocks/src/WaterPlatform.BuildingBlocks.WebApi/WaterPlatform.BuildingBlocks.WebApi.csproj" />
+    <Project Path="src/building-blocks/tests/WaterPlatform.BuildingBlocks.Application.Tests/WaterPlatform.BuildingBlocks.Application.Tests.csproj" />
+    <Project Path="src/building-blocks/tests/WaterPlatform.BuildingBlocks.Domain.Tests/WaterPlatform.BuildingBlocks.Domain.Tests.csproj" />
+    <Project Path="src/building-blocks/tests/WaterPlatform.BuildingBlocks.EventBus.Tests/WaterPlatform.BuildingBlocks.EventBus.Tests.csproj" />
+    <Project Path="src/building-blocks/tests/WaterPlatform.BuildingBlocks.MultiTenancy.Tests/WaterPlatform.BuildingBlocks.MultiTenancy.Tests.csproj" />
+    <Project Path="src/building-blocks/tests/WaterPlatform.BuildingBlocks.Security.Tests/WaterPlatform.BuildingBlocks.Security.Tests.csproj" />
+    <Project Path="src/building-blocks/tests/WaterPlatform.BuildingBlocks.WebApi.Tests/WaterPlatform.BuildingBlocks.WebApi.Tests.csproj" />
+  </Folder>
+</Solution>

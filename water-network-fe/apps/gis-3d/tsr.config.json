@@ -1,0 +1,7 @@
+{
+  "$schema": "https://tanstack.com/router/v1/router-config-schema.json",
+  "target": "solid",
+  "routesDirectory": "./src/routes",
+  "generatedRouteTree": "./src/routeTree.gen.ts",
+  "autoCodeSplitting": true
+}

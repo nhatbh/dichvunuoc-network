@@ -1,0 +1,33 @@
+{
+  "name": "@wn/map-runtime",
+  "version": "0.1.0",
+  "description": "Map engine (OpenLayers) behind MapEnginePort for the water-network fleet.",
+  "private": false,
+  "type": "module",
+  "license": "UNLICENSED",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./solid": { "types": "./dist/solid/use-map-runtime.d.ts", "import": "./dist/solid/use-map-runtime.js" }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": { "solid-js": "^1.9.0" },
+  "dependencies": { "@wn/contracts": "file:../contracts", "ol": "^10.3.1", "proj4": "^2.15.0" },
+  "devDependencies": {
+    "@solidjs/testing-library": "^0.8.10",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@types/geojson": "^7946.0.14",
+    "@types/proj4": "^2.5.5",
+    "jsdom": "^25.0.1",
+    "solid-js": "^1.9.3",
+    "typescript": "^5.6.3",
+    "vite-plugin-solid": "^2.11.0",
+    "vitest": "^2.1.8"
+  }
+}

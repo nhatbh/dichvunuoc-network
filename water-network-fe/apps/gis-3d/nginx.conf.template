@@ -1,0 +1,60 @@
+server {
+    listen 8080;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    # CSP — allow inline styles for Tailwind, connect to API and IAM dynamically
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-mhX4II4vUWTvksHDsl91lXPdcAHK+Q0b8//NtPJfiL0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:; child-src 'self' blob:; connect-src 'self' https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://tiles.openfreemap.org https://s3.amazonaws.com https://*.s3.amazonaws.com http://localhost:* ${VITE_KEYCLOAK_URL} ${VITE_API_URL}; frame-src 'self' http://localhost:* ${VITE_KEYCLOAK_URL};" always;
+
+    # No-cache for the HTML entrypoint + runtime config.json (set at SERVER level so
+    # it is inherited by `location /`; the hashed-asset location below redefines
+    # add_header and therefore keeps its own immutable caching). Without this, a stale
+    # heuristically-cached index.html points at old asset hashes after a deploy → broken bundle.
+    # NOTE: nginx add_header does NOT cascade into a location that has its own add_header,
+    # so this MUST live here, not inside `location /` (which would then drop the CSP above).
+    add_header Cache-Control "no-cache" always;
+
+    # HSTS — enforce HTTPS (enable when serving over TLS)
+    # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    # SPA routing — serve index.html for all non-file routes.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Runtime config — never cache per-environment overrides fetched on boot.
+    # Explicit location needed because the hashed-asset rule below would otherwise
+    # match config.json if nginx resolves it first (it won't, but be explicit).
+    location = /config.json {
+        try_files $uri =404;
+        add_header Cache-Control "no-cache, must-revalidate" always;
+    }
+
+    # Cache static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Deny access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Health check endpoint for container orchestration
+    location = /health {
+        access_log off;
+        return 200 '{"status":"ok"}';
+        add_header Content-Type application/json;
+    }
+}

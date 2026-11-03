@@ -1,0 +1,21 @@
+# Frontend-only DEMO of the 3D GIS (mock login + mock Hanoi data, no backend).
+# The built static files live on node tino-32 under /srv/water-network/gis-3d-demo/current
+# (uploaded by deploy.ps1); this kustomization only adds an nginx pod, a service and an ingress.
+# Remove everything with:  sudo k3s kubectl delete -k <this folder>
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: platform-core
+labels:
+  - pairs:
+      app.kubernetes.io/name: water-network-gis-3d-demo
+      app.kubernetes.io/part-of: water-platform
+      app.kubernetes.io/component: demo
+    includeSelectors: false
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+configMapGenerator:
+  - name: water-network-gis-3d-demo-nginx
+    files:
+      - default.conf=nginx.conf

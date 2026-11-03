@@ -1,0 +1,212 @@
+.network-editor {
+  padding: 20px;
+  color: var(--text);
+  font-size: 13px;
+}
+.ne-header,
+.ne-toolbar,
+.ne-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ne-header {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.ne-header h1 {
+  font-size: 20px;
+  font-weight: 650;
+}
+.ne-header p,
+.ne-hint {
+  color: var(--muted);
+  margin: 5px 0;
+}
+.network-editor button,
+.network-editor select,
+.network-editor input,
+.network-editor textarea {
+  border: 1px solid var(--line, #d8dee6);
+  border-radius: 6px;
+  background: var(--surface, #fff);
+  padding: 8px 10px;
+  color: inherit;
+}
+.network-editor button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.network-editor button[aria-pressed='true'],
+.network-editor .ne-primary {
+  background: #09668d;
+  color: #fff;
+  border-color: #09668d;
+}
+.ne-toolbar {
+  padding: 10px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #d8dee6);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+}
+.ne-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  border: 1px solid var(--line, #d8dee6);
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+.ne-map {
+  min-height: 640px;
+  height: calc(100dvh - 270px);
+  position: relative;
+}
+.ne-map-canvas {
+  position: absolute;
+  inset: 0;
+}
+.ne-map-legend {
+  position: absolute;
+  left: 12px;
+  bottom: 28px;
+  background: var(--surface, #fff);
+  padding: 7px 10px;
+  border-radius: 5px;
+  z-index: 1;
+  pointer-events: none;
+}
+.ne-panel {
+  background: var(--surface, #fff);
+  border-left: 1px solid var(--line, #d8dee6);
+  max-height: calc(100dvh - 270px);
+  min-height: 640px;
+  overflow-y: auto;
+  padding: 14px;
+}
+.ne-panel h2 {
+  font-weight: 650;
+  font-size: 15px;
+  margin: 12px 0;
+}
+.ne-panel label {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0;
+}
+.ne-panel select,
+.ne-panel input {
+  width: 100%;
+  min-width: 0;
+}
+.ne-panel details {
+  margin: 16px 0;
+  border-top: 1px solid var(--line, #d8dee6);
+  padding-top: 12px;
+}
+.ne-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.ne-change {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0;
+}
+.ne-change button:first-child {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ne-error {
+  padding: 10px 14px;
+  background: #fff0ed;
+  color: #8c2820;
+  border: 1px solid #efc4bc;
+  border-radius: 6px;
+  margin: 10px 0;
+  white-space: pre-line;
+}
+.ne-notice {
+  padding: 10px;
+  background: #eef6fa;
+  color: #19506d;
+  margin: 10px 0;
+  border-radius: 6px;
+}
+.ne-delete {
+  color: #b03535 !important;
+}
+.ne-issue {
+  display: block;
+  text-align: left;
+  width: 100%;
+  margin: 6px 0;
+  color: #92352a !important;
+}
+.ne-status {
+  font-weight: 600;
+}
+.ne-guide {
+  margin: 10px 0;
+  padding: 10px 14px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #d8dee6);
+  border-radius: 6px;
+}
+.ne-guide ol {
+  list-style: decimal;
+  padding-left: 20px;
+  line-height: 1.8;
+}
+.ne-map .ol-attribution {
+  display: block !important;
+  visibility: visible !important;
+}
+.ne-map .ol-attribution ul {
+  font-size: 10px;
+}
+@media (max-width: 1050px) {
+  .ne-layout {
+    grid-template-columns: 1fr;
+  }
+  .ne-panel {
+    max-height: none;
+    min-height: 0;
+    border-left: 0;
+    border-top: 1px solid var(--line, #d8dee6);
+  }
+  .ne-map {
+    height: 55dvh;
+    min-height: 380px;
+  }
+}
+
+.ne-attribution {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  background: #fffd;
+  color: #333;
+  padding: 3px 6px;
+  font-size: 11px;
+  z-index: 2;
+}
+.ne-attribution a {
+  text-decoration: underline;
+}
+.ne-map-zoom {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+}
+.ne-map-zoom button {
+  font-size: 20px;
+  min-width: 36px;
+}

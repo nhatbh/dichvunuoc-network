@@ -1,0 +1,161 @@
+/* Bản đồ mạng lưới GIS — global theme. Ported verbatim from the Claude design.
+   CSS custom properties (light + dark) + keyframes drive the SolidJS port; the
+   design components read these via Tailwind arbitrary values (text-[color:var(--text)])
+   and inline styles (background: var(--surface)). */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root,
+[data-theme='light'] {
+  --bg: #f7f8fa;
+  --bg2: #fbfcfd;
+  --surface: #ffffff;
+  --surface2: #f3f5f8;
+  --surface-active: #eceff3;
+  --text: #16202b;
+  --text2: #364150;
+  --muted: #566270;
+  --muted2: #7e8997;
+  --faint: #aeb8c4;
+  --line: rgba(20, 30, 45, 0.13);
+  --line2: rgba(20, 30, 45, 0.08);
+  --focus: #0e7c86;
+  --card-shadow: 0 1px 2px rgba(20, 30, 45, 0.06);
+  --toast-shadow: 0 10px 30px -8px rgba(20, 30, 45, 0.25);
+}
+
+[data-theme='dark'] {
+  --bg: #0d1117;
+  --bg2: #0b0f14;
+  --surface: #161b22;
+  --surface2: #1c232c;
+  --surface-active: #1d2735;
+  --text: #e6edf3;
+  --text2: #c6cfd9;
+  --muted: #8b949e;
+  --muted2: #6b7682;
+  --faint: #3d4654;
+  --line: rgba(240, 246, 252, 0.1);
+  --line2: rgba(240, 246, 252, 0.06);
+  --focus: #56c7d6;
+  --card-shadow: none;
+  --toast-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.6);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-mono,
+code,
+kbd {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ── Keyframes (verbatim from design head) ── */
+@keyframes crm-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes crm-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes crm-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes gis-pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.7);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+.crm-modal-in {
+  animation: crm-modal-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.crm-toast-in {
+  animation: crm-toast-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.crm-menu-in {
+  animation: crm-menu-in 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top;
+}
+.gis-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gis-pulse 1.8s ease-out infinite;
+}
+
+/* ── Density (compact / comfy) — toggled on <html> by the App() shell ── */
+html.crm-dense table td {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+html.crm-comfy table td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* Thin custom scrollbars for the panels */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--faint) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--faint);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}

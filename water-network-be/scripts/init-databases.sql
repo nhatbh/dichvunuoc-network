@@ -1,0 +1,8 @@
+CREATE DATABASE wn_gis;
+CREATE DATABASE wn_asset;
+CREATE DATABASE wn_design;
+CREATE DATABASE wn_incident;
+\c wn_gis
+CREATE EXTENSION IF NOT EXISTS postgis;
+\c wn_incident
+CREATE EXTENSION IF NOT EXISTS postgis;

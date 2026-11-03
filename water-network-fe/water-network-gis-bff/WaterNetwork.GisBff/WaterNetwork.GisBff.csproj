@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <Content Update="seed/gis-seed.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Update="seed/gis-full.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

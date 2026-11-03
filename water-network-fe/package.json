@@ -1,0 +1,12 @@
+{
+  "name": "water-network-fe",
+  "version": "0.0.0",
+  "private": true,
+  "description": "water-network frontend hub: harness, product docs, and the shared @wn/contracts package. Holds the independent MiniApp SPAs (e.g. gis) scaffolded from core-template/sampleapptanstack; the platform-level app-catalog is the shell/launcher (see ADR 0010).",
+  "scripts": {
+    "gen:gis-seed": "node scripts/gen-gis-seed.mjs",
+    "contracts:build": "npm --prefix packages/contracts run build",
+    "contracts:test": "npm --prefix packages/contracts run test",
+    "contracts:typecheck": "npm --prefix packages/contracts run typecheck"
+  }
+}

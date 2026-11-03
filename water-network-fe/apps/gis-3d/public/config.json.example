@@ -1,0 +1,18 @@
+{
+  "apiUrl": "https://api.example.com",
+  "secondaryApiUrl": "https://catalog.example.com",
+  "keycloakUrl": "https://iam.example.com",
+  "keycloakRealm": "techgen",
+  "keycloakClientId": "frontend-sample",
+  "gisDataSource": "legacy",
+  "gisViewerMode": "rich",
+  "organization": {
+    "context": "required",
+    "allowLegacyTenantIdFallback": false
+  },
+  "menuAppUrl": "https://menu.example.com",
+  "appName": "Frontend Sample",
+  "flags": {
+    "newEditor": false
+  }
+}

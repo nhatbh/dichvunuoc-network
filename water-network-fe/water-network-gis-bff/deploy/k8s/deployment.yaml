@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: water-network-gis-bff
+  namespace: platform-core
+  labels: { app: water-network-gis-bff }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: water-network-gis-bff } }
+  template:
+    metadata: { labels: { app: water-network-gis-bff } }
+    spec:
+      containers:
+        - name: water-network-gis-bff
+          image: registry-dev.dichvunuoc.vn/water-platform/water-network-gis-bff:latest
+          imagePullPolicy: Always
+          ports: [{ containerPort: 8080 }]
+          env:
+            - { name: Auth__Enabled, value: "true" }
+            - { name: Keycloak__Authority, value: "https://auth-dev.dichvunuoc.vn/realms/water-platform" }
+            - { name: Keycloak__Audience, value: "account" }
+          readinessProbe: { httpGet: { path: /health, port: 8080 }, initialDelaySeconds: 5, periodSeconds: 10 }
+          livenessProbe: { httpGet: { path: /health, port: 8080 }, initialDelaySeconds: 10, periodSeconds: 20 }
+          resources:
+            requests: { cpu: 25m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 192Mi }

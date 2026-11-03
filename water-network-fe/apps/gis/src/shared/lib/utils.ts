@@ -1,0 +1,18 @@
+/**
+ * Utility Functions
+ *
+ * Common utility functions used across the application.
+ * Includes the cn() function for merging Tailwind classes (required for Shadcn UI).
+ */
+
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+/**
+ * Merge Tailwind CSS classes with proper precedence
+ * @param inputs - Class values to merge
+ * @returns Merged class string
+ */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}

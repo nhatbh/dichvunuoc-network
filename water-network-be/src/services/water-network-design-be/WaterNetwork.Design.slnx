@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/services/water-network-design-be/">
+    <Project Path="src/WaterNetwork.Design.Api/WaterNetwork.Design.Api.csproj" />
+    <Project Path="src/WaterNetwork.Design.Application/WaterNetwork.Design.Application.csproj" />
+    <Project Path="src/WaterNetwork.Design.Contracts/WaterNetwork.Design.Contracts.csproj" />
+    <Project Path="src/WaterNetwork.Design.Domain/WaterNetwork.Design.Domain.csproj" />
+    <Project Path="src/WaterNetwork.Design.Infrastructure/WaterNetwork.Design.Infrastructure.csproj" />
+    <Folder Name="/src/services/water-network-design-be/tests/">
+      <Project Path="tests/WaterNetwork.Design.ContractTests/WaterNetwork.Design.ContractTests.csproj" />
+      <Project Path="tests/WaterNetwork.Design.IntegrationTests/WaterNetwork.Design.IntegrationTests.csproj" />
+      <Project Path="tests/WaterNetwork.Design.UnitTests/WaterNetwork.Design.UnitTests.csproj" />
+    </Folder>
+  </Folder>
+</Solution>

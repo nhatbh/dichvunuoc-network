@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/services/water-network-gis-be/">
+    <Project Path="src/WaterNetwork.Gis.Api/WaterNetwork.Gis.Api.csproj" />
+    <Project Path="src/WaterNetwork.Gis.Application/WaterNetwork.Gis.Application.csproj" />
+    <Project Path="src/WaterNetwork.Gis.Contracts/WaterNetwork.Gis.Contracts.csproj" />
+    <Project Path="src/WaterNetwork.Gis.Domain/WaterNetwork.Gis.Domain.csproj" />
+    <Project Path="src/WaterNetwork.Gis.Infrastructure/WaterNetwork.Gis.Infrastructure.csproj" />
+    <Folder Name="/src/services/water-network-gis-be/tests/">
+      <Project Path="tests/WaterNetwork.Gis.ContractTests/WaterNetwork.Gis.ContractTests.csproj" />
+      <Project Path="tests/WaterNetwork.Gis.IntegrationTests/WaterNetwork.Gis.IntegrationTests.csproj" />
+      <Project Path="tests/WaterNetwork.Gis.UnitTests/WaterNetwork.Gis.UnitTests.csproj" />
+    </Folder>
+  </Folder>
+</Solution>

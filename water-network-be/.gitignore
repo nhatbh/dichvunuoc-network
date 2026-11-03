@@ -1,0 +1,9 @@
+bin/
+obj/
+.env
+
+# Local-only reference skeleton, never commit (see docs/sample/)
+docs/sample/dotnet-skeleton-sample/
+
+# macOS Finder metadata
+.DS_Store

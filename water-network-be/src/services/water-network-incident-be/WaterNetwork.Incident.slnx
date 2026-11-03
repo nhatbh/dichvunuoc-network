@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WaterNetwork.Incident.Api/WaterNetwork.Incident.Api.csproj" />
+    <Project Path="src/WaterNetwork.Incident.Application/WaterNetwork.Incident.Application.csproj" />
+    <Project Path="src/WaterNetwork.Incident.Contracts/WaterNetwork.Incident.Contracts.csproj" />
+    <Project Path="src/WaterNetwork.Incident.Domain/WaterNetwork.Incident.Domain.csproj" />
+    <Project Path="src/WaterNetwork.Incident.Infrastructure/WaterNetwork.Incident.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WaterNetwork.Incident.ContractTests/WaterNetwork.Incident.ContractTests.csproj" />
+    <Project Path="tests/WaterNetwork.Incident.IntegrationTests/WaterNetwork.Incident.IntegrationTests.csproj" />
+    <Project Path="tests/WaterNetwork.Incident.UnitTests/WaterNetwork.Incident.UnitTests.csproj" />
+  </Folder>
+</Solution>

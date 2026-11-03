@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: water-network-cad-import
+  namespace: platform-core
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "5"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [api-dev.dichvunuoc.vn]
+      secretName: wildcard-dichvunuoc-tls
+    - hosts: [api-dev.wasoft.vn]
+      secretName: wildcard-wasoft-tls
+  rules:
+    - host: api-dev.dichvunuoc.vn
+      http:
+        paths:
+          - path: /api/gis/imports
+            pathType: Prefix
+            backend:
+              service:
+                name: apisix
+                port:
+                  number: 9080
+    - host: api-dev.wasoft.vn
+      http:
+        paths:
+          - path: /api/gis/imports
+            pathType: Prefix
+            backend:
+              service:
+                name: apisix
+                port:
+                  number: 9080

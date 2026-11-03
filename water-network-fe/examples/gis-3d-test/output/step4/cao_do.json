@@ -1,0 +1,12 @@
+{
+ "n": 1012,
+ "elev_ground_min": 12.0,
+ "elev_ground_max": 19.73,
+ "elev_ground_mean": 16.35,
+ "elev_ground_p5_p95": [
+  13.68,
+  18.47
+ ],
+ "dsm_minus_ground_median": 0.92,
+ "src_elev": 13.41
+}

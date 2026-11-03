@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: water-network-gis-3d-demo
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [gis3d-dev.dichvunuoc.vn]
+      secretName: wildcard-dichvunuoc-tls
+  rules:
+    - host: gis3d-dev.dichvunuoc.vn
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: water-network-gis-3d-demo
+                port: { name: http }

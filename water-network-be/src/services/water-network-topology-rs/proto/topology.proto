@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package waternetwork.topology.v1;
+
+// Read-only topology queries over the per-tenant in-memory network graph.
+// Tenant is an explicit field on every request (no ambient metadata).
+service TopologyService {
+  rpc ValidateTopology(ValidateTopologyRequest) returns (ValidateTopologyResponse);
+  rpc TraceNetwork(TraceNetworkRequest) returns (TraceNetworkResponse);
+  rpc FindNearestValves(FindNearestValvesRequest) returns (FindNearestValvesResponse);
+  rpc ComputeIsolationZone(ComputeIsolationZoneRequest) returns (ComputeIsolationZoneResponse);
+}
+
+enum IssueType {
+  ISSUE_TYPE_UNSPECIFIED = 0;
+  ORPHAN_NODE = 1;
+  MISSING_ENDPOINT = 2;
+  DISCONNECTED_COMPONENT = 3;
+}
+
+message TopologyIssue {
+  IssueType type = 1;
+  repeated string asset_ids = 2;
+}
+
+message ValidateTopologyRequest { string tenant_id = 1; }
+message ValidateTopologyResponse {
+  repeated TopologyIssue issues = 1;
+  uint64 graph_version = 2;
+}
+
+message TraceNetworkRequest {
+  string tenant_id = 1;
+  string start_node_id = 2;
+  uint32 max_depth = 3;
+}
+message TraceNetworkResponse {
+  repeated string node_ids = 1;
+  repeated string pipe_ids = 2;
+  uint64 graph_version = 3;
+}
+
+message FindNearestValvesRequest {
+  string tenant_id = 1;
+  string start_node_id = 2;
+  uint32 k = 3;
+}
+message NearestValve {
+  string device_id = 1;
+  string pipe_id = 2;
+  uint32 distance = 3;
+}
+message FindNearestValvesResponse {
+  repeated NearestValve valves = 1;
+  uint64 graph_version = 2;
+}
+
+message ComputeIsolationZoneRequest {
+  string tenant_id = 1;
+  string start_node_id = 2;
+}
+message ComputeIsolationZoneResponse {
+  repeated string valves_to_close = 1;
+  repeated string isolated_nodes = 2;
+  repeated string isolated_pipes = 3;
+  uint64 graph_version = 4;
+}

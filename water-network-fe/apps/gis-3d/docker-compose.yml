@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      # Context is water-network-fe/ so the file: workspace packages
+      # (@wn/contracts, @wn/map-runtime, @wn/map-runtime-3d) are inside the build context.
+      context: ../..
+      dockerfile: apps/gis-3d/Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - VITE_API_URL=http://localhost:3001/api
+      - VITE_AUTH_MODE=mock
+
+  # Keycloak for SSO development
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev
+    ports:
+      - "8090:8080"
+    environment:
+      KC_DB: dev-file
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin

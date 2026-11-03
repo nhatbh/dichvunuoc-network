@@ -1,0 +1,89 @@
+# Root .gitignore for the water-network workspace (water-network-fe, -be, -import).
+# Each sub-project keeps its own .gitignore as well; these rules cover the whole tree.
+
+# ── Old per-project git folders (renamed .git) — never commit git internals ──
+__subdot_git_archived__/
+
+# ── Local scratch / hand-over folders and transfer archives ──
+/_to_delete/
+/_sync_tmp/
+*.tgz
+*.tar.gz
+
+# ── Large map extracts (regenerate osm-hanoi.json with apps/gis-3d/scripts/convert-osm-extract.mjs) ──
+*.osm
+*.osm.gz
+*.osm.pbf
+*.osm.bz2
+
+# ── Secrets & credentials — never commit ──
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.pfx
+*.p12
+id_rsa*
+id_ed25519*
+tino*_dev
+tino*_dev.pub
+kubeconfig*
+*-access-*/
+
+# ── Node / frontend ──
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+.vite/
+.eslintcache
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.tanstack/
+test-results/
+playwright-report/
+playwright-report-*/
+**/e2e/.generated/
+
+# ── .NET ──
+bin/
+obj/
+.vs/
+*.user
+*.suo
+TestResults/
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# ── Rust ──
+target/
+
+# ── Agent / harness tooling (local state) ──
+harness.db
+harness.db-wal
+harness.db-shm
+**/scripts/bin/harness-cli
+**/scripts/bin/harness-cli.exe
+**/.claude/settings.local.json
+**/.claude/worktrees/
+**/.codegraph/codegraph.db
+
+# ── Editors / OS ──
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log

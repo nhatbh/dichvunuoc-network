@@ -1,0 +1,43 @@
+{
+ "features": {
+  "nodes": 1012,
+  "pipes": 1012,
+  "errors": 120
+ },
+ "roundtrip_max_m": 0.00092040381501851,
+ "sample_points_lonlat": {
+  "SRC (đầu D315 Bắc)": [
+   105.493426,
+   21.196101
+  ],
+  "Đầu D225 Tây": [
+   105.482888,
+   21.188265
+  ],
+  "Đầu D225 Đông": [
+   105.507295,
+   21.16246
+  ]
+ },
+ "osm_check": {
+  "n_osm_roads": 945,
+  "main_pipe_to_road_m": {
+   "p25": 1.0,
+   "trung_vi": 2.1,
+   "p75": 3.8,
+   "p90": 6.1
+  },
+  "service_pipe_to_road_m": {
+   "p25": 1.2,
+   "trung_vi": 2.9,
+   "p75": 4.9,
+   "p90": 17.2
+  },
+  "share_main_within_10m": 0.982,
+  "best_shift_dx_dy_m": [
+   0,
+   0
+  ],
+  "median_after_shift": 2.0
+ }
+}

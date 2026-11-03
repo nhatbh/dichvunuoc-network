@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../WaterNetwork.Gis.Application/WaterNetwork.Gis.Application.csproj" />
+    <ProjectReference Include="../WaterNetwork.Gis.Domain/WaterNetwork.Gis.Domain.csproj" />
+    <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.Infrastructure/WaterPlatform.BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.EventBus/WaterPlatform.BuildingBlocks.EventBus.csproj" />
+    <ProjectReference Include="../../../water-network-asset-be/src/WaterNetwork.Asset.Contracts/WaterNetwork.Asset.Contracts.csproj" />
+    <ProjectReference Include="../../../water-network-design-be/src/WaterNetwork.Design.Contracts/WaterNetwork.Design.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- CA1861 fires on EF Core scaffolded migrations where the generator emits inline column arrays;
+         the analyzer cannot reason about migration code, so silence here. -->
+    <NoWarn>$(NoWarn);CA1861</NoWarn>
+  </PropertyGroup>
+
+</Project>

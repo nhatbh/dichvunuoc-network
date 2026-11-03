@@ -1,0 +1,29 @@
+[package]
+name = "topology-service"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+topology-core = { path = "../topology-core" }
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+lapin.workspace = true
+futures-util.workspace = true
+reqwest.workspace = true
+axum.workspace = true
+anyhow.workspace = true
+tonic.workspace = true
+prost.workspace = true
+tonic-health.workspace = true
+
+[dev-dependencies]
+wiremock.workspace = true
+tokio-stream = { workspace = true }
+
+[build-dependencies]
+tonic-build.workspace = true
+protoc-bin-vendored.workspace = true
