@@ -2,7 +2,7 @@ import { ColumnLayer, IconLayer, LineLayer, PathLayer, ScatterplotLayer, SolidPo
 import { PathStyleExtension } from '@deck.gl/extensions';
 import { SimpleMeshLayer } from '@deck.gl/mesh-layers';
 import type { Layer } from '@deck.gl/core';
-import { boxMesh, cylinderMesh, sphereMesh } from './meshes.js';
+import { arrowMesh, boxMesh, cylinderMesh, sphereMesh } from './meshes.js';
 import { buildComponentLayers, buildSymbolLayers, componentModelsLoaded } from './components.js';
 import type { AtlasSnapshot } from './icon-atlas.js';
 import type { ColumnDatum, LineDatum, MeshDatum, PreparedLayer, SolidDatum, TextDatum } from './prepare-layer.js';
@@ -20,9 +20,12 @@ const FLAT = { depthCompare: 'always', depthWriteEnabled: false } as const;
 const SOLID = { depthCompare: 'less-equal', depthWriteEnabled: true } as const;
 
 // Meshes are created once (stable references keep deck from re-uploading geometry).
-let MESHES: { cylinder: ReturnType<typeof cylinderMesh>; sphere: ReturnType<typeof sphereMesh>; box: ReturnType<typeof boxMesh> } | null = null;
-const meshes = () => (MESHES ??= { cylinder: cylinderMesh(), sphere: sphereMesh(), box: boxMesh() });
-const MESH_MATERIAL = { ambient: 0.45, diffuse: 0.7, shininess: 40, specularColor: [90, 96, 104] } as const;
+let MESHES: { cylinder: ReturnType<typeof cylinderMesh>; sphere: ReturnType<typeof sphereMesh>; box: ReturnType<typeof boxMesh>; arrow: ReturnType<typeof arrowMesh> } | null = null;
+const meshes = () => (MESHES ??= { cylinder: cylinderMesh(28), sphere: sphereMesh(12, 24), box: boxMesh(), arrow: arrowMesh() });
+// satin coated metal: soft diffuse, a tight low specular highlight (no plastic shine)
+const MESH_MATERIAL = { ambient: 0.42, diffuse: 0.62, shininess: 72, specularColor: [70, 78, 88] } as const;
+// arrows read as markings painted on the pipe: mostly self-lit so they stay legible on the shaded side
+const ARROW_MATERIAL = { ambient: 0.85, diffuse: 0.25, shininess: 16, specularColor: [30, 30, 30] } as const;
 
 function meshLayer(id: string, data: MeshDatum[], mesh: unknown, pickable: boolean): Layer[] {
   if (data.length === 0) return [];
@@ -276,6 +279,25 @@ export function buildFlowDashLayer(d: { count: number; sources: Float64Array; ta
       widthUnits: 'pixels',
       pickable: false,
       parameters: FLAT,
+    } as never),
+  ];
+}
+
+/** 3D flow arrows for this frame: one instanced mesh draw. */
+export function buildFlowArrowLayer(a: { count: number; positions: Float64Array; matrices: Float32Array; colors: Uint8ClampedArray }): Layer[] {
+  if (a.count === 0) return [];
+  const data = Array.from({ length: a.count }, (_, i) => i);
+  return [
+    new SimpleMeshLayer<number>({
+      id: 'wn-flow-arrow',
+      data,
+      mesh: meshes().arrow as never,
+      getPosition: (i: number) => [a.positions[i * 3]!, a.positions[i * 3 + 1]!, a.positions[i * 3 + 2]!],
+      getTransformMatrix: (i: number) => Array.from(a.matrices.subarray(i * 16, i * 16 + 16)),
+      getColor: (i: number) => [a.colors[i * 4]!, a.colors[i * 4 + 1]!, a.colors[i * 4 + 2]!, a.colors[i * 4 + 3]!],
+      material: ARROW_MATERIAL as never,
+      pickable: false,
+      parameters: SOLID,
     } as never),
   ];
 }

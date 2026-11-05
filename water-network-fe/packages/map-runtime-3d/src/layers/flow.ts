@@ -12,6 +12,8 @@ export interface FlowDatum {
   /** +1 = along the path (start → end), -1 = against it. */
   dir: 1 | -1;
   color: [number, number, number, number];
+  /** Colour of the direction arrows on a 3D tube. */
+  arrowColor: [number, number, number, number];
   /** Tube radius (m) when drawn as a 3D tube, else 0: particles ride on the tube axis. */
   radiusM: number;
   bbox: [number, number, number, number];
@@ -117,7 +119,16 @@ export function computeParticles(flows: FlowDatum[], p: FlowParams): FlowParticl
   return { count: n, positions, radii, colors };
 }
 
-export function buildFlow(fid: string, path: Pos3[], speedMps: number, dir: 1 | -1, color: [number, number, number, number], radiusM: number, widthPx = 3): FlowDatum | null {
+export function buildFlow(
+  fid: string,
+  path: Pos3[],
+  speedMps: number,
+  dir: 1 | -1,
+  color: [number, number, number, number],
+  radiusM: number,
+  widthPx = 3,
+  arrowColor: [number, number, number, number] = [244, 248, 252, 255],
+): FlowDatum | null {
   if (path.length < 2) return null;
   const cum = [0];
   const M = 111_320;
@@ -129,7 +140,7 @@ export function buildFlow(fid: string, path: Pos3[], speedMps: number, dir: 1 | 
   }
   const xs = path.map((p) => p[0]);
   const ys = path.map((p) => p[1]);
-  return { fid, path, cum, total: cum[cum.length - 1]!, speedMps, dir, color, radiusM, widthPx, bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
+  return { fid, path, cum, total: cum[cum.length - 1]!, speedMps, dir, color, arrowColor, radiusM, widthPx, bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
 }
 
 export interface DashParams {
@@ -206,4 +217,99 @@ export function computeDashes(flows: FlowDatum[], p: DashParams): FlowDashes {
     }
   }
   return { count: n, sources, targets, colors, widths };
+}
+
+export interface ArrowParams {
+  time: number;
+  metresPerPx: number;
+  pxPerSecPerMps: number;
+  view: [number, number, number, number] | null;
+  maxArrows: number;
+}
+
+export interface FlowArrows {
+  count: number;
+  /** Anchor on the tube axis (lon, lat, z) per arrow. */
+  positions: Float64Array;
+  /** Column-major 4×4 per arrow: maps the unit arrow mesh (pointing +X, on the +Z face of a unit cylinder) onto its side of the tube. */
+  matrices: Float32Array;
+  colors: Uint8ClampedArray;
+}
+
+/** Arrows around a tube: top, right, bottom, left. */
+export const ARROW_SIDES = 4;
+/** Gap between arrow rings, in tube diameters. */
+const ARROW_GAP_DIAMETERS = 6;
+/** …and never closer than this on screen, so thin pipes far away do not turn into dashed lines. */
+const ARROW_MIN_GAP_PX = 56;
+/** Arrow length along the pipe, in tube radii (the mesh spans x ∈ [-0.5, 0.5]). */
+const ARROW_LENGTH_RADII = 2.2;
+const M_PER_DEG = 111_320;
+
+/**
+ * 3D flow: rings of four arrows (top, right, bottom, left) sliding along each tube in the flow
+ * direction, at a speed set by the water velocity. Only tubed pipes (radiusM > 0) get arrows. Pure.
+ */
+export function computeArrows(flows: FlowDatum[], p: ArrowParams): FlowArrows {
+  const cap = p.maxArrows;
+  const positions = new Float64Array(cap * 3);
+  const matrices = new Float32Array(cap * 16);
+  const colors = new Uint8ClampedArray(cap * 4);
+  let n = 0;
+  for (const f of flows) {
+    if (f.radiusM <= 0 || !inView(f.bbox, p.view)) continue;
+    const r = f.radiusM;
+    const spacing = 2 ** Math.round(Math.log2(Math.max(r * 2 * ARROW_GAP_DIAMETERS, ARROW_MIN_GAP_PX * p.metresPerPx, 0.5)));
+    const len = r * ARROW_LENGTH_RADII;
+    // keep arrows clear of the flanges at both ends
+    const margin = Math.max(r * 1.6, 0.2) + len / 2;
+    if (f.total < 2 * margin + 0.01) continue;
+    const groundSpeed = f.speedMps * p.pxPerSecPerMps * p.metresPerPx;
+    const base = (p.time * groundSpeed + hash(f.fid) * spacing) % spacing;
+    const count = Math.ceil(f.total / spacing) + 1;
+    let seg = 0;
+    for (let k = 0; k < count; k++) {
+      const along = k * spacing + base;
+      if (along < margin || along > f.total - margin) continue;
+      const s = f.dir === 1 ? along : f.total - along;
+      const q = pointAt(f, s, seg);
+      seg = q.seg;
+      // unit flow direction in metres (east, north, up)
+      const a = f.path[q.seg]!;
+      const b = f.path[q.seg + 1]!;
+      const lat = ((a[1] + b[1]) / 2) * (Math.PI / 180);
+      let dx = (b[0] - a[0]) * Math.cos(lat) * M_PER_DEG * f.dir;
+      let dy = (b[1] - a[1]) * M_PER_DEG * f.dir;
+      let dz = (b[2] - a[2]) * f.dir;
+      const dl = Math.hypot(dx, dy, dz) || 1;
+      dx /= dl;
+      dy /= dl;
+      dz /= dl;
+      // frame around the pipe: `up` (top of the tube) and `side` (right of the flow)
+      let sx = dy, sy = -dx, sz = 0; // horizontal right-hand side
+      const sl = Math.hypot(sx, sy) || 1;
+      sx /= sl;
+      sy /= sl;
+      if (Math.hypot(dx, dy) < 1e-3) [sx, sy, sz] = [1, 0, 0];
+      const ux = sy * dz - sz * dy;
+      const uy = sz * dx - sx * dz;
+      const uz = sx * dy - sy * dx;
+      for (let side = 0; side < ARROW_SIDES; side++) {
+        if (n >= cap) return { count: n, positions, matrices, colors };
+        const th = (side / ARROW_SIDES) * Math.PI * 2;
+        const c = Math.cos(th);
+        const sn = Math.sin(th);
+        // radial (mesh +Z) and tangential (mesh +Y) directions for this side
+        const rx = ux * c + sx * sn, ry = uy * c + sy * sn, rz = uz * c + sz * sn;
+        const tx = -ux * sn + sx * c, ty = -uy * sn + sy * c, tz = -uz * sn + sz * c;
+        positions[n * 3] = q.x;
+        positions[n * 3 + 1] = q.y;
+        positions[n * 3 + 2] = q.z + r; // tubes rest on the ground: the axis is one radius up
+        matrices.set([dx * len, dy * len, dz * len, 0, tx * r, ty * r, tz * r, 0, rx * r, ry * r, rz * r, 0, 0, 0, 0, 1], n * 16);
+        colors.set(f.arrowColor, n * 4);
+        n++;
+      }
+    }
+  }
+  return { count: n, positions, matrices, colors };
 }

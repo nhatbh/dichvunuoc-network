@@ -43,15 +43,19 @@ export interface FeatureStyle3D extends FeatureStyle {
     fittingColor?: string;
   };
   /**
-   * Animate water moving through a LineString. `direction` +1 follows the line's vertex order,
+   * Animate water moving through a LineString: dashes sliding along the flat stroke, and on a 3D
+   * tube rings of arrows on its four sides (top, right, bottom, left) moving with the water.
+   * `direction` +1 follows the line's vertex order,
    * -1 runs against it. `speedMps` is the water speed (e.g. derived from pressure): it sets the
    * on-screen speed relative to other pipes, at any zoom. Needs `setFlowAnimation(true)`.
    */
   flow?: {
     speedMps: number;
     direction: 1 | -1;
-    /** Particle colour (default light blue). */
+    /** Colour of the flat-map dashes (default light blue). */
     color?: string;
+    /** Colour of the arrows that run along the four sides of a 3D tube (default near-white). */
+    arrowColor?: string;
   };
   /** Draw a Point as a small solid (meter box, valve body, hydrant post…), sizes in metres. */
   solid?: {

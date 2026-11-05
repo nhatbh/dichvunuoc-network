@@ -317,7 +317,7 @@ function addLine(
   if (style.tube) addTube(out, fid, path, style, op);
   if (style.flow) {
     const tubeR = style.tube ? Math.max(style.tube.diameterM, 0.02) / 2 : 0;
-    const f = buildFlow(fid, path, style.flow.speedMps, style.flow.direction, parseColor(style.flow.color ?? '#9be7ff', op), tubeR, style.stroke?.width ?? 3);
+    const f = buildFlow(fid, path, style.flow.speedMps, style.flow.direction, parseColor(style.flow.color ?? '#9be7ff', op), tubeR, style.stroke?.width ?? 3, parseColor(style.flow.arrowColor ?? '#F4F8FC', op));
     if (f) out.flows.push(f);
   }
   if (label && style.text?.value) {

@@ -15,9 +15,9 @@ import type {
 import { toGeoPoint, toMapPoint } from '@wn/map-runtime';
 import type { ContextMenuEvent } from '../port/map-engine-3d-port.js';
 import { IconAtlas } from '../layers/icon-atlas.js';
-import { buildFlowDashLayer, buildFlowLayer, buildDeckLayers, type LayerEntry } from '../layers/build-deck-layers.js';
+import { buildFlowArrowLayer, buildFlowDashLayer, buildFlowLayer, buildDeckLayers, type LayerEntry } from '../layers/build-deck-layers.js';
 import { componentModelsLoaded, loadComponentModels } from '../layers/components.js';
-import { computeDashes, computeParticles, type FlowDatum } from '../layers/flow.js';
+import { computeArrows, computeDashes, computeParticles, type FlowDatum } from '../layers/flow.js';
 import type { Layer } from '@deck.gl/core';
 import { MODE_2D_CAMERA, MODE_3D_CAMERA, type Camera3D, type CameraChangeListener, type CameraOptions, type Map3DPort, type TerrainOptions } from '../port/map-engine-3d-port.js';
 import type { HostPointerEvent, MapHost, PickResult } from '../port/map-host.js';
@@ -44,6 +44,7 @@ const FLOW_MAX_PARTICLES = 40_000;
 const FLOW_DASH_PERIOD_PX = 18;
 const FLOW_DASH_PX = 9;
 const FLOW_MAX_DASH_SEGMENTS = 60_000;
+const FLOW_MAX_ARROWS = 12_000;
 
 const LAYER_PREFIX = 'L/';
 const OVERLAY_PREFIX = 'overlay/';
@@ -645,17 +646,21 @@ export class MapEngine3D implements Map3DPort {
       this.#host.setLayers([...this.#staticLayers, ...buildFlowDashLayer(dashes)]);
       return;
     }
-    const particles = computeParticles(this.#flows, {
+    // 3D: arrows on the four sides of every tube; a pipe drawn without a tube keeps its particles
+    const view2 = this.#host.getVisibleBbox();
+    const arrows = computeArrows(this.#flows, { time, metresPerPx, pxPerSecPerMps: FLOW_PX_PER_SEC_PER_MPS, view: view2, maxArrows: FLOW_MAX_ARROWS });
+    const untubed = this.#flows.filter((f) => f.radiusM <= 0);
+    const particles = computeParticles(untubed, {
       time,
       metresPerPx,
       pxPerSecPerMps: FLOW_PX_PER_SEC_PER_MPS,
       spacingPx: FLOW_SPACING_PX,
-      view: this.#host.getVisibleBbox(),
+      view: view2,
       solids: this.#solids,
       maxParticles: FLOW_MAX_PARTICLES,
       tail: [0],
     });
-    this.#host.setLayers([...this.#staticLayers, ...buildFlowLayer(particles)]);
+    this.#host.setLayers([...this.#staticLayers, ...buildFlowArrowLayer(arrows), ...buildFlowLayer(particles)]);
   }
   /** Test hook: draw one flow frame at `seconds` after start. */
   drawFlowFrameForTest(seconds: number): void {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildFlow, computeDashes, computeParticles, quantisedSpacing, type FlowParams } from './flow.js';
+import { buildFlow, computeArrows, computeDashes, computeParticles, type FlowParams } from './flow.js';
 import type { Pos3 } from './prepare-layer.js';
 
 // ~111 m due east of the origin (0.001° at lat 0)
@@ -109,5 +109,40 @@ describe('close-up droplets', () => {
     const sorted = xs(pts).sort((a, b) => a - b);
     const gapM = (sorted[1]! - sorted[0]!) * 111_320;
     expect(gapM).toBeGreaterThanOrEqual(0.05 * 2 * 3);
+  });
+});
+
+describe('computeArrows', () => {
+  const ap = (time: number) => ({ time, metresPerPx: 0.05, pxPerSecPerMps: 12, view: null, maxArrows: 10_000 });
+  const tube = (dir: 1 | -1) => buildFlow('t', east, 1, dir, [0, 0, 255, 255], 0.5)!;
+  const ringXs = (a: ReturnType<typeof computeArrows>) => Array.from({ length: a.count / 4 }, (_, i) => a.positions[i * 12]!);
+
+  it('puts four arrows around the tube at every station: top, right, bottom, left', () => {
+    const a = computeArrows([tube(1)], ap(0));
+    expect(a.count).toBeGreaterThan(0);
+    expect(a.count % 4).toBe(0);
+    // mesh +Z (third matrix column) is the radial direction of each arrow: up, side, down, side
+    const radial = (i: number) => [a.matrices[i * 16 + 8]!, a.matrices[i * 16 + 9]!, a.matrices[i * 16 + 10]!].map((v) => Math.round(v / 0.5) || 0);
+    expect(radial(0)).toEqual([0, 0, 1]);
+    expect(radial(1)).toEqual([0, -1, 0]); // right of an eastward flow is south
+    expect(radial(2)).toEqual([0, 0, -1]);
+    expect(radial(3)).toEqual([0, 1, 0]);
+    // all four of a ring share the anchor, lifted to the tube axis
+    expect(a.positions[2]).toBeCloseTo(0.5);
+    expect(a.positions[3]).toBe(a.positions[0]);
+  });
+
+  it('points the arrows along the flow and moves them with it', () => {
+    const fwd = computeArrows([tube(1)], ap(0));
+    expect(fwd.matrices[0]).toBeGreaterThan(0); // +X of the mesh points east
+    const rev = computeArrows([tube(-1)], ap(0));
+    expect(rev.matrices[0]).toBeLessThan(0); // west
+    const later = computeArrows([tube(1)], ap(0.2));
+    const shift = Math.min(...ringXs(later).map((x, i) => x - ringXs(fwd)[i]!).filter((d) => Math.abs(d) < 1e-4));
+    expect(shift).toBeGreaterThan(0);
+  });
+
+  it('draws no arrows on pipes without a tube', () => {
+    expect(computeArrows([buildFlow('f', east, 1, 1, [0, 0, 255, 255], 0)!], ap(0)).count).toBe(0);
   });
 });

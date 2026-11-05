@@ -98,3 +98,45 @@ export function boxMesh(): MeshData {
   }
   return finish(pos, nor, idx);
 }
+
+/**
+ * Flow arrow lying on the +Z face of a unit-radius cylinder along +X: a shaft and a head, bent around
+ * the surface (mesh y is the arc) and floating just above it. Spans x ∈ [-0.5, 0.5]; scale x by the
+ * arrow length and y/z by the tube radius.
+ */
+export function arrowMesh(): MeshData {
+  const R = 1.06;
+  // outline in (x, arc) — shaft then head
+  const shaftW = 0.16;
+  const headW = 0.5;
+  const neck = 0.05;
+  const quads: Array<[number, number, number, number]> = [[-0.5, neck, -shaftW, shaftW]]; // x0, x1, w0, w1 strips
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const idx: number[] = [];
+  const vert = (x: number, a: number) => {
+    pos.push(x, Math.sin(a) * R, Math.cos(a) * R);
+    nor.push(0, Math.sin(a), Math.cos(a));
+    return pos.length / 3 - 1;
+  };
+  const STEPS = 4;
+  // shaft: a curved strip
+  for (const [x0, x1, w0, w1] of quads) {
+    const first = pos.length / 3;
+    for (let i = 0; i <= STEPS; i++) {
+      const a = w0 + ((w1 - w0) * i) / STEPS;
+      vert(x0, a);
+      vert(x1, a);
+    }
+    for (let i = 0; i < STEPS; i++) {
+      const v = first + i * 2;
+      idx.push(v, v + 1, v + 2, v + 1, v + 3, v + 2);
+    }
+  }
+  // head: fan from the tip over the curved base
+  const tip = vert(0.5, 0);
+  const baseFirst = pos.length / 3;
+  for (let i = 0; i <= STEPS * 2; i++) vert(neck, -headW + (2 * headW * i) / (STEPS * 2));
+  for (let i = 0; i < STEPS * 2; i++) idx.push(tip, baseFirst + i, baseFirst + i + 1);
+  return finish(pos, nor, idx);
+}

@@ -25,6 +25,8 @@ import {
   pipeColor,
   pipeFlow,
   pipeTube,
+  pipeTubeColor,
+  tubeFittingColor,
   pipeWidth,
 } from './pipe-style'
 import { componentScale, deviceCode, hostBearing, sourceCode, valveCode } from './component-style'
@@ -182,7 +184,7 @@ export function NetworkMapOL(props: {
       const style: FeatureStyle3D = {
         stroke: { color: col, width: w, dash },
         opacity: dimmed ? 0.16 : 1,
-        tube: pipeTube(pipe.dn, sel || emphasized ? ac : col, !!sel),
+        tube: pipeTube(pipe.dn, sel || emphasized ? ac : pipeTubeColor(pipe, th, paint, G), !!sel, tubeFittingColor(th)),
       }
       const flow = pipeFlow(pipe, hydroFlows())
       if (flow) style.flow = flow

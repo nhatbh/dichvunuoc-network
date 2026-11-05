@@ -25,7 +25,7 @@ import {
 } from './model'
 import { createFlowSolver } from '../lib/flow-solver'
 import { gisPixelBboxToExtent, useGis } from '../lib/gis-data'
-import { FITTING_3D_SCALE, IMAGERY_CASING, PIPE_3D_SCALE, SELECTED_3D_SCALE, SELECTION_COLOR, isImageryBasemap, pipeColor, pipeFlow, pipeTube, pipeWidth } from '../ui/pipe-style'
+import { FITTING_3D_SCALE, IMAGERY_CASING, PIPE_3D_SCALE, SELECTED_3D_SCALE, SELECTION_COLOR, isImageryBasemap, pipeColor, pipeFlow, pipeTube, pipeTubeColor, pipeWidth, tubeFittingColor } from '../ui/pipe-style'
 import { gisProjector } from './revision-sync'
 import { IcExpand, IcMinus, IcPlus, IcLayers, IcCheck } from '../lib/icons'
 import { cAccent, cTheme, tone } from '../lib/theme'
@@ -208,7 +208,8 @@ export function EditorOLCanvas(props: {
         const base = pipe ? pipeColor(pipe, th, undefined, G) : '#7E8997'
         const col = mark === 'del' ? tone('#D1242F') : mark === 'mod' ? tone('#9A6700') : base
         const hl = !!(p.sel || p.mhl)
-        const style: FeatureStyle3D = { stroke: { color: col, width: w, dash: mark === 'del' ? [5, 5] : undefined }, tube: pipeTube(dn, hl ? ac : col, hl) }
+        const tubeCol = hl ? ac : mark || !pipe ? col : pipeTubeColor(pipe, th, undefined, G)
+        const style: FeatureStyle3D = { stroke: { color: col, width: w, dash: mark === 'del' ? [5, 5] : undefined }, tube: pipeTube(dn, tubeCol, hl, tubeFittingColor(th)) }
         const flow = pipe && mark !== 'del' ? pipeFlow(pipe, flows) : undefined
         if (flow) style.flow = flow
         if (p.sel || p.mhl) style.halo = { color: ac, width: w + 5 }
