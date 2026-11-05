@@ -2,7 +2,12 @@ import { LAT0, LON0, M_PER_DEG_LAT, M_PER_DEG_LON, U2M } from '@wn/map-runtime-3
 import legacySeed from './gis-full.json'
 import { buildHanoiNetwork, type HanoiNetwork } from './hanoi-network'
 import { buildOsmNetwork, type OsmData } from './osm-network'
-import { addNetworkDevices, type DemoDevice, type DemoNode } from './network-devices'
+import { addNetworkDevices, ensureSupplied, sectoriseDmas, type DemoDevice, type DemoNode } from './network-devices'
+import { networkSignature, type DemoHydraulics } from './demo-hydraulics'
+
+// EPANET results for the generated network (`npm run demo:hydraulics`); absent → distance-based estimate.
+const hydraulicsFiles = import.meta.glob<DemoHydraulics>('./demo-hydraulics.json', { eager: true, import: 'default' })
+const PRECOMPUTED: DemoHydraulics | undefined = Object.values(hydraulicsFiles)[0]
 
 // Optional: produced by `node scripts/fetch-osm-hanoi.mjs`. Absent → the synthetic grid is used.
 const osmFiles = import.meta.glob<OsmData>('./osm-hanoi.json', { eager: true, import: 'default' })
@@ -45,7 +50,12 @@ function hanoiSource(): Record<string, unknown> {
  * sends, so the mock opens centred on the data at its true location. Defaults to the Hanoi
  * network; pass `legacySeed` for the original Tam Dương fixture.
  */
-export function buildLegacyFullSeed(source: unknown = hanoiSource()): Record<string, unknown> {
+export interface SeedOptions {
+  /** EPANET results to apply (default: the precomputed file); `null` keeps the distance-based estimate. */
+  hydraulics?: DemoHydraulics | null
+}
+
+export function buildLegacyFullSeed(source: unknown = hanoiSource(), opts: SeedOptions = {}): Record<string, unknown> {
   const seed = structuredClone(source) as Seed
   let minX = Infinity
   let minY = Infinity
@@ -88,8 +98,18 @@ export function buildLegacyFullSeed(source: unknown = hanoiSource()): Record<str
   const h = Math.ceil(maxY - minY) + 2 * INSET
   seed.world = { w, h }
   addFittings(seed)
-  addHydraulics(seed)
+  ensureSupplied(seed as never)
+  const hyd = opts.hydraulics === undefined ? PRECOMPUTED : opts.hydraulics
+  const signature = networkSignature(seed as never)
+  seed.networkSignature = signature
+  const solved = hyd && hyd.signature === signature && hyd.pipes ? hyd : null
+  if (hyd && !solved && opts.hydraulics === undefined)
+    console.warn('[mock] demo-hydraulics.json is stale for this network; run `npm run demo:hydraulics`')
+  if (hyd && hyd.signature === signature) applyResize(seed, hyd.resize)
+  sectoriseDmas(seed as never) // DMAs fed only through metered inlets
+  addHydraulics(seed) // distance-based estimate; also places loggers at the hydraulically remote points
   addNetworkDevices(seed as never)
+  if (solved) applySolvedHydraulics(seed, solved)
   addLayers(seed)
   addAssets(seed)
   refreshSummaries(seed)
@@ -161,7 +181,8 @@ function addFittings(seed: Seed): void {
         pipe: pipe.id,
         dn: pipe.dn,
         kind: pipe.dn >= 200 ? 'boundary' : 'isolation',
-        state: i % 36 === 0 ? 'closed' : 'open',
+        // isolation valves are normally open; only DMA-boundary valves are closed in normal operation
+        state: 'open',
         dma,
         year: 2020,
         x: a[0],
@@ -200,7 +221,60 @@ function addFittings(seed: Seed): void {
   seed.connDots = conns
 }
 
+/** Network sizing from the hydraulic run: mains that were too small for their peak flow get the DN that carries it. */
+function applyResize(seed: Seed, resize: Record<string, number>): void {
+  const by = seed.pipeBy as unknown as Record<string, SeedPipe & { code?: string }>
+  for (const pipe of [...(seed.pipes as unknown as Array<SeedPipe & { code?: string }>), ...Object.values(by)]) {
+    const dn = resize[pipe.id]
+    if (!dn) continue
+    ;(pipe as { baseDn?: number }).baseDn ??= pipe.dn // DMA layout keeps using the generated size
+    pipe.dn = dn
+    if (typeof pipe.code === 'string') pipe.code = pipe.code.replace(/DN\d+$/, `DN${dn}`)
+  }
+  for (const v of (seed.valves as Array<{ pipe: string; dn: number }> | undefined) ?? []) if (resize[v.pipe]) v.dn = resize[v.pipe]!
+}
+
+/** EPANET results: flow direction, velocity and pressure on every pipe, node pressures, telemetry and live states. */
+function applySolvedHydraulics(seed: Seed, hyd: DemoHydraulics): void {
+  const nodeP = hyd.nodes
+  for (const n of (seed.nodes as Array<{ id: string; pressureM?: number }> | undefined) ?? []) {
+    const p = nodeP[n.id]
+    if (p !== undefined) n.pressureM = p
+  }
+  const by = seed.pipeBy as unknown as Record<string, HydraulicPipe>
+  for (const pipe of seed.pipes as unknown as HydraulicPipe[]) {
+    const r = hyd.pipes[pipe.id]
+    const pa = pipe.from ? nodeP[pipe.from] : undefined
+    const pb = pipe.to ? nodeP[pipe.to] : undefined
+    const pressureM = pa !== undefined && pb !== undefined ? (pa + pb) / 2 : (pa ?? pb)
+    for (const copy of [pipe, by[pipe.id]]) {
+      if (!copy) continue
+      if (pressureM !== undefined) copy.pressure = Math.round((pressureM / 10.2) * 100) / 100
+      if (r) {
+        copy.flowDir = r[0] < 0 ? 'reverse' : 'forward'
+        copy.flowLps = Math.abs(r[0])
+        copy.velocity = r[1]
+      } else {
+        copy.flowLps = 0
+        copy.velocity = 0
+      }
+    }
+  }
+  seed.telemetry = hyd.telemetry
+  for (const d of (seed.sourceDevices as Array<{ id: string; status: string }> | undefined) ?? []) {
+    const s = hyd.status[d.id]
+    if (s) d.status = s
+  }
+  const plant = seed.plant as { flow?: number }
+  plant.flow = Math.round(hyd.summary.productionM3d)
+  seed.hydraulics = { displayHour: hyd.displayHour, summary: hyd.summary, events: hyd.events, settings: hyd.settings }
+}
+
 interface HydraulicPipe extends SeedPipe {
+  from?: string
+  to?: string
+  flowLps?: number
+  velocity?: number
   lenM?: number
   trunk?: boolean
   pressure?: number

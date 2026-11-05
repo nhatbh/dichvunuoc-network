@@ -13,6 +13,7 @@ import { createMapRuntime } from '@wn/map-runtime-3d/solid'
 import { For, Show, createEffect, createMemo, createSignal, onCleanup, type JSX } from 'solid-js'
 import { Map3DControls } from '@/features/map-3d-controls'
 import { createFlowSolver } from '../lib/flow-solver'
+import type { PipeFlow } from '@/shared/lib/hydraulics/epanet-flow'
 import { StatusDot } from './kit'
 import {
   FITTING_3D_SCALE,
@@ -123,9 +124,19 @@ export function NetworkMapOL(props: {
 
   // Water flow source: EPANET hydraulic solve (direction + velocity) or the pressure-based estimate.
   const [flowSource, setFlowSource] = createSignal<'epanet' | 'pressure'>('epanet')
-  const { flows: hydroFlows, solving: hydroSolving } = createFlowSolver(() =>
-    flowSource() === 'epanet' ? G : null
-  )
+  // The demo network ships its EPANET solution (the same 24 h run the telemetry comes from): use it as
+  // is. Any other network is solved in the browser.
+  const precomputed = (() => {
+    if (!(G as { hydraulics?: unknown }).hydraulics) return null
+    const m = new Map<string, PipeFlow>()
+    for (const p of G.pipes as Array<{ id: string; flowDir?: string; flowLps?: number; velocity?: number; noFlow?: boolean }>)
+      if (!p.noFlow && typeof p.velocity === 'number' && (p.flowLps ?? 0) > 0)
+        m.set(p.id, { flowDir: p.flowDir === 'reverse' ? 'reverse' : 'forward', velocity: p.velocity, flowLps: p.flowLps! })
+    return m.size ? m : null
+  })()
+  const solver = createFlowSolver(() => (flowSource() === 'epanet' && !precomputed ? G : null))
+  const hydroFlows = () => (flowSource() === 'epanet' && precomputed ? precomputed : solver.flows())
+  const hydroSolving = solver.solving
 
 
   // Initial view: center of the network, low zoom (city scale).

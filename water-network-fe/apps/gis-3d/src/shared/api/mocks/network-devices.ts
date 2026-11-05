@@ -105,7 +105,234 @@ function inPoly(p: Pt, poly: Pt[]): boolean {
   return inside
 }
 
+/**
+ * Every customer must be reachable from the plant. A planned pipe or a closed boundary valve that is
+ * the only link to part of the network is put into service (active / open) instead.
+ */
+export function ensureSupplied(seed: Seed): void {
+  const key = (p: Pt) => `${Math.round(p[0] / 3)},${Math.round(p[1] / 3)}`
+  const live = (p: P) => p.status !== 'planned' && p.status !== 'abandoned' && !(p as { noFlow?: boolean }).noFlow
+  for (let pass = 0; pass < 20; pass++) {
+    const parent = new Map<string, string>()
+    const find = (x: string): string => {
+      const q = parent.get(x) ?? x
+      if (q === x) return x
+      const r = find(q)
+      parent.set(x, r)
+      return r
+    }
+    const ends = (p: P) => [key(p.pts[0]!), key(p.pts[p.pts.length - 1]!)] as const
+    for (const p of seed.pipes) if (live(p) && p.pts.length >= 2) {
+      const [a, b] = ends(p)
+      parent.set(find(a), find(b))
+    }
+    // the plant's component: the one holding the most trunk length
+    const weight = new Map<string, number>()
+    for (const p of seed.pipes) if (live(p) && p.pts.length >= 2) {
+      const r = find(ends(p)[0])
+      weight.set(r, (weight.get(r) ?? 0) + (p.trunk ? 10 : 1) * (p.lenM ?? 1))
+    }
+    const main = [...weight.entries()].sort((x, y) => y[1] - x[1])[0]?.[0]
+    if (!main) return
+    const link = seed.pipes.find(p => {
+      if (live(p) || p.pts.length < 2 || p.status === 'abandoned') return false
+      const [a, b] = ends(p)
+      return (find(a) === main) !== (find(b) === main)
+    })
+    if (!link) return
+    if (link.status === 'planned') link.status = 'active'
+    const q = link as { noFlow?: boolean; boundaryClosed?: boolean }
+    q.noFlow = false
+    q.boundaryClosed = false
+    for (const v of seed.valves ?? []) if (v.pipe === link.id) v.state = 'open'
+    const copy = seed.pipeBy[link.id] as (P & { noFlow?: boolean }) | undefined
+    if (copy) {
+      copy.status = link.status
+      copy.noFlow = false
+    }
+  }
+}
+
+/** Transmission mains (by their generated, pre-sizing DN): they carry water between DMAs and belong to none. */
+export const TRANSMISSION_DN = 400
+const baseDn = (p: P) => (p as { baseDn?: number }).baseDn ?? p.dn
+export const isTransmission = (p: P) => baseDn(p) >= TRANSMISSION_DN
+
+/** Islands shorter than this are small enough to stay fed straight off the main, unmetered. */
+const METERED_ISLAND_M = 1000
+
+export interface DmaInlet { dma: string; pipe: string; /** end of the pipe on the supply side */ supply: 'a' | 'b'; main: boolean; islandM: number }
+
+/**
+ * District metered areas, done properly: each DMA's distribution pipes (below DN400) are split into the
+ * islands the transmission mains leave between them. Every island of 1 km or more is fed through ONE
+ * metered inlet (its largest pipe off a main) and every other link to a main or to another DMA gets a
+ * closed boundary valve, so all water entering the island passes its bulk meter. Smaller islands stay
+ * fed straight off the main. A link is only closed if the network stays connected without it.
+ */
+export function sectoriseDmas(seed: Seed): DmaInlet[] {
+  const key = (p: Pt) => `${Math.round(p[0] / 3)},${Math.round(p[1] / 3)}`
+  const live = (p: P) => p.status !== 'planned' && p.status !== 'abandoned' && p.pts.length >= 2
+  const pipes = seed.pipes.filter(live)
+  // start from an all-open network
+  for (const p of seed.pipes) {
+    ;(p as { noFlow?: boolean }).noFlow = false
+    const copy = seed.pipeBy[p.id] as { noFlow?: boolean } | undefined
+    if (copy) copy.noFlow = false
+  }
+  for (const v of seed.valves ?? []) {
+    v.state = 'open'
+    if (v.kind === 'boundary') v.kind = 'isolation'
+  }
+  const ends = (p: P) => [key(p.pts[0]!), key(p.pts[p.pts.length - 1]!)] as const
+  const tNodes = new Set<string>()
+  for (const p of pipes) if (isTransmission(p)) ends(p).forEach((k) => tNodes.add(k))
+  const dmaOf = (p: P) => p.dma ?? 'DMA-01'
+
+  // islands: distribution pipes of one DMA joined through nodes that are not on a main
+  const parent = new Map<string, string>()
+  const find = (x: string): string => {
+    const q = parent.get(x) ?? x
+    if (q === x) return x
+    const r = find(q)
+    parent.set(x, r)
+    return r
+  }
+  const inner = (p: P, k: string) => (tNodes.has(k) ? `${k}#${p.id}` : `${dmaOf(p)}|${k}`)
+  const dist = pipes.filter((p) => !isTransmission(p))
+  for (const p of dist) {
+    const [a, b] = ends(p)
+    parent.set(find(inner(p, a)), find(inner(p, b)))
+  }
+  const islandOf = (p: P) => find(inner(p, ends(p)[0]))
+  const islandLen = new Map<string, number>()
+  for (const p of dist) islandLen.set(islandOf(p), (islandLen.get(islandOf(p)) ?? 0) + (p.lenM ?? 0))
+  // nodes of each island (to see which links leave it)
+  const islandNodes = new Map<string, string>() // `${dma}|${key}` → island
+  for (const p of dist) for (const k of ends(p)) if (!tNodes.has(k)) islandNodes.set(`${dmaOf(p)}|${k}`, islandOf(p))
+
+  // boundary links of an island: its pipes touching a main node, or touching a node of another DMA's island
+  interface Cand { pipe: P; island: string; supply: 'a' | 'b' }
+  const cands: Cand[] = []
+  const nodeDmas = new Map<string, Set<string>>()
+  for (const p of dist) for (const k of ends(p)) (nodeDmas.get(k) ?? nodeDmas.set(k, new Set()).get(k)!).add(dmaOf(p))
+  for (const p of dist) {
+    const [a, b] = ends(p)
+    const island = islandOf(p)
+    if ((islandLen.get(island) ?? 0) < METERED_ISLAND_M) continue
+    const outside = (k: string) => tNodes.has(k) || (nodeDmas.get(k)?.size ?? 0) > 1
+    if (outside(a)) cands.push({ pipe: p, island, supply: 'a' })
+    else if (outside(b)) cands.push({ pipe: p, island, supply: 'b' })
+  }
+  // per island: the largest link off a main is the metered inlet (ties: the shortest, i.e. nearest the main)
+  const inletOf = new Map<string, Cand>()
+  for (const c of cands) {
+    const best = inletOf.get(c.island)
+    const offMain = (x: Cand) => tNodes.has(ends(x.pipe)[x.supply === 'a' ? 0 : 1])
+    const better = !best || Number(offMain(c)) - Number(offMain(best)) || c.pipe.dn - best.pipe.dn || (best.pipe.lenM ?? 0) - (c.pipe.lenM ?? 0)
+    if (better === true || (typeof better === 'number' && better > 0)) inletOf.set(c.island, c)
+  }
+  // close the other links, unless that would cut part of the network off (then it is a metered inlet too)
+  const inlets = new Set([...inletOf.values()].map((c) => c.pipe.id))
+  const closing = new Set(cands.filter((c) => !inlets.has(c.pipe.id)).map((c) => c.pipe.id))
+  const uf = new Map<string, string>()
+  const f2 = (x: string): string => {
+    const q = uf.get(x) ?? x
+    if (q === x) return x
+    const r = f2(q)
+    uf.set(x, r)
+    return r
+  }
+  const lenOf = new Map<string, number>()
+  const join = (a: string, b: string, len: number) => {
+    const ra = f2(a)
+    const rb = f2(b)
+    if (ra !== rb) {
+      uf.set(ra, rb)
+      lenOf.set(rb, (lenOf.get(rb) ?? 0) + (lenOf.get(ra) ?? 0))
+    }
+    lenOf.set(f2(a), (lenOf.get(f2(a)) ?? 0) + len)
+  }
+  for (const p of pipes) if (!closing.has(p.id)) {
+    const [a, b] = ends(p)
+    join(a, b, p.lenM ?? 1)
+  }
+  // a junction where every pipe would be closed (two DMAs meeting) stays with one of them: reopen its
+  // largest pipe, which leaves the other side's valve as the boundary (not an inlet, no meter)
+  const atKey = new Map<string, P[]>()
+  for (const p of pipes) for (const k of ends(p)) (atKey.get(k) ?? atKey.set(k, []).get(k)!).push(p)
+  for (const list of atKey.values()) {
+    if (!list.every((p) => closing.has(p.id))) continue
+    const keep = list.reduce((m, p) => (p.dn > m.dn ? p : m))
+    closing.delete(keep.id)
+    const [a, b] = ends(keep)
+    join(a, b, keep.lenM ?? 1)
+  }
+  // the supplied part is the largest connected piece (it holds the plant and the mains). Every other piece
+  // with pipes in it is reached by reopening the fewest closed links (largest first) on the way to it;
+  // an empty boundary junction cut off between two closed links needs nothing.
+  const mainRoot = () => [...new Set([...uf.keys()].map(f2))].reduce((m, r) => ((lenOf.get(r) ?? 0) > (lenOf.get(m) ?? 0) ? r : m))
+  const extra: Cand[] = []
+  const order = cands.filter((x) => closing.has(x.pipe.id)).sort((x, y) => y.pipe.dn - x.pipe.dn)
+  for (;;) {
+    const main = f2(mainRoot())
+    const cut = [...new Set([...uf.keys()].map(f2))].filter((r) => r !== main && (lenOf.get(r) ?? 0) > 0)
+    if (!cut.length) break
+    // breadth-first from the supplied piece over the closed links, pieces as the steps
+    const via = new Map<string, Cand | null>([[main, null]])
+    const from = new Map<string, string>()
+    let frontier = [main]
+    let reached: string | null = null
+    while (frontier.length && !reached) {
+      const next: string[] = []
+      for (const c of order) {
+        if (!closing.has(c.pipe.id)) continue
+        const [a, b] = ends(c.pipe).map(f2)
+        for (const [x, y] of [[a, b], [b, a]] as const) {
+          if (!frontier.includes(x!) || via.has(y!)) continue
+          via.set(y!, c)
+          from.set(y!, x!)
+          next.push(y!)
+          if ((lenOf.get(y!) ?? 0) > 0) reached ??= y!
+        }
+      }
+      frontier = next
+    }
+    if (!reached) break // not reachable at all: leave it to the hydraulic model's reachability
+    for (let r: string = reached; r !== main; r = from.get(r)!) {
+      const c = via.get(r)!
+      closing.delete(c.pipe.id)
+      const [a, b] = ends(c.pipe)
+      join(a, b, c.pipe.lenM ?? 1)
+      extra.push(c)
+    }
+  }
+  const valves = (seed.valves ??= [])
+  for (const p of pipes) {
+    if (!closing.has(p.id)) continue
+    ;(p as { noFlow?: boolean }).noFlow = true
+    const copy = seed.pipeBy[p.id] as { noFlow?: boolean } | undefined
+    if (copy) copy.noFlow = true
+    const onIt = valves.filter((v) => v.pipe === p.id)
+    if (onIt.length) onIt.forEach((v) => ((v.kind = 'boundary'), (v.state = 'closed')))
+    else {
+      const c = cands.find((x) => x.pipe.id === p.id)!
+      const at = along(p.pts, c.supply === 'a' ? 0.08 : 0.92).p
+      valves.push({ id: `V-${valves.length + 1}`, code: `V.${valves.length + 1}`, pipe: p.id, dn: p.dn, kind: 'boundary', state: 'closed', dma: dmaOf(p), year: 2019, x: at[0], y: at[1] })
+    }
+  }
+  const out: DmaInlet[] = [...inletOf.values(), ...extra].map((c) => ({ dma: dmaOf(c.pipe), pipe: c.pipe.id, supply: c.supply, main: false, islandM: Math.round(islandLen.get(c.island) ?? 0) }))
+  // the main inlet of a DMA feeds its largest island
+  for (const d of seed.dmas) {
+    const best = out.filter((x) => x.dma === d.id).sort((x, y) => y.islandM - x.islandM)[0]
+    if (best) best.main = true
+  }
+  seed.dmaInlets = out
+  return out
+}
+
 export function addNetworkDevices(seed: Seed): void {
+  const inletList = (seed.dmaInlets as DmaInlet[] | undefined) ?? sectoriseDmas(seed)
   const pipes = seed.pipes
   const valves = (seed.valves ??= [])
   const devices: DemoDevice[] = []
@@ -187,9 +414,10 @@ export function addNetworkDevices(seed: Seed): void {
   const pipeById = new Map(pipes.map((p) => [p.id, p]))
   for (const v of valves) {
     const host = pipeById.get(v.pipe)
-    const onBoundary = !!(host as unknown as { boundary?: boolean })?.boundary
-    if (!onBoundary && v.dn >= 300) v.kind = 'butterfly'
-    else if (v.kind === 'boundary' && !onBoundary) v.kind = 'isolation'
+    // closed DMA-boundary valves stay as they are; large open valves are butterflies
+    if (v.kind === 'boundary' && v.state === 'closed') continue
+    if (host && v.dn >= 300) v.kind = 'butterfly'
+    else if (v.kind === 'boundary') v.kind = 'isolation'
   }
   const addValve = (kind: string, pipe: P, t: number, state = 'open'): Valve => {
     const { p } = along(pipe.pts, t)
@@ -199,25 +427,6 @@ export function addNetworkDevices(seed: Seed): void {
     }
     valves.push(v)
     return v
-  }
-
-  // DMA inlets: the largest open pipe crossing from outside a DMA into it
-  const inlets: Array<{ dma: string; pipe: P; inside: 'a' | 'b' }> = []
-  for (const d of seed.dmas) {
-    let best: { pipe: P; inside: 'a' | 'b' } | null = null
-    for (const pipe of pipes) {
-      if ((pipe as unknown as { noFlow?: boolean }).noFlow || pipe.pts.length < 2) continue
-      const aIn = inPoly(pipe.pts[0]!, d.poly)
-      const bIn = inPoly(pipe.pts[pipe.pts.length - 1]!, d.poly)
-      if (aIn === bIn) continue
-      if (!best || pipe.dn > best.pipe.dn) best = { pipe, inside: aIn ? 'a' : 'b' }
-    }
-    if (!best) {
-      // fallback: the largest pipe inside the DMA
-      const inside = pipes.filter((p) => inPoly(p.pts[0]!, d.poly)).sort((x, y) => y.dn - x.dn)[0]
-      if (inside) best = { pipe: inside, inside: 'b' }
-    }
-    if (best) inlets.push({ dma: d.id, ...best })
   }
 
   const status = (id: string): DemoDevice['status'] => {
@@ -240,19 +449,30 @@ export function addNetworkDevices(seed: Seed): void {
   const atNode = (deviceType: string, node: DemoNode, name: string, offset: Pt = [0, 0], extra: Partial<DemoDevice> = {}) =>
     addDevice(deviceType, [node.x + offset[0], node.y + offset[1]], { name, dn: Math.min(node.dn, 200), bearing: node.bearing, hostNodeId: node.id, dma: node.dma, ...extra })
 
-  // inlet chamber per DMA: PRV with strainer, bulk meter with dismantling joint, logger, quality, RTU
-  inlets.forEach(({ dma, pipe, inside }, i) => {
-    const t = (k: number) => (inside === 'b' ? k : 1 - k) // walk towards the DMA
+  // DMA inlets: the main one gets a full chamber (PRV, strainer, bulk meter, dismantling joint, logger,
+  // chlorine, RTU); every other island inlet gets its own bulk meter, so all water entering is metered
+  let firstMain = true
+  for (const inlet of inletList) {
+    const pipe = pipeById.get(inlet.pipe)
+    if (!pipe) continue
+    const t = (k: number) => (inlet.supply === 'a' ? k : 1 - k) // measured from the supply end
+    const dma = inlet.dma
     const dmaName = seed.dmas.find((d) => d.id === dma)?.name ?? dma
-    if (i === 0) onPipe('PRVStation', pipe, t(0.45), `Trạm giảm áp ${dmaName}`)
-    else addValve('prv', pipe, t(0.45))
-    onPipe('Strainer', pipe, t(0.38), `Lọc Y cửa vào ${dma}`)
-    onPipe('BulkMeter', pipe, t(0.6), `Đồng hồ tổng ${dma}`)
-    onPipe('DismantlingJoint', pipe, t(0.66), `Khớp tháo lắp ĐHT ${dma}`)
-    onPipe('PressureSensor', pipe, t(0.72), `Logger áp lực cửa vào ${dma}`, { dn: 15 })
-    onPipe('QualitySensor', pipe, t(0.52), `Trạm đo clo dư ${dma}`, { dn: 15 })
-    onPipe('RTU', pipe, t(0.56), `RTU cửa vào ${dma}`, { dn: 15 })
-  })
+    if (inlet.main) {
+      if (firstMain) onPipe('PRVStation', pipe, t(0.3), `Trạm giảm áp ${dmaName}`)
+      else addValve('prv', pipe, t(0.3))
+      firstMain = false
+      onPipe('Strainer', pipe, t(0.22), `Lọc Y cửa vào ${dma}`)
+      onPipe('BulkMeter', pipe, t(0.42), `Đồng hồ tổng ${dma}`, { inlet: true, main: true } as never)
+      onPipe('DismantlingJoint', pipe, t(0.48), `Khớp tháo lắp ĐHT ${dma}`)
+      onPipe('PressureSensor', pipe, t(0.56), `Logger áp lực cửa vào ${dma}`, { dn: 15 })
+      onPipe('QualitySensor', pipe, t(0.36), `Trạm đo clo dư ${dma}`, { dn: 15 })
+      onPipe('RTU', pipe, t(0.4), `RTU cửa vào ${dma}`, { dn: 15 })
+    } else {
+      addValve('isolation', pipe, t(0.12))
+      onPipe('BulkMeter', pipe, t(0.25), `Đồng hồ cửa phụ ${dma} · ${pipe.id}`, { inlet: true } as never)
+    }
+  }
 
   // pressure loggers at each DMA's critical point (lowest pressure) and highest node
   for (const d of seed.dmas) {
@@ -314,7 +534,7 @@ export function addNetworkDevices(seed: Seed): void {
     const out = nearestPipe(at, 300)
     if (out) {
       const f = (k: number) => (startAt(out, at) ? k : 1 - k)
-      onPipe('BulkMeter', out, f(0.2), 'Đồng hồ tổng đầu ra NMN Yên Phụ')
+      onPipe('BulkMeter', out, f(0.2), 'Đồng hồ tổng đầu ra NMN Yên Phụ', { plant: true } as never)
       onPipe('QualitySensor', out, f(0.12), 'Trạm đo chất lượng đầu ra NMN', { dn: 15 })
       onPipe('PressureSensor', out, f(0.28), 'Áp lực đầu ra NMN', { dn: 15 })
     }

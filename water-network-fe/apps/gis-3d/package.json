@@ -32,7 +32,8 @@
     "build:e2e": "vite build --mode e2e",
     "build:demo": "vite build --mode demo",
     "e2e:seed": "vite-node scripts/dump-e2e-seed.ts",
-    "test:e2e:3d": "playwright test --config=playwright.3d.config.ts"
+    "test:e2e:3d": "playwright test --config=playwright.3d.config.ts",
+    "demo:hydraulics": "vite-node scripts/solve-demo-hydraulics.ts"
   },
   "dependencies": {
     "@kobalte/core": "^0.13.11",

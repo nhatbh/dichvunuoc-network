@@ -13,7 +13,8 @@ const net: HydraulicInput = {
     pipe('P2', [100, 0], [200, 0]),
     pipe('P3', [100, 0], [100, 100]),
     pipe('P4', [100, 100], [200, 0]),
-    pipe('P5', [200, 0], [300, 0], { noFlow: true }),
+    pipe('P5', [100, 100], [200, 0], { noFlow: true }), // a closed valve on a loop
+    pipe('P7', [200, 0], [300, 0], { noFlow: true }), // closed off: nothing beyond it is supplied
     pipe('P6', [200, 0], [100, 0]), // drawn against the flow
   ],
 }
@@ -24,6 +25,7 @@ describe('epanet-flow', () => {
     expect(inp).toContain('[RESERVOIRS]')
     expect(inp).toMatch(/P5\tClosed/)
     expect(pipeIds).not.toContain('LOOP')
+    expect(pipeIds).not.toContain('P7')
   })
 
   it('solves and reports flow direction relative to the drawn line', async () => {
