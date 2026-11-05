@@ -1,0 +1,37 @@
+{
+  "name": "@wn/component-models",
+  "version": "0.1.0",
+  "description": "Water network component catalog, flat map symbols and procedural 3D models with connection ports. Feeds @wn/map-runtime-3d (deck.gl SimpleMeshLayer / IconLayer) and the 2D map.",
+  "private": false,
+  "type": "module",
+  "license": "UNLICENSED",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./catalog": { "types": "./dist/catalog.d.ts", "import": "./dist/catalog.js" },
+    "./symbols": { "types": "./dist/symbols.d.ts", "import": "./dist/symbols.js" },
+    "./deck": { "types": "./dist/deck.d.ts", "import": "./dist/deck.js" },
+    "./icons/*": "./dist/icons/*"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/icons.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "demo": "node scripts/build-demo.mjs"
+  },
+  "dependencies": {
+    "three": "0.169.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.169.0",
+    "esbuild": "0.24.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

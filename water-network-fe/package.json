@@ -7,6 +7,9 @@
     "gen:gis-seed": "node scripts/gen-gis-seed.mjs",
     "contracts:build": "npm --prefix packages/contracts run build",
     "contracts:test": "npm --prefix packages/contracts run test",
-    "contracts:typecheck": "npm --prefix packages/contracts run typecheck"
+    "contracts:typecheck": "npm --prefix packages/contracts run typecheck",
+    "component-models:build": "npm --prefix packages/component-models run build",
+    "component-models:test": "npm --prefix packages/component-models run test",
+    "component-models:typecheck": "npm --prefix packages/component-models run typecheck"
   }
 }
