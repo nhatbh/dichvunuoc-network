@@ -61,9 +61,11 @@ describe('buildLegacyFullSeed', () => {
     const roots = new Set([...parent.keys()].map(find))
     expect(roots.size).toBe(1)
   })
-  it('ships an asset record for every pipe, valve and hydrant (inspector and search read them)', () => {
+  it('ships an asset record for every pipe, valve, hydrant, node and device (inspector and search read them)', () => {
     const data = parseLegacyGisData(buildLegacyFullSeed()) as GisData
-    expect(data.assets.length).toBe(data.pipes.length + data.valves.length + data.hydrants.length)
+    expect(data.assets.length).toBe(
+      data.pipes.length + data.valves.length + data.hydrants.length + data.nodes.length + data.sourceDevices.length
+    )
     const first = data.pipes[0]!
     const asset = data.assets.find(a => a.id === first.id)!
     expect(asset.type).toBe('pipe')

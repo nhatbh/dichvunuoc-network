@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hostBearing, materialCode, sourceCode, valveCode } from './component-style'
+import { componentScale, deviceCode, hostBearing, materialCode, sourceCode, valveCode } from './component-style'
 
 const identity = (x: number, y: number): [number, number] => [x, y]
 
@@ -12,6 +12,18 @@ describe('component-style', () => {
     expect(materialCode('unknown')).toBeUndefined()
     expect(sourceCode('reservoir')).toBe('Reservoir')
     expect(sourceCode('plant')).toBe('Source')
+    expect(valveCode('isolation')).toBe('GateValve')
+    expect(valveCode('altitude')).toBe('AltitudeValve')
+  })
+
+  it('maps device types to catalog codes and picks the size boost by role', () => {
+    expect(deviceCode('PressureSensor')).toBe('PressureSensor')
+    expect(deviceCode('FlowMeter')).toBe('BulkMeter')
+    expect(deviceCode('flow_meter')).toBe('BulkMeter')
+    expect(deviceCode('Khác')).toBeUndefined()
+    expect(componentScale('BulkMeter', 10, 6)).toBe(10)
+    expect(componentScale('PressureSensor', 10, 6)).toBe(6)
+    expect(componentScale('Tank', 10, 6)).toBe(1)
   })
 
   it('takes the bearing of the nearest pipe segment, clockwise from north', () => {

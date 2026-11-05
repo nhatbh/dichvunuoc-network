@@ -26,7 +26,7 @@ import {
   pipeTube,
   pipeWidth,
 } from './pipe-style'
-import { hostBearing, sourceCode, valveCode } from './component-style'
+import { componentScale, deviceCode, hostBearing, sourceCode, valveCode } from './component-style'
 import {
   gisPixelBboxToExtent,
   gisPixelToLonLat,
@@ -276,7 +276,21 @@ export function NetworkMapOL(props: {
     const ac = SELECTION_COLOR
     return (n): FeatureStyle => {
       const sel = n.__selected
+      const code = deviceCode(n.fitting as string | undefined)
       return {
+        // fittings (tee, bend, reducer, cap…) from the catalog: symbol on the map, model on the pipe up close
+        ...(code
+          ? {
+              component: {
+                code,
+                dn: Number(n.dn) || undefined,
+                bearing: typeof n.bearing === 'number' ? n.bearing : undefined,
+                scale: PIPE_3D_SCALE * (sel ? SELECTED_3D_SCALE : 1),
+                color: sel ? ac : undefined,
+                symbolSize: sel ? 22 : 16,
+              },
+            }
+          : {}),
         image: {
           shape: 'circle',
           radius: sel ? 4.5 : 2.6,
@@ -305,6 +319,38 @@ export function NetworkMapOL(props: {
           stroke: col,
           strokeWidth: 2,
         },
+      }
+      if (sel) style.halo = { color: ac, width: 2 }
+      return style
+    }
+  }
+
+  const DEVICE_STATUS = ['normal', 'warning', 'critical', 'offline'] as const
+  type DeviceStatus = (typeof DEVICE_STATUS)[number]
+  const deviceStatus = (s: unknown): DeviceStatus | undefined =>
+    DEVICE_STATUS.includes(s as DeviceStatus) ? (s as DeviceStatus) : undefined
+
+  const deviceStyle = (): StyleSpec => {
+    const th = theme()
+    const dim = dimAll()
+    const ac = SELECTION_COLOR
+    return (d): FeatureStyle => {
+      const sel = d.__selected
+      const code = deviceCode(d.deviceType as string) ?? 'PressureSensor'
+      const status = deviceStatus(d.status)
+      const col = status === 'critical' ? tone('#D1242F') : status === 'warning' ? tone('#D86C1F') : tone('#13867B')
+      const style: FeatureStyle3D = {
+        component: {
+          code,
+          dn: Number(d.dn) || undefined,
+          bearing: typeof d.bearing === 'number' ? d.bearing : undefined,
+          scale: componentScale(code, PIPE_3D_SCALE, FITTING_3D_SCALE) * (sel ? SELECTED_3D_SCALE : 1),
+          status,
+          color: sel ? ac : undefined,
+          symbolSize: sel ? 28 : 22,
+        },
+        image: { shape: 'circle', radius: 3.6, color: th === 'light' ? '#ffffff' : '#0D1117', stroke: col, strokeWidth: 1.6 },
+        opacity: dim && !sel ? 0.3 : 1,
       }
       if (sel) style.halo = { color: ac, width: 2 }
       return style
@@ -423,7 +469,45 @@ export function NetworkMapOL(props: {
       )
     )
   const buildNode = () =>
-    fc(G.nodes.map(n => pointFeat(n.id, n.x, n.y, { kind: 'node', id: n.id }, projectCoordinate)))
+    fc(
+      G.nodes.map(n => {
+        const extra = n as typeof n & { dn?: number; bearing?: number }
+        return pointFeat(
+          n.id,
+          n.x,
+          n.y,
+          { kind: 'node', id: n.id, fitting: n.kind, dn: extra.dn, bearing: extra.bearing },
+          projectCoordinate
+        )
+      })
+    )
+  /** Network devices that have a catalog model (meters, loggers, PRV stations…); the rest stay on the source layer. */
+  const catalogDevices = () => G.sourceDevices.filter(s => !!deviceCode(s.deviceType))
+  const buildDevice = () =>
+    fc(
+      catalogDevices().map(s => {
+        const extra = s as typeof s & { dn?: number; bearing?: number }
+        return pointFeat(
+          s.id,
+          s.x,
+          s.y,
+          {
+            kind: 'device',
+            id: s.id,
+            deviceType: s.deviceType,
+            status: s.status,
+            dn: extra.dn,
+            bearing:
+              typeof extra.bearing === 'number'
+                ? extra.bearing
+                : s.hostPipeId
+                  ? hostBearing(s, G.pipeBy[s.hostPipeId], projectCoordinate)
+                  : undefined,
+          },
+          projectCoordinate
+        )
+      })
+    )
   const buildConn = () =>
     fc(
       G.connDots.map((c, i) =>
@@ -461,7 +545,7 @@ export function NetworkMapOL(props: {
           projectCoordinate
         )
       ),
-      ...G.sourceDevices.map(s =>
+      ...G.sourceDevices.filter(s => !deviceCode(s.deviceType)).map(s =>
         pointFeat(
           s.id,
           s.x,
@@ -503,6 +587,8 @@ export function NetworkMapOL(props: {
     pushLayer(p, 'valve', !!L().valve, buildValve, valveStyle())
     pushLayer(p, 'hydrant', !!L().hydrant, buildHydrant, hydrantStyle())
     pushLayer(p, 'source', !!L().source, buildSource, sourceStyle())
+    // layer lists without a `device` entry (canonical tenants) show devices with the sources
+    pushLayer(p, 'device', L().device ?? !!L().source, buildDevice, deviceStyle())
   })
 
   // pins layer (always present, possibly empty)
@@ -529,6 +615,7 @@ export function NetworkMapOL(props: {
     p.setLayerStyle('hydrant', hydrantStyle())
     p.setLayerStyle('node', nodeStyle())
     p.setLayerStyle('source', sourceStyle())
+    p.setLayerStyle('device', deviceStyle())
     p.setLayerStyle('dma', dmaStyle())
     p.setLayerStyle('pin', pinStyle())
   })

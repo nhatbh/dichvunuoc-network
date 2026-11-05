@@ -1,7 +1,7 @@
 /* Catalog components (@wn/component-models) for the network's point assets: which catalog
    model each asset uses, its size, and the bearing of the pipe it sits on. The 3D runtime
    draws the flat symbol on the map and the real model up close (FeatureStyle3D.component). */
-import type { FeatureStyle3D } from '@wn/map-runtime-3d'
+import { getCatalogItem, type FeatureStyle3D } from '@wn/map-runtime-3d'
 import type { Pipe } from '../lib/gis-data'
 
 export type ComponentStyle = NonNullable<FeatureStyle3D['component']>
@@ -10,7 +10,10 @@ type Project = (x: number, y: number) => [number, number]
 /** Valve kind (editor / canonical data) → catalog code. */
 const VALVE_CODES: Record<string, string> = {
   gate: 'GateValve',
+  isolation: 'GateValve',
   boundary: 'GateValve',
+  ball: 'BallValve',
+  altitude: 'AltitudeValve',
   butterfly: 'ButterflyValve',
   check: 'CheckValve',
   air: 'AirValve',
@@ -31,6 +34,37 @@ const MATERIAL_CODES: Record<string, string> = {
 }
 export const materialCode = (label: string | undefined): string | undefined =>
   label ? MATERIAL_CODES[label] : undefined
+
+/** Backend / import device types that are not catalog codes already. */
+const DEVICE_ALIASES: Record<string, string> = {
+  flowmeter: 'BulkMeter',
+  meter: 'BulkMeter',
+  bulkmeter: 'BulkMeter',
+  pressuresensor: 'PressureSensor',
+  pressure: 'PressureSensor',
+  logger: 'PressureSensor',
+  levelsensor: 'LevelSensor',
+  qualitysensor: 'QualitySensor',
+  hydrant: 'Hydrant',
+  valve: 'GateValve',
+  pump: 'Pump',
+  tank: 'Tank',
+  reservoir: 'Reservoir',
+}
+/** Device type (catalog code, or a backend / import token) → catalog code; undefined when unknown. */
+export function deviceCode(type: string | undefined): string | undefined {
+  if (!type) return undefined
+  if (getCatalogItem(type)) return type
+  return DEVICE_ALIASES[type.replace(/[^a-z]/gi, '').toLowerCase()]
+}
+
+/** Size boost per role: parts that sit on a pipe follow the tube boost, other devices the fitting boost, sites stay true size. */
+export function componentScale(code: string, pipeScale: number, fittingScale: number): number {
+  const role = getCatalogItem(code)?.role
+  if (role === 'facility') return 1
+  if (role === 'inline' || role === 'node' || role === 'line') return pipeScale
+  return fittingScale
+}
 
 /** Source / plant asset type → catalog code. */
 export const sourceCode = (assetType: string | undefined): string =>

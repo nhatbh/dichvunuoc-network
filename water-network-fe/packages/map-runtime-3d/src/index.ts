@@ -48,3 +48,7 @@ export { BASEMAPS_3D, BASEMAPS_3D as BASEMAPS } from './basemaps/basemaps-3d.js'
 export type { Basemap3DId, Basemap3DId as BasemapId, Basemap3DInfo, Basemap3DInfo as BasemapInfo } from './basemaps/basemaps-3d.js';
 export { createMapInstance, configureMapRuntime3D } from './factory.js';
 export type { MapViewOptions3D, MapRuntime3DConfig } from './factory.js';
+
+// Component catalog (codes, roles, ports, DN ranges) for styles that use `FeatureStyle3D.component`.
+export { CATALOG_ITEMS, COMPONENT_CODES, getCatalogItem } from '@wn/component-models/catalog';
+export type { CatalogItem } from '@wn/component-models/catalog';

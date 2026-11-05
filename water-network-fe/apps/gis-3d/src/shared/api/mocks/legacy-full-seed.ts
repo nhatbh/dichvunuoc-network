@@ -2,6 +2,7 @@ import { LAT0, LON0, M_PER_DEG_LAT, M_PER_DEG_LON, U2M } from '@wn/map-runtime-3
 import legacySeed from './gis-full.json'
 import { buildHanoiNetwork, type HanoiNetwork } from './hanoi-network'
 import { buildOsmNetwork, type OsmData } from './osm-network'
+import { addNetworkDevices, type DemoDevice, type DemoNode } from './network-devices'
 
 // Optional: produced by `node scripts/fetch-osm-hanoi.mjs`. Absent → the synthetic grid is used.
 const osmFiles = import.meta.glob<OsmData>('./osm-hanoi.json', { eager: true, import: 'default' })
@@ -88,6 +89,8 @@ export function buildLegacyFullSeed(source: unknown = hanoiSource()): Record<str
   seed.world = { w, h }
   addFittings(seed)
   addHydraulics(seed)
+  addNetworkDevices(seed as never)
+  addLayers(seed)
   addAssets(seed)
   refreshSummaries(seed)
 
@@ -326,6 +329,8 @@ function refreshSummaries(seed: Seed): void {
     hydrant: count(seed.hydrants),
     conn: count(seed.connDots),
     source: 1 + seed.reservoirs.length + seed.pumps.length,
+    node: count(seed.nodes),
+    device: count(seed.sourceDevices),
   }
   for (const layer of seed.LAYERS as Array<{ id: string; count?: number }>) {
     if (layer.id in counts) layer.count = counts[layer.id]
@@ -377,11 +382,11 @@ function addAssets(seed: Seed): void {
       code: v.code,
       type: 'valve',
       geom: 'point',
-      name: `Van ${v.kind === 'boundary' ? 'biên DMA' : 'khóa'} ${v.code}`,
+      name: `${VALVE_LABELS[v.kind] ?? 'Van khóa'} ${v.code}`,
       dma: v.dma,
       cond: 'good',
       status: v.state === 'closed' ? 'closed' : 'ok',
-      attrs: { 'Đường kính (DN)': v.dn, 'Trạng thái': v.state === 'closed' ? 'Đóng' : 'Mở', 'Năm lắp đặt': v.year },
+      attrs: { 'Loại van': VALVE_LABELS[v.kind] ?? v.kind, 'Đường kính (DN)': v.dn, 'Trạng thái': v.state === 'closed' ? 'Đóng' : 'Mở', 'Năm lắp đặt': v.year },
       geomRef: v,
     })
   }
@@ -399,5 +404,88 @@ function addAssets(seed: Seed): void {
       geomRef: h,
     })
   }
+  for (const n of (seed.nodes as DemoNode[] | undefined) ?? []) {
+    assets.push({
+      id: n.id,
+      code: n.code,
+      type: 'node',
+      geom: 'point',
+      name: `${FITTING_LABELS[n.kind] ?? 'Nút'} ${n.code}`,
+      dma: n.dma,
+      cond: 'good',
+      status: 'ok',
+      attrs: {
+        'Loại phụ kiện': FITTING_LABELS[n.kind] ?? n.kind,
+        'Đường kính (DN)': n.dn2 ? `${n.dn} × ${n.dn2}` : n.dn,
+        'Cao độ (m)': n.z,
+        'Số ống nối': n.pipes.length,
+      },
+      geomRef: n,
+    })
+  }
+  for (const d of (seed.sourceDevices as DemoDevice[] | undefined) ?? []) {
+    assets.push({
+      id: d.id,
+      code: d.code,
+      type: 'device',
+      geom: 'point',
+      name: d.name,
+      dma: d.dma,
+      cond: 'good',
+      status: d.status === 'normal' ? 'ok' : d.status,
+      attrs: {
+        'Loại thiết bị': d.deviceType,
+        ...(d.dn ? { 'Đường kính (DN)': d.dn } : {}),
+        'Trạng thái': DEVICE_STATUS_LABELS[d.status],
+        ...(d.hostPipeId ? { 'Ống': d.hostPipeId } : {}),
+        ...(d.hostNodeId ? { 'Nút': d.hostNodeId } : {}),
+      },
+      geomRef: d,
+    })
+  }
   seed.assets = assets
+}
+
+const VALVE_LABELS: Record<string, string> = {
+  boundary: 'Van biên DMA',
+  isolation: 'Van khóa',
+  gate: 'Van cửa',
+  butterfly: 'Van bướm',
+  check: 'Van một chiều',
+  prv: 'Van giảm áp',
+  psv: 'Van duy trì áp',
+  fcv: 'Van điều tiết lưu lượng',
+  altitude: 'Van phao',
+  air: 'Van xả khí',
+  washout: 'Van xả cặn',
+}
+const FITTING_LABELS: Record<string, string> = {
+  Junction: 'Điểm nối',
+  Tee: 'Tê đều',
+  ReducingTee: 'Tê thu',
+  Cross: 'Thập',
+  Bend: 'Cút',
+  Reducer: 'Côn thu',
+  Cap: 'Bịt đầu',
+  Coupling: 'Măng sông',
+  Transition: 'Khớp nối chuyển đổi',
+}
+const DEVICE_STATUS_LABELS: Record<DemoDevice['status'], string> = {
+  normal: 'Bình thường',
+  warning: 'Ngoài ngưỡng nền',
+  critical: 'Vượt giới hạn',
+  offline: 'Mất dữ liệu',
+}
+
+/** Layer list for the generated network: devices get their own layer; hydrants are shown by default. */
+function addLayers(seed: Seed): void {
+  const layers = seed.LAYERS as Array<{ id: string; label: string; grp: string; on: boolean; count?: number }>
+  const hydrant = layers.find((l) => l.id === 'hydrant')
+  if (hydrant) hydrant.on = true
+  if (!layers.some((l) => l.id === 'device')) {
+    const at = layers.findIndex((l) => l.id === 'source')
+    layers.splice(at < 0 ? layers.length : at + 1, 0, { id: 'device', label: 'Thiết bị đo & điều khiển', grp: 'Tài sản', on: true })
+  }
+  const types = seed.ASSET_TYPES as Record<string, unknown> | undefined
+  if (types && !types.device) types.device = { label: 'Thiết bị mạng lưới', geom: 'point', icon: 'IcNode', col: '#13867B' }
 }
