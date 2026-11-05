@@ -54,7 +54,7 @@ if ($classes -notmatch "(?m)ingressclass[^/]*/$IngressClass\s*$") {
 
 if (-not $SkipBuild) {
     Step 'Building shared packages'
-    foreach ($pkg in 'contracts', 'map-runtime', 'map-runtime-3d') {
+    foreach ($pkg in 'contracts', 'component-models', 'map-runtime', 'map-runtime-3d') {
         Push-Location (Join-Path $feDir "packages\$pkg")
         try {
             Write-Host "-- packages\$pkg"
