@@ -16,6 +16,7 @@ import { toGeoPoint, toMapPoint } from '@wn/map-runtime';
 import type { ContextMenuEvent } from '../port/map-engine-3d-port.js';
 import { IconAtlas } from '../layers/icon-atlas.js';
 import { buildFlowDashLayer, buildFlowLayer, buildDeckLayers, type LayerEntry } from '../layers/build-deck-layers.js';
+import { componentModelsLoaded, loadComponentModels } from '../layers/components.js';
 import { computeDashes, computeParticles, type FlowDatum } from '../layers/flow.js';
 import type { Layer } from '@deck.gl/core';
 import { MODE_2D_CAMERA, MODE_3D_CAMERA, type Camera3D, type CameraChangeListener, type CameraOptions, type Map3DPort, type TerrainOptions } from '../port/map-engine-3d-port.js';
@@ -570,6 +571,10 @@ export class MapEngine3D implements Map3DPort {
     const cam = this.#host.getCamera();
     this.#solids = this.#solidsActive(cam.pitch, this.#host.getView().zoom);
     this.#staticLayers = buildDeckLayers(entries, this.#atlas.snapshot(), { solids: this.#solids });
+    // first time catalog components are seen up close: load their 3D models, then redraw
+    if (this.#solids && !componentModelsLoaded() && prepared.some((p) => p.data.components.length > 0)) {
+      loadComponentModels().then(() => this.#requestRender(), () => undefined);
+    }
     this.#flows = prepared.flatMap((p) => p.data.flows);
     // Redraw the current flow frame together with the new static layers. Pushing the static layers
     // alone would drop the flow layer until the next tick, so anything that re-renders (e.g. the

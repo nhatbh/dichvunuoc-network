@@ -26,6 +26,7 @@ import {
   pipeTube,
   pipeWidth,
 } from './pipe-style'
+import { hostBearing, sourceCode, valveCode } from './component-style'
 import {
   gisPixelBboxToExtent,
   gisPixelToLonLat,
@@ -214,6 +215,15 @@ export function NetworkMapOL(props: {
       // body sized from the pipe it sits on (same boost as the tube), so it reads as a valve on that pipe
       const dnM = (Math.max(Number(v.dn) || 100, 50) / 1000) * PIPE_3D_SCALE
       const style: FeatureStyle3D = {
+        // catalog valve: flat symbol on the map, real valve body on its pipe up close (box until it loads)
+        component: {
+          code: valveCode(kind),
+          dn: Math.max(Number(v.dn) || 100, 50),
+          bearing: typeof v.bearing === 'number' ? v.bearing : undefined,
+          scale: PIPE_3D_SCALE * (sel ? SELECTED_3D_SCALE : 1),
+          status: closed ? 'critical' : undefined,
+          color: sel ? ac : undefined,
+        },
         solid: {
           shape: 'box',
           size: sel ? [dnM * 1.5 * SELECTED_3D_SCALE, dnM * 1.5 * SELECTED_3D_SCALE, dnM * 1.5 * SELECTED_3D_SCALE] : [dnM * 1.5, dnM * 1.5, dnM * 1.5],
@@ -242,6 +252,12 @@ export function NetworkMapOL(props: {
       const fault = (h.status as string) === 'fault'
       const col = fault ? tone('#D86C1F') : tone('#D1242F')
       const style: FeatureStyle3D = {
+        component: {
+          code: 'Hydrant',
+          scale: FITTING_3D_SCALE * k,
+          status: fault ? 'critical' : 'normal',
+          color: sel ? ac : undefined,
+        },
         solid: {
           shape: 'cylinder',
           size: [0.3 * FITTING_3D_SCALE * k, 0.3 * FITTING_3D_SCALE * k, 0.9 * FITTING_3D_SCALE * k],
@@ -280,7 +296,8 @@ export function NetworkMapOL(props: {
       const at = s.assetType as string
       const col =
         at === 'plant' ? tone('#0E7C86') : at === 'reservoir' ? tone('#1A7F37') : tone('#D86C1F')
-      const style: FeatureStyle = {
+      const style: FeatureStyle3D = {
+        component: { code: sourceCode(at), symbolSize: 30, color: sel ? ac : undefined },
         image: {
           shape: at === 'pump' ? 'circle' : 'square',
           radius: at === 'pump' ? 7 : 9,
@@ -298,7 +315,9 @@ export function NetworkMapOL(props: {
     const th = theme()
     const dim = dimAll()
     return (): FeatureStyle3D => ({
-      // water-meter block on the service connection
+      // customer meter up close; the map keeps its small dot (thousands of connections)
+      component: { code: 'CustomerMeter', scale: FITTING_3D_SCALE, symbol: false },
+      // water-meter block on the service connection (stand-in until the models load)
       solid: {
         shape: 'box',
         size: [0.4 * FITTING_3D_SCALE, 0.3 * FITTING_3D_SCALE, 0.25 * FITTING_3D_SCALE],
@@ -379,7 +398,14 @@ export function NetworkMapOL(props: {
           v.id,
           v.x,
           v.y,
-          { kind: 'valve', id: v.id, vkind: v.kind, state: v.state, dn: v.dn },
+          {
+            kind: 'valve',
+            id: v.id,
+            vkind: v.kind,
+            state: v.state,
+            dn: v.dn,
+            bearing: hostBearing(v, G.pipeBy[v.pipe], projectCoordinate),
+          },
           projectCoordinate
         )
       )

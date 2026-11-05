@@ -3,6 +3,7 @@ import { PathStyleExtension } from '@deck.gl/extensions';
 import { SimpleMeshLayer } from '@deck.gl/mesh-layers';
 import type { Layer } from '@deck.gl/core';
 import { boxMesh, cylinderMesh, sphereMesh } from './meshes.js';
+import { buildComponentLayers, buildSymbolLayers, componentModelsLoaded } from './components.js';
 import type { AtlasSnapshot } from './icon-atlas.js';
 import type { ColumnDatum, LineDatum, MeshDatum, PreparedLayer, SolidDatum, TextDatum } from './prepare-layer.js';
 
@@ -161,9 +162,13 @@ export function buildDeckLayers(entries: LayerEntry[], atlas: AtlasSnapshot, opt
       const m = meshes();
       out.push(...meshLayer(`${id}:tube`, data.tubes, m.cylinder, pickable));
       out.push(...meshLayer(`${id}:joint`, data.joints, m.sphere, pickable));
+      // catalog components replace their stand-in solids once the 3D models have loaded
+      const models = componentModelsLoaded();
+      const solids = models ? data.solids.filter((s: SolidDatum) => !s.componentFallback) : data.solids;
       for (const shape of ['box', 'cylinder', 'sphere'] as const) {
-        out.push(...meshLayer(`${id}:solid-${shape}`, data.solids.filter((s: SolidDatum) => s.shape === shape), m[shape], pickable));
+        out.push(...meshLayer(`${id}:solid-${shape}`, solids.filter((s: SolidDatum) => s.shape === shape), m[shape], pickable));
       }
+      out.push(...buildComponentLayers(id, data.components, pickable));
     }
     if (data.pointHalos.length) {
       out.push(
@@ -200,6 +205,12 @@ export function buildDeckLayers(entries: LayerEntry[], atlas: AtlasSnapshot, opt
           updateTriggers: { getIcon: atlas.version },
         } as never),
       );
+    }
+    // flat symbols: always when the map is flat; with solids only while the 3D models are still loading
+    if (!showSolids) out.push(...buildSymbolLayers(id, data.symbols, pickable));
+    else if (!componentModelsLoaded()) {
+      const covered = new Set(data.solids.filter((s: SolidDatum) => s.componentFallback).map((s) => s.fid));
+      out.push(...buildSymbolLayers(id, data.symbols.filter((s) => !covered.has(s.fid)), pickable));
     }
     out.push(...columnLayers(id, data.columns, pickable));
     if (solid.length) {

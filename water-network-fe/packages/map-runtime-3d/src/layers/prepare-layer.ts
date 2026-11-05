@@ -72,6 +72,34 @@ export interface MeshDatum {
 }
 export interface SolidDatum extends MeshDatum {
   shape: 'box' | 'cylinder' | 'sphere';
+  /** Stand-in for a catalog component: hidden once the component models have loaded. */
+  componentFallback?: boolean;
+}
+/** A catalog component instance (`style.component`), drawn as a 3D model when solids are shown. */
+export interface ComponentDatum {
+  fid: string;
+  position: Pos3;
+  code: string;
+  dn?: number;
+  material?: string;
+  /** Degrees clockwise from north of the A to B axis. */
+  bearing: number;
+  scale: number;
+  status?: 'normal' | 'warning' | 'critical' | 'offline';
+  /** Whole-model tint; white keeps the model's own colours. */
+  color: RGBA;
+}
+/** A catalog component's flat symbol. */
+export interface SymbolDatum {
+  fid: string;
+  position: Pos3;
+  code: string;
+  status?: 'normal' | 'warning' | 'critical' | 'offline';
+  /** CSS px. */
+  size: number;
+  /** IconLayer angle, degrees counter-clockwise; only used for pipe-aligned symbols. */
+  angle: number;
+  opacity: number;
 }
 
 export interface PreparedLayer {
@@ -79,6 +107,8 @@ export interface PreparedLayer {
   tubes: MeshDatum[];
   joints: MeshDatum[];
   solids: SolidDatum[];
+  components: ComponentDatum[];
+  symbols: SymbolDatum[];
   flows: FlowDatum[];
   halos: LineDatum[];
   lines: LineDatum[];
@@ -111,7 +141,7 @@ function parseFont(font: string | undefined): { size: number; family: string } {
 }
 
 export function emptyPrepared(): PreparedLayer {
-  return { tubes: [], joints: [], solids: [], flows: [], halos: [], lines: [], polygons: [], pointHalos: [], points: [], texts: [], columns: [] };
+  return { tubes: [], joints: [], solids: [], components: [], symbols: [], flows: [], halos: [], lines: [], polygons: [], pointHalos: [], points: [], texts: [], columns: [] };
 }
 
 function dashPx(dash: number[] | undefined): [number, number] | undefined {
@@ -189,9 +219,20 @@ function addGeometry(
 function addPoint(out: PreparedLayer, fid: string, c: Position, style: FeatureStyle3D, ctx: PrepareContext, op: number, elevation: number): void {
   const position = lift(ctx, c, elevation);
   const im = style.image;
-  if (im) {
+  const comp = style.component;
+  const useSymbol = !!comp && comp.symbol !== false;
+  if (comp) {
+    const bearing = comp.bearing ?? 0;
+    out.components.push({
+      fid, position, code: comp.code, dn: comp.dn, material: comp.material, bearing,
+      scale: comp.scale ?? 1, status: comp.status,
+      color: comp.color ? parseColor(comp.color, op) : [255, 255, 255, Math.round(255 * op)],
+    });
+    if (useSymbol) out.symbols.push({ fid, position, code: comp.code, status: comp.status, size: comp.symbolSize ?? 26, angle: 90 - bearing, opacity: op });
+  }
+  if (im && !useSymbol) {
     const { key, entry } = ctx.atlas.get(im, op);
-    out.points.push({ fid, position, iconKey: key, iconSize: entry.size, solid: !!style.solid });
+    out.points.push({ fid, position, iconKey: key, iconSize: entry.size, solid: !!style.solid || !!comp });
   }
   if (style.solid) {
     const [w, d, h] = style.solid.size;
@@ -200,7 +241,7 @@ function addPoint(out: PreparedLayer, fid: string, c: Position, style: FeatureSt
     const matrix =
       shape === 'sphere' ? scaleMatrix(w / 2, d / 2, h / 2) : shape === 'cylinder' ? alongMatrix([0, 0, h], w / 2) : scaleMatrix(w, d, h);
     const anchor: Pos3 = shape === 'sphere' ? [position[0], position[1], position[2] + h / 2] : position;
-    out.solids.push({ fid, position: anchor, matrix, color, shape });
+    out.solids.push({ fid, position: anchor, matrix, color, shape, componentFallback: !!comp });
   }
   if (style.halo) {
     const w = style.halo.width ?? 2;

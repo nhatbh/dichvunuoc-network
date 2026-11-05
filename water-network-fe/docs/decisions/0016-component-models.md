@@ -4,7 +4,7 @@ Date: 2026-11-06
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -55,6 +55,8 @@ Tradeoffs:
 ## Follow-Up
 
 - Move catalog codes and port rules into `@wn/contracts`; re-export from this package.
-- Map gis-be feature types and DN to catalog codes in `prepare-layer.ts`.
-- Wire `/deck` meshes and symbols into `buildDeckLayers` behind `solids`.
+- Done: `FeatureStyle3D.component` in map-runtime-3d (symbols on the flat map, models behind
+  `solids`, `/deck` loaded on first use with the old solids as stand-ins); gis-3d maps valves,
+  hydrants, service connections and sources to catalog codes (`ui/component-style.ts`).
+- Map the remaining canonical gis-be device types (meters, sensors, PRVs) once they reach the map.
 - Bind the status part to observation-be readings.

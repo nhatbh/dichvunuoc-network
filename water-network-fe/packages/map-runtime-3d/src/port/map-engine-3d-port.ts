@@ -60,6 +60,32 @@ export interface FeatureStyle3D extends FeatureStyle {
     size: [number, number, number];
     color?: string;
   };
+  /**
+   * Draw a Point as a catalog component from `@wn/component-models`: its flat map symbol
+   * when the map is flat or zoomed out, and its real 3D model (valve body, hydrant, meter…)
+   * when solids are shown. The 3D models load on first use; until then `solid` / `image`
+   * are drawn as before, so keep them as the fallback.
+   */
+  component?: {
+    /** Catalog code, e.g. `GateValve`, `Hydrant`, `BulkMeter` (see `@wn/component-models/catalog`). */
+    code: string;
+    /** Nominal diameter in mm (default: the catalog default for the code). */
+    dn?: number;
+    /** Body material code: `DuctileIron`, `HDPE`, `PVC`, `Steel`, `CastIron`, `Concrete`. */
+    material?: string;
+    /** Compass bearing (degrees clockwise from north) of the host pipe, A to B. In-line devices and pipe-aligned symbols turn to it. */
+    bearing?: number;
+    /** Size multiplier over true size (match the tube boost, e.g. PIPE_3D_SCALE). Default 1. */
+    scale?: number;
+    /** Live state: colours the model's status part and the symbol's ring. */
+    status?: 'normal' | 'warning' | 'critical' | 'offline';
+    /** Tint the whole model (e.g. the selection colour). Default: the model's own colours. */
+    color?: string;
+    /** Draw the catalog symbol instead of `image` in flat mode (default true). */
+    symbol?: boolean;
+    /** Symbol size in CSS px (default 26). */
+    symbolSize?: number;
+  };
   /** Lift the whole feature this many metres above the ground / terrain. */
   elevation?: number;
   /** Extrude a point into a prism (metres) or a polygon into a building-like block. */

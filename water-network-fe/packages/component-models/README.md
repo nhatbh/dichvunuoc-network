@@ -99,5 +99,8 @@ The demo viewer uses these.
 ## Open items
 
 - Move the catalog codes and port rules to `@wn/contracts` once agreed with the backend, and re-export them here.
-- Map gis-be features (device type, node kind, material, DN) to catalog codes in `prepare-layer.ts`.
-- Wire `/deck` into `buildDeckLayers` behind the existing `solids` flag.
+- Map the remaining gis-be device types (meters, sensors, PRVs) to catalog codes in gis-3d.
+
+`@wn/map-runtime-3d` already consumes this package: a style returning
+`component: { code, dn, bearing, scale, status }` gets the catalog symbol on the flat map and the
+3D model up close (see `FeatureStyle3D.component`).
