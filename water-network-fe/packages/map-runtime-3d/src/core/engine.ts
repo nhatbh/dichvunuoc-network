@@ -17,7 +17,7 @@ import type { ContextMenuEvent } from '../port/map-engine-3d-port.js';
 import { IconAtlas } from '../layers/icon-atlas.js';
 import { buildFlowArrowLayer, buildFlowDashLayer, buildFlowLayer, buildDeckLayers, type LayerEntry } from '../layers/build-deck-layers.js';
 import { componentModelsLoaded, loadComponentModels } from '../layers/components.js';
-import { computeArrows, computeDashes, computeParticles, type FlowDatum } from '../layers/flow.js';
+import { buildArrowInstances, computeDashes, computeParticles, type ArrowInstance, type FlowDatum } from '../layers/flow.js';
 import type { Layer } from '@deck.gl/core';
 import { MODE_2D_CAMERA, MODE_3D_CAMERA, type Camera3D, type CameraChangeListener, type CameraOptions, type Map3DPort, type TerrainOptions } from '../port/map-engine-3d-port.js';
 import type { HostPointerEvent, MapHost, PickResult } from '../port/map-host.js';
@@ -44,7 +44,6 @@ const FLOW_MAX_PARTICLES = 40_000;
 const FLOW_DASH_PERIOD_PX = 18;
 const FLOW_DASH_PX = 9;
 const FLOW_MAX_DASH_SEGMENTS = 60_000;
-const FLOW_MAX_ARROWS = 12_000;
 
 const LAYER_PREFIX = 'L/';
 const OVERLAY_PREFIX = 'overlay/';
@@ -104,7 +103,13 @@ export class MapEngine3D implements Map3DPort {
   #staticLayers: Layer[] = [];
   #flowRaf = 0;
   #flowLast = 0;
+  #flowLastDraw = 0;
   #flowStart = 0;
+  /** Distance travelled (m) by water of relative speed 1 so far: advanced at the zoom of each frame, so zooming never makes the arrows jump. */
+  #flowDist = 0;
+  /** 3D: solids are built only inside this padded view box; leaving it triggers a rebuild. */
+  #cullBox: Extent | null = null;
+  #arrows: { flows: FlowDatum[]; box: Extent | null; list: ArrowInstance[] } | null = null;
   #lastPointer: HostPointerEvent | null = null;
 
   constructor(host: MapHost, config: EngineConfig = {}) {
@@ -139,6 +144,7 @@ export class MapEngine3D implements Map3DPort {
       this.#host.onCameraChange((cam, zoom) => {
         this.#cameraSubs.forEach((cb) => cb(cam, zoom));
         if (this.#solidsActive(cam.pitch, zoom) !== this.#solids) this.#requestRender();
+        else if (this.#solids && this.#cullStale()) this.#requestRender();
       }),
       this.#host.onTerrainChange(() => {
         if (!this.#terrain.enabled || this.#terrainTimer) return;
@@ -571,7 +577,8 @@ export class MapEngine3D implements Map3DPort {
     });
     const cam = this.#host.getCamera();
     this.#solids = this.#solidsActive(cam.pitch, this.#host.getView().zoom);
-    this.#staticLayers = buildDeckLayers(entries, this.#atlas.snapshot(), { solids: this.#solids });
+    if (this.#solids && (!this.#cullBox || this.#cullStale())) this.#cullBox = this.#paddedView();
+    this.#staticLayers = buildDeckLayers(entries, this.#atlas.snapshot(), { solids: this.#solids, cull: this.#solids ? this.#cullBox : null });
     // first time catalog components are seen up close: load their 3D models, then redraw
     if (this.#solids && !componentModelsLoaded() && prepared.some((p) => p.data.components.length > 0)) {
       loadComponentModels().then(() => this.#requestRender(), () => undefined);
@@ -632,6 +639,10 @@ export class MapEngine3D implements Map3DPort {
     const view = this.#host.getView();
     const metresPerPx = (156543.03392 * Math.cos((view.center.lat * Math.PI) / 180)) / 2 ** view.zoom;
     const time = (now - this.#flowStart) / 1000;
+    // advance the shared flow distance at this frame's zoom (constant on-screen speed, no jump when zooming)
+    const dt = this.#flowLastDraw ? Math.min(Math.max((now - this.#flowLastDraw) / 1000, 0), 0.25) : 0;
+    this.#flowLastDraw = now;
+    this.#flowDist += dt * FLOW_PX_PER_SEC_PER_MPS * metresPerPx;
     if (!this.#solids) {
       // Flat pipes: sliding dashes (a dot would be wider than the stroke).
       const dashes = computeDashes(this.#flows, {
@@ -646,25 +657,46 @@ export class MapEngine3D implements Map3DPort {
       this.#host.setLayers([...this.#staticLayers, ...buildFlowDashLayer(dashes)]);
       return;
     }
-    // 3D: arrows on the four sides of every tube; a pipe drawn without a tube keeps its particles
-    const view2 = this.#host.getVisibleBbox();
-    const arrows = computeArrows(this.#flows, { time, metresPerPx, pxPerSecPerMps: FLOW_PX_PER_SEC_PER_MPS, view: view2, maxArrows: FLOW_MAX_ARROWS });
+    // 3D: arrows on the four sides of every tube, built once per network / view box and moved on the GPU
+    if (!this.#arrows || this.#arrows.flows !== this.#flows || this.#arrows.box !== this.#cullBox) {
+      this.#arrows = { flows: this.#flows, box: this.#cullBox, list: buildArrowInstances(this.#flows, this.#cullBox) };
+    }
+    // a pipe drawn without a tube keeps its particles
     const untubed = this.#flows.filter((f) => f.radiusM <= 0);
-    const particles = computeParticles(untubed, {
-      time,
-      metresPerPx,
-      pxPerSecPerMps: FLOW_PX_PER_SEC_PER_MPS,
-      spacingPx: FLOW_SPACING_PX,
-      view: view2,
-      solids: this.#solids,
-      maxParticles: FLOW_MAX_PARTICLES,
-      tail: [0],
-    });
-    this.#host.setLayers([...this.#staticLayers, ...buildFlowArrowLayer(arrows), ...buildFlowLayer(particles)]);
+    const particles = untubed.length
+      ? computeParticles(untubed, {
+          time,
+          metresPerPx,
+          pxPerSecPerMps: FLOW_PX_PER_SEC_PER_MPS,
+          spacingPx: FLOW_SPACING_PX,
+          view: this.#host.getVisibleBbox(),
+          solids: this.#solids,
+          maxParticles: FLOW_MAX_PARTICLES,
+          tail: [0],
+        })
+      : null;
+    this.#host.setLayers([...this.#staticLayers, ...buildFlowArrowLayer(this.#arrows.list, this.#flowDist), ...(particles ? buildFlowLayer(particles) : [])]);
   }
   /** Test hook: draw one flow frame at `seconds` after start. */
   drawFlowFrameForTest(seconds: number): void {
     this.#drawFlow(this.#flowStart + seconds * 1000);
+  }
+
+  /** The visible box grown by its own size on every side (3× wide and tall). */
+  #paddedView(): Extent {
+    const v = this.#host.getVisibleBbox();
+    const w = v[2] - v[0];
+    const h = v[3] - v[1];
+    return [v[0] - w, v[1] - h, v[2] + w, v[3] + h];
+  }
+  /** The view has left the cull box, or zoomed out so far that the box no longer covers it with margin. */
+  #cullStale(): boolean {
+    const b = this.#cullBox;
+    if (!b) return true;
+    const v = this.#host.getVisibleBbox();
+    if (v[0] < b[0] || v[1] < b[1] || v[2] > b[2] || v[3] > b[3]) return true;
+    // zoomed in a lot: shrink the box so far-away solids stop being drawn
+    return (v[2] - v[0]) * 6 < b[2] - b[0];
   }
 
   /** Tubes / solids replace flat strokes only when tilted and close enough to see them. */

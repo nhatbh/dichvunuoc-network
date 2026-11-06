@@ -219,97 +219,91 @@ export function computeDashes(flows: FlowDatum[], p: DashParams): FlowDashes {
   return { count: n, sources, targets, colors, widths };
 }
 
-export interface ArrowParams {
-  time: number;
-  metresPerPx: number;
-  pxPerSecPerMps: number;
-  view: [number, number, number, number] | null;
-  maxArrows: number;
-}
-
-export interface FlowArrows {
-  count: number;
-  /** Anchor on the tube axis (lon, lat, z) per arrow. */
-  positions: Float64Array;
-  /** Column-major 4×4 per arrow: maps the unit arrow mesh (pointing +X, on the +Z face of a unit cylinder) onto its side of the tube. */
-  matrices: Float32Array;
-  colors: Uint8ClampedArray;
-}
-
 /** Arrows around a tube: top, right, bottom, left. */
 export const ARROW_SIDES = 4;
-/** Gap between arrow rings, in tube diameters. */
+/** Gap between arrow rings, in tube diameters (never less than ARROW_MIN_GAP_M). */
 const ARROW_GAP_DIAMETERS = 6;
-/** …and never closer than this on screen, so thin pipes far away do not turn into dashed lines. */
-const ARROW_MIN_GAP_PX = 56;
+const ARROW_MIN_GAP_M = 4;
 /** Arrow length along the pipe, in tube radii (the mesh spans x ∈ [-0.5, 0.5]). */
 const ARROW_LENGTH_RADII = 2.2;
 const M_PER_DEG = 111_320;
 
+/** One arrow on a tube (see FlowArrowLayer): anchor at the upstream end of its segment, frame, and its phase. */
+export interface ArrowInstance {
+  position: [number, number, number];
+  /** Column-major 4×4: maps the unit arrow mesh (pointing +X, on the +Z face of a unit cylinder) onto its side of the tube. */
+  matrix: number[];
+  color: [number, number, number, number];
+  /** [offset at time 0 (m), loop length (m), relative speed, usable segment length (m)]. */
+  flow: [number, number, number, number];
+}
+
+/** Bbox [minLon, minLat, maxLon, maxLat] overlap. */
+const overlaps = (a: readonly number[], b: readonly number[] | null): boolean => !b || !(a[2]! < b[0]! || a[0]! > b[2]! || a[3]! < b[1]! || a[1]! > b[3]!);
+
 /**
- * 3D flow: rings of four arrows (top, right, bottom, left) sliding along each tube in the flow
- * direction, at a speed set by the water velocity. Only tubed pipes (radiusM > 0) get arrows. Pure.
+ * Arrow instances for every tubed flow (radiusM > 0), four per station (top, right, bottom, left),
+ * stations spaced a few tube diameters apart along each straight segment. Built once per network or
+ * view change; the motion is done on the GPU by advancing a time uniform (FlowArrowLayer), so the
+ * arrows of a segment loop along it at `speedMps`. Only segments overlapping `cull` are kept. Pure.
  */
-export function computeArrows(flows: FlowDatum[], p: ArrowParams): FlowArrows {
-  const cap = p.maxArrows;
-  const positions = new Float64Array(cap * 3);
-  const matrices = new Float32Array(cap * 16);
-  const colors = new Uint8ClampedArray(cap * 4);
-  let n = 0;
+export function buildArrowInstances(flows: FlowDatum[], cull: readonly number[] | null = null): ArrowInstance[] {
+  const out: ArrowInstance[] = [];
   for (const f of flows) {
-    if (f.radiusM <= 0 || !inView(f.bbox, p.view)) continue;
+    if (f.radiusM <= 0 || f.speedMps <= 0 || !overlaps(f.bbox, cull)) continue;
     const r = f.radiusM;
-    const spacing = 2 ** Math.round(Math.log2(Math.max(r * 2 * ARROW_GAP_DIAMETERS, ARROW_MIN_GAP_PX * p.metresPerPx, 0.5)));
+    const spacing = 2 ** Math.round(Math.log2(Math.max(r * 2 * ARROW_GAP_DIAMETERS, ARROW_MIN_GAP_M)));
     const len = r * ARROW_LENGTH_RADII;
-    // keep arrows clear of the flanges at both ends
-    const margin = Math.max(r * 1.6, 0.2) + len / 2;
-    if (f.total < 2 * margin + 0.01) continue;
-    const groundSpeed = f.speedMps * p.pxPerSecPerMps * p.metresPerPx;
-    const base = (p.time * groundSpeed + hash(f.fid) * spacing) % spacing;
-    const count = Math.ceil(f.total / spacing) + 1;
-    let seg = 0;
-    for (let k = 0; k < count; k++) {
-      const along = k * spacing + base;
-      if (along < margin || along > f.total - margin) continue;
-      const s = f.dir === 1 ? along : f.total - along;
-      const q = pointAt(f, s, seg);
-      seg = q.seg;
-      // unit flow direction in metres (east, north, up)
-      const a = f.path[q.seg]!;
-      const b = f.path[q.seg + 1]!;
-      const lat = ((a[1] + b[1]) / 2) * (Math.PI / 180);
-      let dx = (b[0] - a[0]) * Math.cos(lat) * M_PER_DEG * f.dir;
-      let dy = (b[1] - a[1]) * M_PER_DEG * f.dir;
-      let dz = (b[2] - a[2]) * f.dir;
-      const dl = Math.hypot(dx, dy, dz) || 1;
-      dx /= dl;
-      dy /= dl;
-      dz /= dl;
+    // keep clear of the flanges at both ends of the pipe
+    const endGap = Math.max(r * 1.6, 0.2) + len / 2;
+    const n = f.path.length;
+    for (let j = 0; j < n - 1; j++) {
+      // walk the segments in flow order
+      const i = f.dir === 1 ? j : n - 2 - j;
+      const a0 = f.dir === 1 ? f.path[i]! : f.path[i + 1]!;
+      const b0 = f.dir === 1 ? f.path[i + 1]! : f.path[i]!;
+      if (cull && (Math.max(a0[0], b0[0]) < cull[0]! || Math.min(a0[0], b0[0]) > cull[2]! || Math.max(a0[1], b0[1]) < cull[1]! || Math.min(a0[1], b0[1]) > cull[3]!)) continue;
+      const lat = ((a0[1] + b0[1]) / 2) * (Math.PI / 180);
+      const kx = Math.cos(lat) * M_PER_DEG;
+      let dx = (b0[0] - a0[0]) * kx;
+      let dy = (b0[1] - a0[1]) * M_PER_DEG;
+      let dz = b0[2] - a0[2];
+      const segLen = Math.hypot(dx, dy, dz);
+      const startGap = j === 0 ? endGap : len / 2;
+      const stopGap = j === n - 2 ? endGap : len / 2;
+      const usable = segLen - startGap - stopGap;
+      if (usable < len * 0.8) continue;
+      dx /= segLen;
+      dy /= segLen;
+      dz /= segLen;
       // frame around the pipe: `up` (top of the tube) and `side` (right of the flow)
-      let sx = dy, sy = -dx, sz = 0; // horizontal right-hand side
-      const sl = Math.hypot(sx, sy) || 1;
-      sx /= sl;
-      sy /= sl;
-      if (Math.hypot(dx, dy) < 1e-3) [sx, sy, sz] = [1, 0, 0];
+      let sx = dy, sy = -dx, sz = 0;
+      const sl = Math.hypot(sx, sy);
+      if (sl < 1e-3) [sx, sy, sz] = [1, 0, 0];
+      else {
+        sx /= sl;
+        sy /= sl;
+      }
       const ux = sy * dz - sz * dy;
       const uy = sz * dx - sx * dz;
       const uz = sx * dy - sy * dx;
-      for (let side = 0; side < ARROW_SIDES; side++) {
-        if (n >= cap) return { count: n, positions, matrices, colors };
-        const th = (side / ARROW_SIDES) * Math.PI * 2;
-        const c = Math.cos(th);
-        const sn = Math.sin(th);
-        // radial (mesh +Z) and tangential (mesh +Y) directions for this side
-        const rx = ux * c + sx * sn, ry = uy * c + sy * sn, rz = uz * c + sz * sn;
-        const tx = -ux * sn + sx * c, ty = -uy * sn + sy * c, tz = -uz * sn + sz * c;
-        positions[n * 3] = q.x;
-        positions[n * 3 + 1] = q.y;
-        positions[n * 3 + 2] = q.z + r; // tubes rest on the ground: the axis is one radius up
-        matrices.set([dx * len, dy * len, dz * len, 0, tx * r, ty * r, tz * r, 0, rx * r, ry * r, rz * r, 0, 0, 0, 0, 1], n * 16);
-        colors.set(f.arrowColor, n * 4);
-        n++;
+      // anchor: the axis point where arrows enter the segment (tubes rest on the ground: axis one radius up)
+      const position: [number, number, number] = [a0[0] + (dx * startGap) / kx, a0[1] + (dy * startGap) / M_PER_DEG, a0[2] + dz * startGap + r];
+      const count = Math.max(1, Math.ceil(usable / spacing));
+      const loop = count * spacing;
+      const phase = hash(f.fid + i) * spacing;
+      for (let k = 0; k < count; k++) {
+        const flow: [number, number, number, number] = [k * spacing + phase, loop, f.speedMps, usable];
+        for (let side = 0; side < ARROW_SIDES; side++) {
+          const th = (side / ARROW_SIDES) * Math.PI * 2;
+          const c = Math.cos(th);
+          const sn = Math.sin(th);
+          const rx = ux * c + sx * sn, ry = uy * c + sy * sn, rz = uz * c + sz * sn;
+          const tx = -ux * sn + sx * c, ty = -uy * sn + sy * c, tz = -uz * sn + sz * c;
+          out.push({ position, matrix: [dx * len, dy * len, dz * len, 0, tx * r, ty * r, tz * r, 0, rx * r, ry * r, rz * r, 0, 0, 0, 0, 1], color: f.arrowColor, flow });
+        }
       }
     }
   }
-  return { count: n, positions, matrices, colors };
+  return out;
 }

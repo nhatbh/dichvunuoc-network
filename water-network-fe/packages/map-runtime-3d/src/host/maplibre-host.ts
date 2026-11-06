@@ -87,8 +87,13 @@ export class MapLibreHost implements MapHost {
       });
     }
     // deck.gl in its own canvas above the map (non-interleaved): works with terrain and every MapLibre 6 style.
-    this.#overlay = new MapboxOverlay({ interleaved: false, layers: this.#layers as never[] });
+    this.#overlay = new MapboxOverlay({ interleaved: false, layers: this.#layers as never[], deviceProps: { debug: false, debugWebGL: false } as never });
     map.addControl(this.#overlay as unknown as maplibregl.IControl);
+    // The engine does its own hit-testing (one pick on click), so deck must not: the overlay forwards
+    // every mousemove / mousedown to deck, which then renders the whole scene into its picking buffer
+    // and reads it back (a GPU stall) on each one. With hundreds of 3D meshes that was most of the lag.
+    const forward = (this.#overlay as unknown as { _handleMouseEvent?: (e: unknown) => void })._handleMouseEvent;
+    if (forward) for (const type of ['mousedown', 'dragstart', 'drag', 'dragend', 'mousemove', 'mouseout', 'click', 'dblclick'] as const) map.off(type, forward as never);
 
     map.on('style.load', () => this.#applyStyleExtras());
     map.on('move', () => {

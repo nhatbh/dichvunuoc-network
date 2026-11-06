@@ -5,7 +5,9 @@ import type { Layer } from '@deck.gl/core';
 import { arrowMesh, boxMesh, cylinderMesh, sphereMesh } from './meshes.js';
 import { buildComponentLayers, buildSymbolLayers, componentModelsLoaded } from './components.js';
 import type { AtlasSnapshot } from './icon-atlas.js';
-import type { ColumnDatum, LineDatum, MeshDatum, PreparedLayer, SolidDatum, TextDatum } from './prepare-layer.js';
+import type { ColumnDatum, ComponentDatum, LineDatum, MeshDatum, PreparedLayer, SolidDatum, TextDatum } from './prepare-layer.js';
+import { FlowArrowLayer } from './flow-arrow-layer.js';
+import type { ArrowInstance } from './flow.js';
 
 export interface LayerEntry {
   /** Unique id; feature-layer ids come through unchanged so hits map back to the layer. */
@@ -21,7 +23,8 @@ const SOLID = { depthCompare: 'less-equal', depthWriteEnabled: true } as const;
 
 // Meshes are created once (stable references keep deck from re-uploading geometry).
 let MESHES: { cylinder: ReturnType<typeof cylinderMesh>; sphere: ReturnType<typeof sphereMesh>; box: ReturnType<typeof boxMesh>; arrow: ReturnType<typeof arrowMesh> } | null = null;
-const meshes = () => (MESHES ??= { cylinder: cylinderMesh(28), sphere: sphereMesh(12, 24), box: boxMesh(), arrow: arrowMesh() });
+// Tessellation kept modest: thousands of instances are drawn, and smooth normals hide the facets.
+const meshes = () => (MESHES ??= { cylinder: cylinderMesh(16), sphere: sphereMesh(8, 16), box: boxMesh(), arrow: arrowMesh() });
 // satin coated metal: soft diffuse, a tight low specular highlight (no plastic shine)
 const MESH_MATERIAL = { ambient: 0.42, diffuse: 0.62, shininess: 72, specularColor: [70, 78, 88] } as const;
 // arrows read as markings painted on the pipe: mostly self-lit so they stay legible on the shaded side
@@ -138,11 +141,39 @@ function columnLayers(id: string, columns: ColumnDatum[], pickable: boolean): La
 export interface BuildOptions {
   /** Show tubes / solids (close, tilted camera) and hide the flat strokes / icons they replace. */
   solids?: boolean;
+  /**
+   * Only build 3D solids (tubes, joints, models) inside this [minLon, minLat, maxLon, maxLat] box.
+   * deck.gl draws every instance it is given, on or off screen, so up close the engine passes the
+   * view padded on all sides and rebuilds when the camera leaves it.
+   */
+  cull?: readonly number[] | null;
 }
+
+// Layers built for an entry are reused while its data and the options are unchanged: deck.gl then sees
+// the same props and skips recomputing attributes (re-filtering into new arrays made it redo them all).
+const built = new WeakMap<PreparedLayer, { key: string; pickable: boolean; id: string; layers: Layer[] }>();
+
+const inBox = (p: readonly number[], b: readonly number[] | null | undefined): boolean => !b || (p[0]! >= b[0]! && p[0]! <= b[2]! && p[1]! >= b[1]! && p[1]! <= b[3]!);
 
 export function buildDeckLayers(entries: LayerEntry[], atlas: AtlasSnapshot, opts: BuildOptions = {}): Layer[] {
   const out: Layer[] = [];
-  for (const { id, data, pickable } of entries) {
+  const key = `${opts.solids ? 1 : 0}|${opts.solids && opts.cull ? opts.cull.map((v) => v.toFixed(5)).join(',') : ''}|${atlas.version}|${componentModelsLoaded() ? 1 : 0}`;
+  for (const entry of entries) {
+    const hit = built.get(entry.data);
+    if (hit && hit.key === key && hit.pickable === entry.pickable && hit.id === entry.id) {
+      out.push(...hit.layers);
+      continue;
+    }
+    const layers = buildEntry(entry, atlas, opts);
+    built.set(entry.data, { key, pickable: entry.pickable, id: entry.id, layers });
+    out.push(...layers);
+  }
+  return out;
+}
+
+function buildEntry({ id, data, pickable }: LayerEntry, atlas: AtlasSnapshot, opts: BuildOptions): Layer[] {
+  const out: Layer[] = [];
+  {
     const flat = data.polygons.filter((p) => p.height <= 0);
     const solid = data.polygons.filter((p) => p.height > 0);
     if (flat.length) {
@@ -163,15 +194,18 @@ export function buildDeckLayers(entries: LayerEntry[], atlas: AtlasSnapshot, opt
     out.push(...pathLayers(`${id}:line`, showSolids ? data.lines.filter((l) => !l.tubed) : data.lines, pickable));
     if (showSolids) {
       const m = meshes();
-      out.push(...meshLayer(`${id}:tube`, data.tubes, m.cylinder, pickable));
-      out.push(...meshLayer(`${id}:joint`, data.joints, m.sphere, pickable));
+      const cull = opts.cull;
+      // a tube segment is kept when either end is in the box (segments are short next to the padding)
+      const tubes = cull ? data.tubes.filter((t: MeshDatum) => inBox(t.position, cull) || inBox(tubeEnd(t), cull)) : data.tubes;
+      out.push(...meshLayer(`${id}:tube`, tubes, m.cylinder, pickable));
+      out.push(...meshLayer(`${id}:joint`, cull ? data.joints.filter((j: MeshDatum) => inBox(j.position, cull)) : data.joints, m.sphere, pickable));
       // catalog components replace their stand-in solids once the 3D models have loaded
       const models = componentModelsLoaded();
-      const solids = models ? data.solids.filter((s: SolidDatum) => !s.componentFallback) : data.solids;
+      const solids = data.solids.filter((s: SolidDatum) => (!models || !s.componentFallback) && inBox(s.position, cull));
       for (const shape of ['box', 'cylinder', 'sphere'] as const) {
         out.push(...meshLayer(`${id}:solid-${shape}`, solids.filter((s: SolidDatum) => s.shape === shape), m[shape], pickable));
       }
-      out.push(...buildComponentLayers(id, data.components, pickable));
+      out.push(...buildComponentLayers(id, cull ? data.components.filter((c: ComponentDatum) => inBox(c.position, cull)) : data.components, pickable));
     }
     if (data.pointHalos.length) {
       out.push(
@@ -236,6 +270,33 @@ export function buildDeckLayers(entries: LayerEntry[], atlas: AtlasSnapshot, opt
   return out;
 }
 
+const M_PER_DEG = 111_320;
+/** Far end of a tube segment (its matrix's first column is the segment vector in metres). */
+function tubeEnd(t: MeshDatum): [number, number] {
+  const p = t.position;
+  return [p[0] + t.matrix[0]! / (Math.cos((p[1] * Math.PI) / 180) * M_PER_DEG), p[1] + t.matrix[1]! / M_PER_DEG];
+}
+
+/** 3D flow arrows: static instances, moved on the GPU by `time` (see FlowArrowLayer). */
+export function buildFlowArrowLayer(arrows: ArrowInstance[], time: number): Layer[] {
+  if (arrows.length === 0) return [];
+  return [
+    new FlowArrowLayer({
+      id: 'wn-flow-arrow',
+      data: arrows,
+      mesh: meshes().arrow as never,
+      flowTime: time,
+      getPosition: (d: ArrowInstance) => d.position,
+      getTransformMatrix: (d: ArrowInstance) => d.matrix,
+      getColor: (d: ArrowInstance) => d.color,
+      getFlow: (d: ArrowInstance) => d.flow,
+      material: ARROW_MATERIAL as never,
+      pickable: false,
+      parameters: SOLID,
+    } as never),
+  ];
+}
+
 /** Water-flow particles for this frame (binary attributes: one deck draw, no per-object accessors). */
 export function buildFlowLayer(p: { count: number; positions: Float64Array; radii: Float32Array; colors: Uint8ClampedArray }): Layer[] {
   if (p.count === 0) return [];
@@ -279,25 +340,6 @@ export function buildFlowDashLayer(d: { count: number; sources: Float64Array; ta
       widthUnits: 'pixels',
       pickable: false,
       parameters: FLAT,
-    } as never),
-  ];
-}
-
-/** 3D flow arrows for this frame: one instanced mesh draw. */
-export function buildFlowArrowLayer(a: { count: number; positions: Float64Array; matrices: Float32Array; colors: Uint8ClampedArray }): Layer[] {
-  if (a.count === 0) return [];
-  const data = Array.from({ length: a.count }, (_, i) => i);
-  return [
-    new SimpleMeshLayer<number>({
-      id: 'wn-flow-arrow',
-      data,
-      mesh: meshes().arrow as never,
-      getPosition: (i: number) => [a.positions[i * 3]!, a.positions[i * 3 + 1]!, a.positions[i * 3 + 2]!],
-      getTransformMatrix: (i: number) => Array.from(a.matrices.subarray(i * 16, i * 16 + 16)),
-      getColor: (i: number) => [a.colors[i * 4]!, a.colors[i * 4 + 1]!, a.colors[i * 4 + 2]!, a.colors[i * 4 + 3]!],
-      material: ARROW_MATERIAL as never,
-      pickable: false,
-      parameters: SOLID,
     } as never),
   ];
 }
