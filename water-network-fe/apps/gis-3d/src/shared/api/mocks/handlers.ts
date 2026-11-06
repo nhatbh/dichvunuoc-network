@@ -9,6 +9,7 @@ import { http, HttpResponse } from 'msw'
 import { aSnapshot, aMapFeatureCollection } from '@wn/contracts/testing'
 import { editorHandlers } from './editor-handlers'
 import { gisHandlers } from './gis-handlers'
+import { opsHandlers } from './ops-handlers'
 import {
   CreateDraftFeatureRequest,
   UpdateDraftFeatureGeometryRequest,
@@ -82,6 +83,7 @@ function splitLineAt(coords: number[][], at: number[]): { a: number[][]; b: numb
 export const handlers = [
   ...editorHandlers,
   ...gisHandlers,
+  ...opsHandlers,
   http.get('*/snapshot/:id/features', () => HttpResponse.json(mockFeatures)),
 
   http.post('*/snapshot/:id/draft/features', async ({ request }) => {

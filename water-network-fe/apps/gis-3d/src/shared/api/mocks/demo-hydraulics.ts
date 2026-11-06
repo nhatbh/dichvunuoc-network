@@ -21,8 +21,31 @@ export interface DmaBalance {
   storageLps: number[]
   /** Minimum night flow (L/s, 02:00–04:00). */
   mnfLps: number
+  /** The same on the healthy day (no burst, no background leak): the night-flow baseline. */
+  mnfBaselineLps: number
   /** Lowest pressure in the DMA at the display hour (m). */
   minPressureM: number
+}
+
+/** Hourly plant and network figures for production planning (24 values each). */
+export interface DemoProduction {
+  outletPressureM: number[]
+  healthyPlantLps: number[]
+  yesterdayPlantLps: number[]
+  storageLps: number[]
+  criticalMinM: number[]
+  networkMinM: number[]
+  criticalLoggers: string[]
+}
+
+/** The network at each hour of the demo day (demo-network-hourly.json): pressure in dm, flow in 0.1 L/s along the drawn line, velocity in cm/s. */
+export interface DemoNetworkHourly {
+  signature: string
+  nodes: string[]
+  pipes: string[]
+  pressureDm: number[][]
+  flowDl: number[][]
+  velocityCm: number[][]
 }
 
 export interface DemoEvent {
@@ -45,7 +68,7 @@ export interface DemoHydraulics {
   /** Per GIS node at the display hour: pressure (m). */
   nodes: Record<string, number>
   /** Per device: its 24 h readings, and `expected` — what it would read on the same day without the leaks. */
-  telemetry: Record<string, { unit: string; intervalMin: number; start: string; values: number[]; expected?: number[]; low?: number; high?: number }>
+  telemetry: Record<string, { unit: string; intervalMin: number; start: string; values: number[]; expected?: number[]; yesterday?: number[]; low?: number; high?: number }>
   status: Record<string, 'normal' | 'warning' | 'critical' | 'offline'>
   summary: {
     productionM3d: number
@@ -63,6 +86,7 @@ export interface DemoHydraulics {
     /** Largest |inflow − demand| over all DMAs and hours, as a share of the DMA demand. */
     balanceError: number
     unsuppliedNodes: number
+    production: DemoProduction
   }
   events: DemoEvent[]
   /** Model settings the run converged on, to re-solve the same network the same way. */

@@ -23,6 +23,7 @@ import { DEMAND_PATTERN, GROUND_FILL_HOURS, GROUND_PUMP_HOURS, GROUND_PUMP_LPS, 
 type Pt = [number, number]
 type Rec = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
 const OUT = resolve(__dirname, '../src/shared/api/mocks/demo-hydraulics.json')
+const OUT_HOURLY = resolve(__dirname, '../src/shared/api/mocks/demo-network-hourly.json')
 const FILL_HOURS = (GROUND_FILL_HOURS[1] + 24 - GROUND_FILL_HOURS[0]) % 24
 /** Lowest pressure a customer tap should see at the worst hour (m). */
 const SERVICE_PRESSURE_M = 15
@@ -81,7 +82,22 @@ async function main() {
   const nearestNode = (x: number, y: number, dma?: string) =>
     nodes.filter(n => !dma || (n.dma === dma && !onMain.has(n.id))).reduce((m: Rec | null, n) => (!m || Math.hypot(n.x - x, n.y - y) < Math.hypot(m.x - x, m.y - y) ? n : m), null)!
   const critical3 = devices.find(d => d.deviceType === 'PressureSensor' && d.name.includes('bất lợi DMA-03'))!
-  const burstNode = nearestNode(critical3.x, critical3.y, 'DMA-03')
+  // the burst is in the part of DMA-03 fed through its main (metered) inlet, so the DMA meter sees it:
+  // walk the open distribution pipes from that inlet and take the node nearest the critical-point logger
+  const burstNode = (() => {
+    const inlet = (seed.dmaInlets as Array<{ dma: string; pipe: string; main: boolean }>).find(i => i.dma === 'DMA-03' && i.main)
+    const inletPipe = inlet ? (seed.pipeBy as Rec)[inlet.pipe] : undefined
+    if (!inletPipe) return nearestNode(critical3.x, critical3.y, 'DMA-03')
+    const dist = (seed.pipes as Rec[]).filter(p => !p.noFlow && (p.baseDn ?? p.dn) < 400 && p.status !== 'planned' && p.status !== 'abandoned')
+    const adj = new Map<string, string[]>()
+    for (const p of dist) for (const [a, b] of [[p.from, p.to], [p.to, p.from]]) if (a && b) (adj.get(a) ?? adj.set(a, []).get(a)!).push(b)
+    const seen = new Set<string>([inletPipe.from, inletPipe.to].filter(Boolean))
+    const queue = [...seen]
+    while (queue.length) for (const n of adj.get(queue.shift()!) ?? []) if (!seen.has(n) && !onMain.has(n)) { seen.add(n); queue.push(n) }
+    const island = nodes.filter(n => seen.has(n.id) && n.dma === 'DMA-03' && !onMain.has(n.id))
+    return island.reduce((m: Rec | null, n) => (!m || Math.hypot(n.x - critical3.x, n.y - critical3.y) < Math.hypot(m.x - critical3.x, m.y - critical3.y) ? n : m), null) ??
+      nearestNode(critical3.x, critical3.y, 'DMA-03')
+  })()
   const dma5 = dmas.find(d => d.id === 'DMA-05')!
   const c5 = dma5.poly.reduce((s, p) => [s[0] + p[0] / dma5.poly.length, s[1] + p[1] / dma5.poly.length], [0, 0])
   const leakNode = nearestNode(c5[0], c5[1], 'DMA-05')
@@ -141,6 +157,14 @@ async function main() {
   const eps = await runExtendedPeriod(seed as ModelInput, { orientation, events, storage, prvSettings })
   // the same day without the burst and the leak: what each device would read on a healthy network
   const healthy = await runExtendedPeriod(seed as ModelInput, { orientation, events: [], storage, prvSettings })
+  // yesterday: the background leak was already there, the burst was not, and demand was 3 % lower
+  const yesterdayRun = await runExtendedPeriod(seed as ModelInput, {
+    orientation,
+    events: events.filter(e => e.kind === 'background'),
+    storage,
+    prvSettings,
+    demandLps: 0.12 * 0.97,
+  })
   const { model, nodeIds, linkIds, steps } = eps
   const nIdx = new Map(nodeIds.map((id, i) => [id, i]))
   const lIdx = new Map(linkIds.map((id, i) => [id, i]))
@@ -250,6 +274,7 @@ async function main() {
   }
   const day = steps.slice(0, 96)
   const healthyDay = healthy.steps.slice(0, 96)
+  const yesterdayDay = yesterdayRun.steps.slice(0, 96)
   const start = `${seed.TODAY ?? '2026-06-23'}T00:00:00+07:00`
   const telemetry: DemoHydraulics['telemetry'] = {}
   const status: DemoHydraulics['status'] = {}
@@ -263,7 +288,8 @@ async function main() {
     if (d.deviceType === 'PressureSensor') {
       const values = day.map(s => round(Math.max(0, pressureAt(s, d)) / 10.2, 2))
       const expected = healthyDay.map(s => round(Math.max(0, pressureAt(s, d)) / 10.2, 2))
-      telemetry[d.id] = { unit: 'bar', intervalMin: 15, start, values, expected, low: 1.0, high: 6 }
+      const yesterday = yesterdayDay.map(s => round(Math.max(0, pressureAt(s, d)) / 10.2, 2))
+      telemetry[d.id] = { unit: 'bar', intervalMin: 15, start, values, expected, yesterday, low: 1.0, high: 6 }
       const min = Math.min(...values)
       const loss = Math.max(...values.map((v, k) => expected[k]! - v)) // pressure the leaks took away
       status[d.id] = min < 1.0 || loss >= 0.2 ? 'critical' : min < 1.2 || loss >= 0.08 ? 'warning' : 'normal'
@@ -272,7 +298,8 @@ async function main() {
       const read = (s: (typeof steps)[number]) => (d.plant ? s.flow[lIdx.get('PLANT-PUMP')!]! : flowOn(s, d.hostPipeId))
       const values = day.map(s => round(read(s) * 3.6, 1))
       const expected = healthyDay.map(s => round(read(s) * 3.6, 1))
-      telemetry[d.id] = { unit: 'm³/h', intervalMin: 15, start, values, expected }
+      const yesterday = yesterdayDay.map(s => round(read(s) * 3.6, 1))
+      telemetry[d.id] = { unit: 'm³/h', intervalMin: 15, start, values, expected, yesterday }
       const fromHour = events.find(e => e.kind === 'burst')?.fromHour
       if (d.main) {
         // the DMA meter: the whole DMA's use (all its inlets, less what its tanks stored) against the healthy day
@@ -294,7 +321,9 @@ async function main() {
         const values = day.map(s => round(s.tankLevel[tank.id] ?? 0, 2))
         const low = tank.kind === 'ground' ? 0.8 : 1.5
         const high = tank.maxLevel - 0.3
-        telemetry[d.id] = { unit: 'm', intervalMin: 15, start, values, low, high }
+        const yesterday = yesterdayDay.map(s => round(s.tankLevel[tank.id] ?? 0, 2))
+        const expected = healthyDay.map(s => round(s.tankLevel[tank.id] ?? 0, 2))
+        telemetry[d.id] = { unit: 'm', intervalMin: 15, start, values, expected, yesterday, low, high }
         status[d.id] = Math.min(...values) < low || Math.max(...values) > high ? 'warning' : 'normal'
       }
     } else if (d.deviceType === 'AcousticLogger') {
@@ -317,6 +346,7 @@ async function main() {
   const balance: DemoHydraulics['summary']['dmas'] = dmas.map(d => {
     const inflowLps = hourly(s => inflowOf(d.id, s))
     const demandLps = hourly(s => usedIn(d.id, s, false))
+    const healthyDemandLps = Array.from({ length: 24 }, (_, h) => round(healthyDay.slice(h * 4, h * 4 + 4).reduce((a, s) => a + usedIn(d.id, s, false), 0) / 4, 1))
     const pressures = juncs.filter(id => dmaOfNode.get(id) === d.id).map(id => show.pressure[nIdx.get(id)!]!)
     return {
       id: d.id,
@@ -324,6 +354,7 @@ async function main() {
       demandLps,
       storageLps: hourly(s => usedIn(d.id, s, true)),
       mnfLps: Math.min(...demandLps.slice(2, 4)),
+      mnfBaselineLps: Math.min(...healthyDemandLps.slice(2, 4)),
       minPressureM: round(Math.min(...pressures), 1),
     }
   })
@@ -333,6 +364,46 @@ async function main() {
   )
   const plantIdx = lIdx.get('PLANT-PUMP')!
   const plantLps = hourly(s => s.flow[plantIdx]!)
+  // ── production: what the planner screen needs, by hour ──
+  const plantNode = nIdx.get(model.plant!.node)!
+  const tankIdx = model.tanks.map(t => nIdx.get(t.id)!).filter(i => i !== undefined)
+  const criticalLoggers = devices.filter(d => d.deviceType === 'PressureSensor' && /bất lợi|điểm cao/.test(d.name))
+  const hourlyOf = (run: typeof steps, f: (s: (typeof steps)[number]) => number) =>
+    Array.from({ length: 24 }, (_, h) => round(run.slice(h * 4, h * 4 + 4).reduce((a, x) => a + f(x), 0) / 4, 2))
+  const productionPlan = {
+    /** Plant outlet pressure (m) by hour. */
+    outletPressureM: hourlyOf(day, s => s.pressure[plantNode]!),
+    /** Plant outflow on the healthy day (L/s) by hour: the demand forecast's base. */
+    healthyPlantLps: hourlyOf(healthyDay, s => s.flow[plantIdx]!),
+    /** Plant outflow yesterday (L/s) by hour. */
+    yesterdayPlantLps: hourlyOf(yesterdayDay, s => s.flow[plantIdx]!),
+    /** Net flow into storage (L/s, negative while tanks supply) by hour. */
+    storageLps: hourlyOf(day, s => tankIdx.reduce((a, i) => a + s.demand[i]!, 0)),
+    /** Lowest pressure (m) among the critical-point loggers, by hour. */
+    criticalMinM: hourlyOf(day, s => Math.min(...criticalLoggers.map(d => pressureAt(s, d)))),
+    /** Lowest pressure (m) at any GIS node, by hour. */
+    networkMinM: hourlyOf(day, s => Math.min(...juncs.map(id => s.pressure[nIdx.get(id)!]!))),
+    criticalLoggers: criticalLoggers.map(d => d.id as string),
+  }
+  // ── the network at every hour (for the time slider), compact: dm, 0.1 L/s, cm/s ──
+  {
+    const pipeIds = [...model.pipeLinks.keys()].filter(id => lIdx.has(model.pipeLinks.get(id)!.link))
+    const nodeIdsGis = juncs
+    const hours = Array.from({ length: 24 }, (_, h) => day[h * 4]!)
+    const hourlyNet = {
+      signature,
+      nodes: nodeIdsGis,
+      pipes: pipeIds,
+      pressureDm: hours.map(s => nodeIdsGis.map(id => Math.round(s.pressure[nIdx.get(id)!]! * 10))),
+      flowDl: hours.map(s => pipeIds.map(id => {
+        const m = model.pipeLinks.get(id)!
+        return Math.round(s.flow[lIdx.get(m.link)!]! * (m.flip ? -1 : 1) * 10)
+      })),
+      velocityCm: hours.map(s => pipeIds.map(id => Math.round(Math.abs(s.velocity[lIdx.get(model.pipeLinks.get(id)!.link)!]!) * 100))),
+    }
+    writeFileSync(OUT_HOURLY, JSON.stringify(hourlyNet))
+    console.log(`wrote ${OUT_HOURLY} (${(JSON.stringify(hourlyNet).length / 1024).toFixed(0)} kB)`)
+  }
   const customers = [...model.customerLps.values()].reduce((a, b) => a + b, 0)
   const leakage = [...model.leakLps.values()].reduce((a, b) => a + b, 0) + events.reduce((a, e) => a + e.lps * (e.kind === 'burst' ? (24 - (e.fromHour ?? 0)) / 24 : 1), 0)
   const production = (plantLps.reduce((a, b) => a + b, 0) / 24) * 86.4
@@ -358,6 +429,7 @@ async function main() {
       dmas: balance,
       balanceError: round(balanceError, 4),
       unsuppliedNodes: model.excluded.unsuppliedNodes.length,
+      production: productionPlan,
     },
     events: events.map((e): DemoEvent => {
       const n = nodeById.get(e.nodeId)!
