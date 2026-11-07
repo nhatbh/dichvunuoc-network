@@ -1,0 +1,421 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "WaterNetwork.Bff.Api | v1",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5199/"
+    }
+  ],
+  "paths": {
+    "/api/gis/imports": {
+      "get": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "head": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/imports/{path}": {
+      "get": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "head": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/imports/{jobId}/publish": {
+      "post": {
+        "tags": [
+          "ImportsEndpointModule"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/bff/water-network/map": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "parameters": [
+          {
+            "name": "bbox",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "types",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/bff/water-network/map/bootstrap": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/map": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "parameters": [
+          {
+            "name": "bbox",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "types",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/bootstrap": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/assets": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/revisions": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/projects": {
+      "post": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/projects/{id}/revisions": {
+      "post": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/revisions/{id}": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/revisions/{id}/validate": {
+      "post": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/revisions/{id}/submit": {
+      "post": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/revisions/{id}/approve": {
+      "post": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/revisions/{id}/reject": {
+      "post": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/editor/revisions/{id}/publish-result": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/bff/water-network/assets/{assetId}/overview": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "ImportsEndpointModule"
+    },
+    {
+      "name": "WaterNetwork.Bff.Api"
+    }
+  ]
+}
