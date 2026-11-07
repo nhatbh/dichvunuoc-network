@@ -31,6 +31,14 @@
     "./draft": {
       "types": "./dist/draft/index.d.ts",
       "import": "./dist/draft/index.js"
+    },
+    "./ops": {
+      "types": "./dist/ops/index.d.ts",
+      "import": "./dist/ops/index.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog/index.d.ts",
+      "import": "./dist/catalog/index.js"
     }
   },
   "files": [

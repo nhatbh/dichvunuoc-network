@@ -1,7 +1,7 @@
 /* Kế hoạch sản xuất — how much to produce tomorrow, hour by hour, and at what outlet pressure.
    Advice only: the planner edits and accepts the schedule; nothing is sent to SCADA. */
 import { For, Show, createEffect, createMemo, createSignal, type JSX } from 'solid-js'
-import { httpClient } from '@/shared/api/http-client'
+import { opsApi } from '@/shared/api/ops-client'
 import type { OpsPlanHour, OpsProduction } from '@/shared/api/ops-types'
 import { useOps } from '../ops/ops-context'
 import { TimeChart } from '../ops/time-chart'
@@ -49,7 +49,7 @@ function Production(props: { p: OpsProduction; toast: (m: string, k?: string) =>
     )
   }
   const accept = async () => {
-    await httpClient.put('/ops/production/plan', { date: p().planDate, plan: plan() })
+    await opsApi.savePlan({ date: p().planDate, plan: plan() })
     props.toast(`Đã lưu kế hoạch ngày ${dmy(p().planDate)}`, 'success')
   }
   const belowMin = (bar: number) => bar < p().serviceMinBar + 1e-9

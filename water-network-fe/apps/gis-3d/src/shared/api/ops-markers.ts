@@ -1,16 +1,23 @@
 /** Marker lifecycle: Suspected → Under review → Work ordered → Repaired → Closed (Rejected from review; rework from Repaired). */
+import { MARKER_TRANSITIONS } from '@wn/contracts/ops'
 import type { MarkerAction, MarkerState, OpsMarker } from './ops-types'
 
+const to = (from: MarkerState, action: MarkerAction): MarkerState => {
+  const next = MARKER_TRANSITIONS[from][action]
+  if (!next) throw new Error(`no ${action} from ${from} in the contract`)
+  return next
+}
+
 export const MARKER_MOVES: Record<MarkerState, Array<{ action: MarkerAction; to: MarkerState; label: string }>> = {
-  suspected: [{ action: 'review', to: 'under_review', label: 'Tiếp nhận kiểm tra' }],
+  suspected: [{ action: 'review', to: to('suspected', 'review'), label: 'Tiếp nhận kiểm tra' }],
   under_review: [
-    { action: 'confirm', to: 'work_ordered', label: 'Xác nhận · tạo lệnh sửa' },
-    { action: 'reject', to: 'rejected', label: 'Không phải rò rỉ' },
+    { action: 'confirm', to: to('under_review', 'confirm'), label: 'Xác nhận · tạo lệnh sửa' },
+    { action: 'reject', to: to('under_review', 'reject'), label: 'Không phải rò rỉ' },
   ],
-  work_ordered: [{ action: 'repaired', to: 'repaired', label: 'Đã sửa xong' }],
+  work_ordered: [{ action: 'repaired', to: to('work_ordered', 'repaired'), label: 'Đã sửa xong' }],
   repaired: [
-    { action: 'verify', to: 'closed', label: 'Số đọc về đường nền · đóng' },
-    { action: 'rework', to: 'work_ordered', label: 'Chưa về đường nền · sửa lại' },
+    { action: 'verify', to: to('repaired', 'verify'), label: 'Số đọc về đường nền · đóng' },
+    { action: 'rework', to: to('repaired', 'rework'), label: 'Chưa về đường nền · sửa lại' },
   ],
   rejected: [],
   closed: [],

@@ -23,6 +23,7 @@ import type { ViewOptions } from './views.js';
 export * from './core.js';
 export * from './types.js';
 export * from './catalog.js';
+export * from './codes.js';
 export * from './symbols.js';
 export * from './views.js';
 

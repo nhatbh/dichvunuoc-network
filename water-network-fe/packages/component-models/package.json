@@ -9,18 +9,37 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./catalog": { "types": "./dist/catalog.d.ts", "import": "./dist/catalog.js" },
-    "./symbols": { "types": "./dist/symbols.d.ts", "import": "./dist/symbols.js" },
-    "./deck": { "types": "./dist/deck.d.ts", "import": "./dist/deck.js" },
-    "./icons/*": "./dist/icons/*"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog.d.ts",
+      "import": "./dist/catalog.js"
+    },
+    "./symbols": {
+      "types": "./dist/symbols.d.ts",
+      "import": "./dist/symbols.js"
+    },
+    "./deck": {
+      "types": "./dist/deck.d.ts",
+      "import": "./dist/deck.js"
+    },
+    "./icons/*": "./dist/icons/*",
+    "./codes": {
+      "types": "./dist/codes.d.ts",
+      "import": "./dist/codes.js"
+    }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node scripts/icons.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "demo": "node scripts/build-demo.mjs"
+    "demo": "node scripts/build-demo.mjs",
+    "codes": "node scripts/export-codes.mjs"
   },
   "dependencies": {
     "three": "0.169.0"

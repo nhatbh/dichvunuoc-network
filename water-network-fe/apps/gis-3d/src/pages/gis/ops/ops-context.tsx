@@ -11,7 +11,7 @@ import {
   type Accessor,
   type JSX,
 } from 'solid-js'
-import { httpClient } from '@/shared/api/http-client'
+import { opsApi } from '@/shared/api/ops-client'
 import { statusAt } from '@/shared/api/ops-status'
 import type {
   MarkerAction,
@@ -25,11 +25,11 @@ import type {
   OpsSeries,
   OpsStatus,
 } from '@/shared/api/ops-types'
+import type { CreateMarkerRequest } from '@wn/contracts/ops'
 import type { PipeFlow } from '@/shared/lib/hydraulics/epanet-flow'
 
 export const SLOTS = 96
 
-const get = <T,>(url: string) => () => httpClient.get<T>(url)
 const KEY = ['ops'] as const
 
 export interface OpsCtx {
@@ -63,7 +63,7 @@ export interface OpsCtx {
   paintPressure: Accessor<boolean>
   setPaintPressure: (on: boolean) => void
   moveMarker: (id: string, action: MarkerAction, note?: string) => Promise<void>
-  addMarker: (m: Partial<OpsMarker>) => Promise<OpsMarker>
+  addMarker: (m: CreateMarkerRequest) => Promise<OpsMarker>
   loading: Accessor<boolean>
 }
 
@@ -71,14 +71,18 @@ const Ctx = createContext<OpsCtx>()
 
 export function OpsProvider(props: { children: JSX.Element }) {
   const qc = useQueryClient()
-  const sensorsQ = createQuery(() => ({ queryKey: [...KEY, 'sensors'], queryFn: get<OpsSensor[]>('/ops/sensors'), staleTime: Infinity }))
-  const seriesQ = createQuery(() => ({ queryKey: [...KEY, 'readings'], queryFn: get<Record<string, OpsSeries>>('/ops/readings'), staleTime: Infinity }))
-  const eventsQ = createQuery(() => ({ queryKey: [...KEY, 'events'], queryFn: get<OpsEvent[]>('/ops/events'), staleTime: Infinity }))
-  const alarmsQ = createQuery(() => ({ queryKey: [...KEY, 'alarms'], queryFn: get<OpsAlarm[]>('/ops/alarms'), staleTime: Infinity }))
-  const markersQ = createQuery(() => ({ queryKey: [...KEY, 'markers'], queryFn: get<OpsMarker[]>('/ops/markers'), staleTime: 30_000 }))
-  const dmaQ = createQuery(() => ({ queryKey: [...KEY, 'dma-balance'], queryFn: get<OpsDmaBalance[]>('/ops/dma-balance'), staleTime: Infinity }))
-  const prodQ = createQuery(() => ({ queryKey: [...KEY, 'production'], queryFn: get<OpsProduction>('/ops/production'), staleTime: Infinity }))
-  const netQ = createQuery(() => ({ queryKey: [...KEY, 'network-state'], queryFn: get<OpsNetworkDay>('/ops/network-state'), staleTime: Infinity }))
+  const sensorsQ = createQuery(() => ({ queryKey: [...KEY, 'sensors'], queryFn: async () => (await opsApi.sensors()).sensors, staleTime: Infinity }))
+  const seriesQ = createQuery(() => ({
+    queryKey: [...KEY, 'readings'],
+    queryFn: async (): Promise<Record<string, OpsSeries>> => Object.fromEntries((await opsApi.readings()).series.map(x => [x.sensorId, x])),
+    staleTime: Infinity,
+  }))
+  const eventsQ = createQuery(() => ({ queryKey: [...KEY, 'events'], queryFn: opsApi.events, staleTime: Infinity }))
+  const alarmsQ = createQuery(() => ({ queryKey: [...KEY, 'alarms'], queryFn: opsApi.alarms, staleTime: Infinity }))
+  const markersQ = createQuery(() => ({ queryKey: [...KEY, 'markers'], queryFn: opsApi.markers, staleTime: 30_000 }))
+  const dmaQ = createQuery(() => ({ queryKey: [...KEY, 'dma-balance'], queryFn: opsApi.dmaBalance, staleTime: Infinity }))
+  const prodQ = createQuery(() => ({ queryKey: [...KEY, 'production'], queryFn: opsApi.production, staleTime: Infinity }))
+  const netQ = createQuery(() => ({ queryKey: [...KEY, 'network-state'], queryFn: opsApi.networkState, staleTime: Infinity }))
 
   const sensors = () => sensorsQ.data ?? []
   const series = () => seriesQ.data ?? {}
@@ -161,11 +165,11 @@ export function OpsProvider(props: { children: JSX.Element }) {
 
   const move = createMutation(() => ({
     mutationFn: (v: { id: string; action: MarkerAction; note?: string }) =>
-      httpClient.patch<OpsMarker>(`/ops/markers/${v.id}`, { action: v.action, note: v.note }),
+      opsApi.updateMarker(v.id, { action: v.action, ...(v.note ? { note: v.note } : {}) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: [...KEY, 'markers'] }),
   }))
   const add = createMutation(() => ({
-    mutationFn: (m: Partial<OpsMarker>) => httpClient.post<OpsMarker>('/ops/markers', m),
+    mutationFn: (m: CreateMarkerRequest) => opsApi.createMarker(m),
     onSuccess: () => qc.invalidateQueries({ queryKey: [...KEY, 'markers'] }),
   }))
 
