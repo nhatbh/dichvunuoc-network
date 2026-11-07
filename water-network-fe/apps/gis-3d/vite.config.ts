@@ -12,6 +12,13 @@ export default defineConfig(({ mode, command }) => {
 
   return {
     server: { port: 4600, strictPort: true },
+    // Local workspace packages are rebuilt in place (run-gis-3d-mock rebuilds them on every start).
+    // If Vite pre-bundled them, its cache in node_modules/.vite would keep serving the old build
+    // ("does not provide an export named …"). Serve them as-is; still pre-bundle three for them.
+    optimizeDeps: {
+      exclude: ['@wn/component-models', '@wn/contracts'],
+      include: ['@wn/map-runtime-3d > @wn/component-models > three'],
+    },
     preview: { port: 4600, strictPort: true },
     plugins: [
       tanstackRouter({
