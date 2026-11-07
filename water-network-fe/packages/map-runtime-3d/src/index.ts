@@ -51,4 +51,5 @@ export type { MapViewOptions3D, MapRuntime3DConfig } from './factory.js';
 
 // Component catalog (codes, roles, ports, DN ranges) for styles that use `FeatureStyle3D.component`.
 export { CATALOG_ITEMS, COMPONENT_CODES, getCatalogItem } from '@wn/component-models/catalog';
+export { mapSymbolKind, mapSymbolSVG, type MapSymbolKind } from '@wn/component-models/symbols';
 export type { CatalogItem } from '@wn/component-models/catalog';

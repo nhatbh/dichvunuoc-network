@@ -25,7 +25,7 @@ import {
 } from './model'
 import { createFlowSolver } from '../lib/flow-solver'
 import { gisPixelBboxToExtent, useGis } from '../lib/gis-data'
-import { FITTING_3D_SCALE, IMAGERY_CASING, PIPE_3D_SCALE, SELECTED_3D_SCALE, SELECTION_COLOR, isImageryBasemap, pipeColor, pipeFlow, pipeTube, pipeTubeColor, pipeWidth, tubeFittingColor } from '../ui/pipe-style'
+import { CASING_EXTRA_PX, FITTING_3D_SCALE, PIPE_3D_SCALE, SELECTED_3D_SCALE, SELECTION_COLOR, isImageryBasemap, pipeColor, pipeFlow, pipeTube, pipeCasing, pipeTubeColor, pipeWidth, tubeFittingColor } from '../ui/pipe-style'
 import { gisProjector } from './revision-sync'
 import { IcExpand, IcMinus, IcPlus, IcLayers, IcCheck } from '../lib/icons'
 import { cAccent, cTheme, tone } from '../lib/theme'
@@ -205,7 +205,7 @@ export function EditorOLCanvas(props: {
         const pipe = G.pipeBy[id]
         const dn = pipe?.dn ?? ((p.dn as number) || 100)
         const w = pipeWidth(dn)
-        const base = pipe ? pipeColor(pipe, th, undefined, G) : '#7E8997'
+        const base = pipe ? pipeColor(pipe, casing ? 'dark' : th, undefined, G) : '#7E8997'
         const col = mark === 'del' ? tone('#D1242F') : mark === 'mod' ? tone('#9A6700') : base
         const hl = !!(p.sel || p.mhl)
         const tubeCol = hl ? ac : mark || !pipe ? col : pipeTubeColor(pipe, th, undefined, G)
@@ -213,7 +213,7 @@ export function EditorOLCanvas(props: {
         const flow = pipe && mark !== 'del' ? pipeFlow(pipe, flows) : undefined
         if (flow) style.flow = flow
         if (p.sel || p.mhl) style.halo = { color: ac, width: w + 5 }
-        else if (casing) style.halo = { color: IMAGERY_CASING, width: w + 2.5 }
+        else style.halo = { color: pipeCasing(th, casing), width: w + CASING_EXTRA_PX }
         return style
       }
       if (kind === 'valve') {
@@ -278,7 +278,7 @@ export function EditorOLCanvas(props: {
         const flow = pipeFlow({ id: String(p.id ?? ''), status: 'active' }, flows)
         if (flow && flows) style.flow = flow
         if (p.sel) style.halo = { color: ac, width: 8 }
-        else if (casing) style.halo = { color: IMAGERY_CASING, width: 6 }
+        else style.halo = { color: pipeCasing(th, casing), width: 3.4 + CASING_EXTRA_PX }
         return style
       }
       const shape = kind === 'valve' ? 'diamond' : 'circle'

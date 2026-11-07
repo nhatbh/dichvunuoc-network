@@ -58,6 +58,8 @@ describe('MapEngine3D — rendering & state', () => {
 
   it('keeps the flow layer on screen when anything re-renders (no blink between ticks)', () => {
     const { host, engine } = setup();
+    // close enough that a 110 m pipe carries chevrons
+    engine.setView({ ...engine.getView(), zoom: 18 });
     engine.setFeatures('pipe', fc(pipe('p1', [at(0, 0), at(0.001, 0)])), () => ({ stroke: { color: '#0000ff', width: 3 }, flow: { speedMps: 1, direction: 1 } }));
     engine.flush();
     expect(layerIds(host)).toContain('wn-flow-dash');

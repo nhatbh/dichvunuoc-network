@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildArrowInstances, buildFlow, computeDashes, computeParticles, type FlowParams } from './flow.js';
+import { buildArrowInstances, buildFlow, computeChevrons, computeDashes, computeParticles, type FlowParams } from './flow.js';
 import type { Pos3 } from './prepare-layer.js';
 
 // ~111 m due east of the origin (0.001° at lat 0)
@@ -154,5 +154,23 @@ describe('buildArrowInstances', () => {
     expect(buildArrowInstances([tube(1, 0)])).toHaveLength(0);
     expect(buildArrowInstances([tube(1)], [0.01, 0.01, 0.02, 0.02])).toHaveLength(0);
     expect(buildArrowInstances([tube(1)], [-0.01, -0.01, 0.01, 0.01]).length).toBeGreaterThan(0);
+  });
+});
+
+describe('computeChevrons', () => {
+  const cp = (time: number) => ({ time, metresPerPx: 0.5, pxPerSecPerMps: 12, periodPx: 64, view: null, maxSegments: 10_000 });
+  it('draws chevrons (two arms meeting at a tip) pointing along the flow, and moves them with it', () => {
+    const fwd = computeChevrons([buildFlow('a', east, 1, 1, [0, 0, 255, 255], 0, 4)!], cp(0));
+    expect(fwd.count).toBeGreaterThan(2);
+    expect(fwd.count % 2).toBe(0);
+    // both arms start at the tip and go back (west) for an eastward flow
+    expect(fwd.sources[0]).toBe(fwd.sources[3]);
+    expect(fwd.targets[0]!).toBeLessThan(fwd.sources[0]!);
+    const rev = computeChevrons([buildFlow('a', east, 1, -1, [0, 0, 255, 255], 0, 4)!], cp(0));
+    expect(rev.targets[0]!).toBeGreaterThan(rev.sources[0]!);
+    const later = computeChevrons([buildFlow('a', east, 1, 1, [0, 0, 255, 255], 0, 4)!], cp(0.3));
+    expect(Math.min(...Array.from({ length: later.count }, (_, i) => later.sources[i * 3]!))).not.toBe(
+      Math.min(...Array.from({ length: fwd.count }, (_, i) => fwd.sources[i * 3]!))
+    );
   });
 });

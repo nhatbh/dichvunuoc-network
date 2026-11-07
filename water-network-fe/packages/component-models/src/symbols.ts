@@ -51,8 +51,8 @@ export const SYMBOLS: Record<string, SymbolDef> = {
   PSV: controlValve('PS'),
   FCV: controlValve('FC'),
   AltitudeValve: controlValve('AL'),
-  AirValve: dev(C.valve, [{ d: 'M9 19L16 7L23 19Z', f: 'none', s: 'ink', w: 2 }, { d: 'M16 19V26', s: 'ink', w: 2.5 }, { t: 'A', x: 16, y: 17.5, size: 7 }]),
-  Washout: dev(C.valve, [{ d: 'M16 6V18', s: 'ink', w: 2.5 }, { d: 'M10 16.5L16 25.5L22 16.5Z', f: 'ink' }]),
+  AirValve: dev(C.valve, [{ d: 'M9 19L16 7L23 19Z', f: 'none', s: 'ink', w: 2 }, { d: 'M16 19V26', s: 'ink', w: 2.5 }, { t: 'A', x: 16, y: 17.5, size: 7 }], 'pipe'),
+  Washout: dev(C.valve, [{ d: 'M16 6V18', s: 'ink', w: 2.5 }, { d: 'M10 16.5L16 25.5L22 16.5Z', f: 'ink' }], 'pipe'),
   BackflowPreventer: dev(C.valve, [{ d: 'M5 11L13 16L5 21Z M17 11L25 16L17 21Z', f: 'ink' }, { d: 'M14.5 10V22M26.5 10V22', s: 'ink', w: 2.5 }], 'pipe'),
 
   Hydrant: dev(C.hydrant, [{ d: 'M12 13H20V24H12Z M11 13A5 5 0 0 1 21 13Z M8 16H12V19.5H8Z M20 16H24V19.5H20Z M10 24H22V26.5H10Z', f: '#c8312b' }]),
@@ -145,4 +145,95 @@ export function symbolImageData(code: string, px = 64, status?: Status): ImageDa
   const cv = document.createElement('canvas'); cv.width = cv.height = px;
   const ctx = cv.getContext('2d')!; drawSymbol(ctx, code, px, status);
   return ctx.getImageData(0, 0, px, px);
+}
+
+// ---------- map symbols: drawn into the network, not as round icons ----------
+// In-line parts (valves, meters, reducers, couplings…) are glyphs ON the pipe: a light body with a dark
+// casing, turned to the pipe, sized to the pipe width, so the line runs into them like a schematic. A
+// closed or alarmed part fills with its state colour. Point assets (sensors, hydrants, facilities) are
+// compact solid badges in their family colour with a white glyph and a status ring.
+
+/** How a code is drawn on the map. */
+export type MapSymbolKind = 'inline' | 'badge';
+export const mapSymbolKind = (code: string): MapSymbolKind => (getSymbol(code).align === 'pipe' ? 'inline' : 'badge');
+
+const CASE = '#0c1319';
+const BODY = '#f4f7fa';
+const BOWTIE_S = 'M10 12L16 16L10 20Z M22 12L16 16L22 20Z';
+/** Inline glyphs on the 32-grid, pipe axis at y = 16. f/s 'ink' = the body colour, 'paper' = the casing colour. */
+const INLINE: Record<string, Prim[]> = {
+  GateValve: [{ d: BOWTIE, f: 'ink' }],
+  ButterflyValve: [{ d: BOWTIE, f: 'ink' }, { d: 'M16 8.5V23.5', s: 'paper', w: 2.2 }],
+  BallValve: [{ d: BOWTIE, f: 'ink' }, { d: circle(16, 16, 3.4), f: 'paper' }],
+  CheckValve: [{ d: 'M8 10L21 16L8 22Z', f: 'ink' }, { d: 'M23 9.5V22.5', s: 'ink', w: 2.6 }],
+  PRV: [{ d: BOWTIE, f: 'ink' }, { d: 'M16 16V9', s: 'ink', w: 2 }, { d: 'M12.5 3.5H19.5V9.5H12.5Z', f: 'ink' }],
+  PSV: [{ d: BOWTIE, f: 'ink' }, { d: 'M16 16V9', s: 'ink', w: 2 }, { d: circle(16, 6.2, 3.4), f: 'ink' }],
+  FCV: [{ d: BOWTIE, f: 'ink' }, { d: 'M16 16V9', s: 'ink', w: 2 }, { d: 'M16 2.4L20 6.4L16 10.4L12 6.4Z', f: 'ink' }],
+  AltitudeValve: [{ d: BOWTIE, f: 'ink' }, { d: 'M16 16V9.5', s: 'ink', w: 2 }, { d: 'M12 9.5L16 2.5L20 9.5Z', f: 'ink' }],
+  BackflowPreventer: [{ d: 'M5 11L13 16L5 21Z M17 11L25 16L17 21Z', f: 'ink' }, { d: 'M14.5 10V22M26.5 10V22', s: 'ink', w: 2.4 }],
+  ServiceValve: [{ d: BOWTIE_S, f: 'ink' }],
+  AirValve: [{ d: 'M16 16V10', s: 'ink', w: 2.2 }, { d: circle(16, 7, 4.2), f: 'ink' }, { d: 'M14.2 7.6L16 4.6L17.8 7.6', s: 'paper', w: 1.4, f: 'none' }],
+  Washout: [{ d: 'M16 16V22', s: 'ink', w: 2.2 }, { d: 'M11 21L16 28L21 21Z', f: 'ink' }],
+  BulkMeter: [{ d: 'M8 10.5H24V21.5H8Z', f: 'ink' }, { d: 'M11 16H20M17.5 13.2L21 16L17.5 18.8', s: 'paper', w: 1.8, f: 'none' }],
+  Strainer: [{ d: 'M9 12.5H23V19.5H9Z', f: 'ink' }, { d: 'M17 19.5L22 26', s: 'ink', w: 2.6 }, { d: 'M12 14.5L14 17.5M15 14.5L17 17.5M18 14.5L20 17.5', s: 'paper', w: 1.1, f: 'none' }],
+  Pump: [{ d: circle(16, 16, 7.5), f: 'ink' }, { d: 'M13.2 11.8L21 16L13.2 20.2Z', f: 'paper' }],
+  PRVStation: [{ d: 'M6.5 6.5H25.5V25.5H6.5Z', f: 'paper', s: 'ink', w: 1.8 }, { d: BOWTIE_S, f: 'ink' }],
+  Reducer: [{ d: 'M6 10.5L26 13.5V18.5L6 21.5Z', f: 'ink' }],
+  Cap: [{ d: 'M17.5 8.5H22.5V23.5H17.5Z', f: 'ink' }],
+  Coupling: [{ d: 'M11.5 11H20.5V21H11.5Z', f: 'ink' }],
+  DismantlingJoint: [{ d: 'M9 9.5H12.5V22.5H9Z M19.5 9.5H23V22.5H19.5Z', f: 'ink' }, { d: 'M12.5 12H19.5M12.5 20H19.5', s: 'ink', w: 1.6 }],
+  Transition: [{ d: 'M9 11.5H16V20.5H9Z', f: 'ink' }, { d: 'M16 10H23V22H16Z', f: 'paper', s: 'ink', w: 1.6 }],
+  ExpansionJoint: [{ d: 'M8 16L10.5 10.5L14 21.5L17.5 10.5L21 21.5L24 16', s: 'ink', w: 2.4, f: 'none' }],
+  RepairClamp: [{ d: 'M10.5 10H21.5V22H10.5Z', f: 'ink' }, { d: 'M14 10V22M18 10V22', s: 'paper', w: 1.2 }],
+  TappingSaddle: [{ d: 'M9 18A7 7 0 0 1 23 18', s: 'ink', w: 2.4, f: 'none' }, { d: 'M14.5 5H17.5V12H14.5Z', f: 'ink' }],
+  Tee: [{ d: circle(16, 16, 3), f: 'ink' }],
+  ReducingTee: [{ d: circle(16, 16, 3), f: 'ink' }],
+  Cross: [{ d: circle(16, 16, 3), f: 'ink' }],
+  Bend: [{ d: circle(16, 16, 2.6), f: 'ink' }],
+  Junction: [{ d: circle(16, 16, 3), f: 'ink' }],
+  Pipe: [],
+};
+
+/** Map symbol SVG: in-line glyph on the pipe, or a solid badge for point assets. */
+export function mapSymbolSVG(code: string, opts: { status?: Status; size?: number } = {}): string {
+  const s = getSymbol(code), size = opts.size ?? 32;
+  const out: string[] = [];
+  const state = opts.status && opts.status !== 'normal' ? STATUS_HEX[opts.status] : null;
+  if (mapSymbolKind(code) === 'inline') {
+    const prims = (INLINE[code] ?? s.prims).filter((p): p is Exclude<Prim, { t: string }> => !('t' in p));
+    const body = state ?? BODY;
+    const col = (p: Paint | undefined) => (p === undefined || p === 'none' ? 'none' : p === 'paper' ? CASE : body);
+    // casing first (all parts), then the bodies, so touching parts read as one glyph
+    for (const p of prims) {
+      const w = p.w ?? 0;
+      const filled = p.f !== undefined && p.f !== 'none';
+      out.push(`<path d="${p.d}" fill="${filled ? CASE : 'none'}" stroke="${CASE}" stroke-width="${w + 3.2}" stroke-linejoin="round" stroke-linecap="round"/>`);
+    }
+    for (const p of prims) {
+      out.push(`<path d="${p.d}" fill="${col(p.f)}" stroke="${col(p.s)}" stroke-width="${p.w ?? 0}" stroke-linejoin="round" stroke-linecap="round"/>`);
+    }
+  } else {
+    const a = s.accent;
+    const ring = opts.status ? STATUS_HEX[opts.status] : null;
+    const square = s.shape === 'square';
+    const shapeAt = (inset: number, fill: string, stroke = 'none', sw = 0) =>
+      square
+        ? `<rect x="${inset}" y="${inset}" width="${32 - 2 * inset}" height="${32 - 2 * inset}" rx="${7 - inset / 2}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`
+        : `<circle cx="16" cy="16" r="${16 - inset}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+    out.push(shapeAt(0.6, CASE));
+    if (ring) out.push(shapeAt(1.6, ring));
+    out.push(shapeAt(ring ? 4 : 2, a, BODY, 1.6));
+    // glyph in white, shrunk a little to sit inside the badge
+    out.push('<g transform="translate(16 16) scale(0.74) translate(-16 -16)">');
+    const light = (p: Paint | undefined, fallback: string) => (p === undefined ? fallback : p === 'none' ? 'none' : p === 'paper' ? a : BODY);
+    for (const p of s.prims) {
+      if ('t' in p) {
+        out.push(`<text x="${p.x}" y="${p.y}" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="${p.size}" text-anchor="middle" fill="${BODY}">${p.t}</text>`);
+        continue;
+      }
+      out.push(`<path d="${p.d}" fill="${light(p.f, 'none')}" stroke="${light(p.s, 'none')}" stroke-width="${(p.w ?? 0) * 1.15}" stroke-linejoin="round" stroke-linecap="round"/>`);
+    }
+    out.push('</g>');
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 32 32">${out.join('')}</svg>`;
 }

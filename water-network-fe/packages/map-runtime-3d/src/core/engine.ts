@@ -17,7 +17,7 @@ import type { ContextMenuEvent } from '../port/map-engine-3d-port.js';
 import { IconAtlas } from '../layers/icon-atlas.js';
 import { buildFlowArrowLayer, buildFlowDashLayer, buildFlowLayer, buildDeckLayers, type LayerEntry } from '../layers/build-deck-layers.js';
 import { componentModelsLoaded, loadComponentModels } from '../layers/components.js';
-import { buildArrowInstances, computeDashes, computeParticles, type ArrowInstance, type FlowDatum } from '../layers/flow.js';
+import { buildArrowInstances, computeChevrons, computeParticles, type ArrowInstance, type FlowDatum } from '../layers/flow.js';
 import type { Layer } from '@deck.gl/core';
 import { MODE_2D_CAMERA, MODE_3D_CAMERA, type Camera3D, type CameraChangeListener, type CameraOptions, type Map3DPort, type TerrainOptions } from '../port/map-engine-3d-port.js';
 import type { HostPointerEvent, MapHost, PickResult } from '../port/map-host.js';
@@ -41,8 +41,7 @@ export interface EngineConfig {
 const FLOW_PX_PER_SEC_PER_MPS = 12;
 const FLOW_SPACING_PX = 30;
 const FLOW_MAX_PARTICLES = 40_000;
-const FLOW_DASH_PERIOD_PX = 18;
-const FLOW_DASH_PX = 9;
+const FLOW_CHEVRON_PERIOD_PX = 64;
 const FLOW_MAX_DASH_SEGMENTS = 60_000;
 
 const LAYER_PREFIX = 'L/';
@@ -644,13 +643,12 @@ export class MapEngine3D implements Map3DPort {
     this.#flowLastDraw = now;
     this.#flowDist += dt * FLOW_PX_PER_SEC_PER_MPS * metresPerPx;
     if (!this.#solids) {
-      // Flat pipes: sliding dashes (a dot would be wider than the stroke).
-      const dashes = computeDashes(this.#flows, {
+      // Flat pipes: small chevrons riding along the cased line (the line itself stays solid).
+      const dashes = computeChevrons(this.#flows, {
         time,
         metresPerPx,
         pxPerSecPerMps: FLOW_PX_PER_SEC_PER_MPS,
-        periodPx: FLOW_DASH_PERIOD_PX,
-        dashPx: FLOW_DASH_PX,
+        periodPx: FLOW_CHEVRON_PERIOD_PX,
         view: this.#host.getVisibleBbox(),
         maxSegments: FLOW_MAX_DASH_SEGMENTS,
       });

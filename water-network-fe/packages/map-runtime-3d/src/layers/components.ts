@@ -9,7 +9,7 @@ import { IconLayer } from '@deck.gl/layers';
 import { SimpleMeshLayer } from '@deck.gl/mesh-layers';
 import type { Layer } from '@deck.gl/core';
 import { getCatalogItem } from '@wn/component-models/catalog';
-import { getSymbol, symbolSVG } from '@wn/component-models/symbols';
+import { getSymbol, mapSymbolSVG } from '@wn/component-models/symbols';
 import type { ComponentDatum, SymbolDatum } from './prepare-layer.js';
 
 type DeckModels = typeof import('@wn/component-models/deck');
@@ -59,7 +59,8 @@ function iconFor(code: string, status: SymbolDatum['status']): IconDef {
   const id = `${code}|${showStatus ? status : ''}`;
   let def = icons.get(id);
   if (!def) {
-    const svg = symbolSVG(code, { size: ICON_PX, status: showStatus ? status : undefined });
+    // map style: in-line parts drawn into the pipe, point assets as compact badges (not round icons)
+    const svg = mapSymbolSVG(code, { size: ICON_PX, status: showStatus ? status : undefined });
     def = { id, url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`, width: ICON_PX, height: ICON_PX, mask: false };
     icons.set(id, def);
   }

@@ -219,6 +219,73 @@ export function computeDashes(flows: FlowDatum[], p: DashParams): FlowDashes {
   return { count: n, sources, targets, colors, widths };
 }
 
+export interface ChevronParams {
+  time: number;
+  metresPerPx: number;
+  pxPerSecPerMps: number;
+  /** Distance between chevrons along a pipe (px). */
+  periodPx: number;
+  view: [number, number, number, number] | null;
+  maxSegments: number;
+}
+
+/**
+ * Flat-map flow: small chevrons (›) riding along each pipe in the flow direction, sized to the line
+ * and spaced well apart, so the pipe still reads as a solid cased line. Two short segments per
+ * chevron, drawn by the same line layer as the dashes. Pure.
+ */
+export function computeChevrons(flows: FlowDatum[], p: ChevronParams): FlowDashes {
+  const cap = p.maxSegments;
+  const sources = new Float64Array(cap * 3);
+  const targets = new Float64Array(cap * 3);
+  const colors = new Uint8ClampedArray(cap * 4);
+  const widths = new Float32Array(cap);
+  let n = 0;
+  const period = quantisedSpacing(p.periodPx, p.metresPerPx);
+  const SPREAD = Math.tan((38 * Math.PI) / 180);
+  for (const f of flows) {
+    if (f.total < period * 0.5 || !inView(f.bbox, p.view) || n + 2 > cap) continue;
+    // arm length follows the line width (px → m); thin lines get a minimum so the shape stays legible
+    const armPx = Math.max(f.widthPx * 0.95, 3.2);
+    const arm = armPx * p.metresPerPx;
+    const groundSpeed = f.speedMps * p.pxPerSecPerMps * p.metresPerPx;
+    const base = (p.time * groundSpeed + hash(f.fid) * period) % period;
+    const count = Math.ceil(f.total / period) + 1;
+    let seg = 0;
+    for (let k = 0; k < count; k++) {
+      const head = k * period + base;
+      if (head < arm || head > f.total - arm * 0.5) continue;
+      const s = f.dir === 1 ? head : f.total - head;
+      const q = pointAt(f, s, seg);
+      seg = q.seg;
+      const a = f.path[q.seg]!;
+      const b = f.path[q.seg + 1]!;
+      const lat = ((a[1] + b[1]) / 2) * (Math.PI / 180);
+      const kx = Math.cos(lat) * 111_320;
+      let dx = (b[0] - a[0]) * kx * f.dir;
+      let dy = (b[1] - a[1]) * 111_320 * f.dir;
+      const dl = Math.hypot(dx, dy) || 1;
+      dx /= dl;
+      dy /= dl;
+      // the two arms go back from the tip, either side of the line
+      for (const side of [1, -1]) {
+        if (n >= cap) break;
+        const ex = -dx * arm + -dy * side * arm * SPREAD;
+        const ey = -dy * arm + dx * side * arm * SPREAD;
+        sources.set([q.x, q.y, q.z], n * 3);
+        targets.set([q.x + ex / kx, q.y + ey / 111_320, q.z], n * 3);
+        colors[n * 4] = 255;
+        colors[n * 4 + 1] = 255;
+        colors[n * 4 + 2] = 255;
+        colors[n * 4 + 3] = Math.round(f.color[3] * 0.85);
+        widths[n] = Math.max(1.3, Math.min(2, f.widthPx * 0.38));
+        n++;
+      }
+    }
+  }
+  return { count: n, sources, targets, colors, widths };
+}
+
 /** Arrows around a tube: top, right, bottom, left. */
 export const ARROW_SIDES = 4;
 /** Gap between arrow rings, in tube diameters (never less than ARROW_MIN_GAP_M). */

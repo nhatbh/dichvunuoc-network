@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CATALOG_ITEMS, STATUSES } from './catalog.js';
-import { SYMBOLS, STATUS_HEX, symbolSVG } from './symbols.js';
+import { SYMBOLS, STATUS_HEX, mapSymbolKind, mapSymbolSVG, symbolSVG } from './symbols.js';
 
 describe('flat symbols', () => {
   it('defines a symbol for every catalog code', () => {
@@ -26,5 +26,25 @@ describe('flat symbols', () => {
   it('draws a status ring in the status colour', () => {
     for (const s of STATUSES) expect(symbolSVG('PressureSensor', { status: s })).toContain(STATUS_HEX[s]);
     expect(symbolSVG('PressureSensor')).not.toContain(STATUS_HEX.normal);
+  });
+});
+
+describe('map symbols', () => {
+  it('draws in-line parts as glyphs on the pipe (no badge) and point assets as badges', () => {
+    expect(mapSymbolKind('GateValve')).toBe('inline');
+    expect(mapSymbolKind('BulkMeter')).toBe('inline');
+    expect(mapSymbolKind('Hydrant')).toBe('badge');
+    expect(mapSymbolKind('PressureSensor')).toBe('badge');
+    const valve = mapSymbolSVG('GateValve');
+    expect(valve).not.toContain('<circle');
+    expect(valve).toContain('#0c1319'); // casing
+  });
+  it('fills an in-line part with its state colour and rings a badge with it', () => {
+    expect(mapSymbolSVG('GateValve', { status: 'critical' })).toContain(STATUS_HEX.critical);
+    expect(mapSymbolSVG('GateValve', { status: 'normal' })).not.toContain(STATUS_HEX.normal);
+    for (const s of ['normal', 'warning', 'critical', 'offline'] as const) expect(mapSymbolSVG('PressureSensor', { status: s })).toContain(STATUS_HEX[s]);
+  });
+  it('renders every catalog code', () => {
+    for (const code of Object.keys(SYMBOLS)) expect(mapSymbolSVG(code, { size: 24 })).toMatch(/^<svg[^>]*width="24"/);
   });
 });

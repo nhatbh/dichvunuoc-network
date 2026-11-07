@@ -54,10 +54,14 @@ export function pipeColor(
     }
   }
   if (p.status === 'leak') return t('#D1242F')
-  if (p.status === 'planned') return t('#0969DA')
+  if (p.status === 'planned') return theme === 'light' ? '#8A9BB0' : '#8193A8'
   if (p.status === 'abandoned') return theme === 'light' ? '#AEB8C4' : '#5a6573'
-  return p.trunk ? t('#0E7C86') : theme === 'light' ? '#3FA0A8' : '#7fd0db'
+  // potable-water blues (same family as the 3D tubes): mains darker and wider, services lighter
+  const c = theme === 'light' ? FLAT_LIGHT : FLAT_DARK
+  return p.trunk || p.dn >= 400 ? c.main : p.dn >= 150 ? c.dist : c.service
 }
+const FLAT_LIGHT = { main: '#1F4E8C', dist: '#2F6DB5', service: '#5B93CF' }
+const FLAT_DARK = { main: '#4C8DDB', dist: '#6FA6E6', service: '#9CC3EE' }
 
 /* ── 3D tube colours ──
    Close up the pipes are objects, not map lines, so they get the palette used for utility models:
@@ -123,7 +127,17 @@ function muted(hex: string): string {
   return '#' + out.map(v => v.toString(16).padStart(2, '0')).join('')
 }
 
-export const pipeWidth = (dn: number) => (dn >= 500 ? 6 : dn >= 300 ? 4.6 : dn >= 200 ? 3 : 2.2)
+export const pipeWidth = (dn: number) => (dn >= 500 ? 6.5 : dn >= 400 ? 5.5 : dn >= 300 ? 4.4 : dn >= 200 ? 3.3 : dn >= 150 ? 2.6 : 2)
+
+/** Casing under every pipe (cased lines read as one network and stay legible on imagery). */
+export const pipeCasing = (theme: ThemeName, imagery: boolean) =>
+  imagery || theme !== 'light' ? 'rgba(6, 11, 17, 0.88)' : 'rgba(18, 30, 44, 0.42)'
+export const CASING_EXTRA_PX = 2.2
+
+/** Size (px) of an in-line symbol (valve, meter, reducer…) on a pipe of this DN: about 5.4× the line width. */
+export const inlineSymbolSize = (dn: number | undefined) => Math.round(Math.min(30, Math.max(17, pipeWidth(dn || 100) * 5.4)))
+/** Size (px) of a point badge (sensor, hydrant, facility). */
+export const BADGE_PX = 19
 
 /** 3D tube for a pipe of the given DN. A selected pipe is drawn thicker (the flat halo sits
  * under the tube in 3D, so the tube itself has to carry the highlight). */
