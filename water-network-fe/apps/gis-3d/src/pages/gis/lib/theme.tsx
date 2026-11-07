@@ -14,10 +14,10 @@ export interface Tweaks {
 }
 
 export const TWEAK_DEFAULTS: Tweaks = {
-  accent: ['#0E7C86', '#56C7D6'],
+  accent: ['#1d6cae', '#4b9be0'],
   dark: false,
   density: 'regular',
-  radius: 9,
+  radius: 6,
 }
 
 /* ── Module-level reactive store (mirrors window.GISUI) ──────────────────────

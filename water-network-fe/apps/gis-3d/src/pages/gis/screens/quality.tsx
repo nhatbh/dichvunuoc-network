@@ -85,7 +85,7 @@ export function QualityScreen(props: { toast: (m: string, k?: string) => void; g
   const scoreCol = () => (data().score >= 90 ? '#1A7F37' : data().score >= 75 ? '#9A6700' : '#D86C1F')
 
   return (
-    <div class="mx-auto max-w-[1180px] px-4 py-5 sm:px-6" data-screen-label="Chất lượng dữ liệu">
+    <div class="flex flex-col gap-3" data-screen-label="Chất lượng dữ liệu">
       <ScreenHead
         title="Chất lượng dữ liệu không gian"
         sub="Độ tin cậy GIS cung cấp cho các service — hoàn thiện thuộc tính · RTK · geocoding"
@@ -96,7 +96,7 @@ export function QualityScreen(props: { toast: (m: string, k?: string) => void; g
         }
       />
 
-      <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[300px_1fr]">
+      <div class="mt-4 grid grid-cols-1 gap-3">
         <Card>
           <div class="flex items-center gap-4">
             <Ring pct={data().score} col={tone(scoreCol())} />
@@ -111,14 +111,14 @@ export function QualityScreen(props: { toast: (m: string, k?: string) => void; g
             </div>
           </div>
         </Card>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-3">
           <QlMetric label="Hoàn thiện thuộc tính" pct={data().complAvg} sub="Bình quân 5 trường lõi" />
           <QlMetric label="Độ phủ GPS RTK" pct={G.DASH.rtkPct} sub="Đấu nối đo bằng RTK · sai số ≤ 5 cm" col="#0969DA" />
           <QlMetric label="Đã geocode" pct={G.DASH.geocodedPct} sub="Đấu nối gắn toạ độ & DMA" col="#8250DF" />
         </div>
       </div>
 
-      <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div class="mt-3 grid grid-cols-1 gap-3">
         <Card>
           <div class="mb-3 text-[13px] font-semibold text-[color:var(--text)]">Hoàn thiện theo thuộc tính (tuyến ống)</div>
           <div class="flex flex-col gap-2.5">

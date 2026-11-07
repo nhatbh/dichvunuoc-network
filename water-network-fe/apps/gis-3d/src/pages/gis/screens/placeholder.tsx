@@ -7,7 +7,7 @@ import type { Route } from '../shell/nav'
 
 export function PlaceholderScreen(props: { name: string; icon?: string; go: (r: Route) => void }) {
   return (
-    <div class="mx-auto flex max-w-[1200px] flex-col gap-4 px-4 py-6 sm:px-6" data-screen-label={TITLES[props.name]}>
+    <div class="flex flex-col gap-3" data-screen-label={TITLES[props.name]}>
       <ScreenHead title={TITLES[props.name] || props.name} sub="Màn hình đang được phát triển — sẽ bổ sung ở đợt sau." />
       <div class="flex flex-col items-center justify-center gap-3 rounded-xl border border-line bg-[var(--surface)] py-20 text-center" style={{ 'box-shadow': 'var(--card-shadow)' }}>
         <span class="flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: chex(cAccent(), 0.12), color: tone(cAccent()) }}>

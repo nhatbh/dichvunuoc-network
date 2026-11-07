@@ -1,10 +1,8 @@
 /* GIS — Tổng quan hạ tầng số mạng lưới (SolidJS port of dashboard.jsx). */
 import { For, Show, type JSX } from 'solid-js'
 import { useGis } from '../lib/gis-data'
-import { Icon } from '../lib/icons'
-import { cAccent, chex, fmtDec, fmtInt, rad, tone } from '../lib/theme'
+import { cAccent, chex, fmtDec, fmtInt, tone } from '../lib/theme'
 import { Btn, Card, ScreenHead, StackBar, Tile } from '../ui/kit'
-import { NetworkMapOL } from '../ui/network-map-ol'
 import type { Route } from '../shell/nav'
 
 interface Kpi {
@@ -23,12 +21,12 @@ function GKpi(props: { k: Kpi; go: (r: Route) => void }) {
     <button
       onClick={props.k.to ? () => props.go({ name: props.k.to! }) : undefined}
       class={
-        'flex items-center gap-3.5 rounded-xl border border-line bg-[var(--surface)] p-4 text-left transition-colors ' +
+        'flex items-center gap-3 rounded-[10px] border border-line bg-[var(--surface)] px-3.5 py-3 text-left transition-colors ' +
         (props.k.to ? 'hover:border-[color:var(--text2)]' : '')
       }
-      style={{ 'box-shadow': 'var(--card-shadow)', 'border-radius': `${rad() + 2}px`, cursor: props.k.to ? 'pointer' : 'default' }}
+      style={{ cursor: props.k.to ? 'pointer' : 'default' }}
     >
-      <Tile icon={props.k.icon} col={props.k.col} size={44} />
+      <Tile icon={props.k.icon} col={props.k.col} size={38} />
       <div class="min-w-0 flex-1">
         <div class="truncate text-[11.5px] text-[color:var(--muted)]">{props.k.label}</div>
         <div class="mt-0.5 flex items-baseline gap-1.5">
@@ -63,7 +61,7 @@ export function DashboardScreen(props: { go: (r: Route) => void; toast: (m: stri
   ]
   const matCols = ['#0E7C86', '#0969DA', '#8250DF', '#D86C1F', '#1A7F37']
   return (
-    <div class="mx-auto flex max-w-[1200px] flex-col gap-4 px-4 py-6 sm:px-6" data-screen-label="Tổng quan GIS">
+    <div class="flex flex-col gap-3" data-screen-label="Tổng quan GIS">
       <ScreenHead
         title="Tổng quan hạ tầng số mạng lưới"
         sub={'Bản đồ GIS · tài sản không gian · topology — cập nhật ' + G.TODAY}
@@ -72,38 +70,18 @@ export function DashboardScreen(props: { go: (r: Route) => void; toast: (m: stri
             <Btn variant="default" size="sm" icon="IcGitBranch" onClick={() => props.go({ name: 'topology' })}>
               Topology
             </Btn>
-            <Btn variant="primary" size="sm" icon="IcMap" onClick={() => props.go({ name: 'map' })}>
-              Mở bản đồ
+            <Btn variant="primary" size="sm" icon="IcLayers" onClick={() => props.go({ name: 'layers' })}>
+              Lớp bản đồ
             </Btn>
           </>
         }
       />
 
-      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-2">
         <For each={kpis}>{(k) => <GKpi k={k} go={props.go} />}</For>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* map preview */}
-        <div class="lg:col-span-2">
-          <Card pad={false} class="overflow-hidden">
-            <div class="flex items-center justify-between border-b border-line px-4 py-2.5">
-              <span class="text-[13px] font-semibold text-[color:var(--text)]">Bản đồ mạng lưới</span>
-              <button onClick={() => props.go({ name: 'map' })} class="flex items-center gap-1 text-[11.5px] font-medium" style={{ color: cAccent() }}>
-                Toàn màn hình <Icon name="IcArrowR" size={13} />
-              </button>
-            </div>
-            <div class="h-[340px]">
-              <NetworkMapOL
-                layers={{ basemap: true, dma: true, pipe: true, valve: true, source: true }}
-                controls={false}
-                legend={false}
-                onSelect={() => props.go({ name: 'map' })}
-                onBg={() => props.go({ name: 'map' })}
-              />
-            </div>
-          </Card>
-        </div>
+      <div class="grid grid-cols-1 gap-3">
         {/* queue + roles */}
         <div class="flex flex-col gap-4">
           <Card>
@@ -140,7 +118,7 @@ export function DashboardScreen(props: { go: (r: Route) => void; toast: (m: stri
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div class="grid grid-cols-1 gap-3">
         <Card>
           <div class="mb-3 text-[13px] font-semibold text-[color:var(--text)]">Tình trạng tuyến ống</div>
           <StackBar rows={D.condMix.map((c) => ({ label: c.label, n: c.n, col: c.col }))} />

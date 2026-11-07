@@ -12,7 +12,7 @@ import { cAccent, chex, cTheme, fmtDec, rad, tone } from '../lib/theme'
 import {
   Badge, Btn, Card, DmaChip, Empty, Field, KV, Modal, ScreenHead, SegToggle, Select, TextInput, Tile,
 } from '../ui/kit'
-import { NetworkMapOL } from '../ui/network-map-ol'
+import { MapOverlay } from '../shell/map-stage'
 import type { Route } from '../shell/nav'
 
 /* ── LineageGraph ── */
@@ -295,7 +295,7 @@ function CompareView(props: {
   }
 
   return (
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-[420px_1fr]">
+    <div class="grid grid-cols-1 gap-4">
       <div class="flex flex-col gap-3.5">
         <Card>
           <div class="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--muted2)]">So sánh hai bản</div>
@@ -371,15 +371,13 @@ function CompareView(props: {
           <span class="text-[13px] font-semibold text-[color:var(--text)]">Overlay khác biệt trên bản đồ</span>
           <span class="text-[11px] text-[color:var(--muted)]">Vùng tô đậm = nơi B thay đổi so với A</span>
         </div>
-        <div class="h-[440px]">
-          <NetworkMapOL
+        <MapOverlay
             layers={{ dma: true, pipe: true, valve: true, source: true, node: false, hydrant: false, conn: false, label: false }}
             emphasis={{ dim: true, pipes: empPipes() }}
             selected={null}
             onSelect={() => {}}
             legend={false}
           />
-        </div>
       </Card>
     </div>
   )
@@ -507,7 +505,7 @@ export function ScenariosScreen(props: {
   }
 
   return (
-    <div class="mx-auto flex max-w-[1320px] flex-col gap-3.5 px-4 py-5 sm:px-6" data-screen-label="Kịch bản mạng lưới">
+    <div class="flex flex-col gap-3" data-screen-label="Kịch bản mạng lưới">
       <ScreenHead
         title="Kịch bản & phiên bản mạng lưới"
         sub="Quá khứ · Hiện tại · Tương lai — fork nhánh, cherry-pick card, so sánh, đề bạt bản chính thức"
@@ -579,7 +577,7 @@ export function ScenariosScreen(props: {
           />
         }
       >
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_372px]">
+        <div class="grid grid-cols-1 gap-4">
           <Card pad={false} class="overflow-hidden">
             <div class="border-b border-line px-4 py-2.5 text-[13px] font-semibold text-[color:var(--text)]">
               Cây phả hệ phiên bản

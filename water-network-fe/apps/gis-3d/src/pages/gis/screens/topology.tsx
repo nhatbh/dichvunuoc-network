@@ -4,7 +4,7 @@ import { useGis, type TopoIssue } from '../lib/gis-data'
 import { IcAlert, IcInfo, IcWarnTri } from '../lib/icons'
 import { chex, fmtInt, rad, tone } from '../lib/theme'
 import { Badge, Btn, Card, DmaChip, Empty, KV, ScreenHead, Select, Tile } from '../ui/kit'
-import { NetworkMapOL } from '../ui/network-map-ol'
+import { MapOverlay } from '../shell/map-stage'
 
 export function TopologyScreen(props: { toast: (m: string, k?: string) => void }): JSX.Element {
   const G = useGis()
@@ -62,7 +62,7 @@ export function TopologyScreen(props: { toast: (m: string, k?: string) => void }
   )
 
   return (
-    <div class="mx-auto flex max-w-[1280px] flex-col gap-3.5 px-4 py-5 sm:px-6" data-screen-label="Topology">
+    <div class="flex flex-col gap-3" data-screen-label="Topology">
       <ScreenHead
         title="Kiểm tra & sửa lỗi topology"
         sub="Chỉ dữ liệu sạch topology mới được đồng bộ sang Hydraulic & DMA"
@@ -79,7 +79,7 @@ export function TopologyScreen(props: { toast: (m: string, k?: string) => void }
         }
       />
 
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3">
         <For
           each={[
             ['Lỗi nghiêm trọng', errs(), '#D1242F', 'IcAlert'],
@@ -103,7 +103,7 @@ export function TopologyScreen(props: { toast: (m: string, k?: string) => void }
         </For>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-[420px_1fr]">
+      <div class="grid grid-cols-1 gap-4">
         {/* list */}
         <Card pad={false} class="overflow-hidden">
           <div class="flex items-center gap-2 border-b border-line px-3 py-2.5">
@@ -173,9 +173,7 @@ export function TopologyScreen(props: { toast: (m: string, k?: string) => void }
 
         {/* map + detail */}
         <div class="flex flex-col gap-4">
-          <Card pad={false} class="overflow-hidden">
-            <div class="h-[360px]">
-              <NetworkMapOL
+          <MapOverlay
                 layers={{ basemap: true, dma: true, pipe: true, valve: true, node: true, source: true }}
                 pins={pins()}
                 focus={focus()}
@@ -184,8 +182,6 @@ export function TopologyScreen(props: { toast: (m: string, k?: string) => void }
                 controls
                 legend={false}
               />
-            </div>
-          </Card>
           <Show
             when={selIssue()}
             fallback={

@@ -4,7 +4,6 @@ import { useGis } from '../lib/gis-data'
 import { IcAlert, IcCheckCircle, IcClock } from '../lib/icons'
 import { cAccent, chex, fmtInt, rad, tone } from '../lib/theme'
 import { Badge, Btn, Card, DmaChip, ScreenHead, Tile } from '../ui/kit'
-import { NetworkMapOL } from '../ui/network-map-ol'
 
 const SYNC: Record<string, { l: string; c: string; ic: string }> = {
   synced: { l: 'Đã đồng bộ', c: '#1A7F37', ic: 'IcCheckCircle' },
@@ -26,15 +25,14 @@ function PhoneMock(): JSX.Element {
         style={{ 'box-shadow': '0 12px 30px -10px rgba(0,0,0,0.45)' }}
       >
         <div class="relative overflow-hidden rounded-[18px]" style={{ height: '312px', background: '#0D1117' }}>
-          <div class="h-[120px]">
-            <NetworkMapOL
-              layers={{ basemap: true, pipe: true, valve: true, conn: true }}
-              theme="dark"
-              controls={false}
-              legend={false}
-              focus={{ x: 600, y: 400, w: 320, h: 260, _k: 1 }}
-            />
-          </div>
+          <div
+            class="h-[120px]"
+            aria-hidden="true"
+            style={{
+              background:
+                'linear-gradient(120deg, transparent 46%, #3fa0a8 47%, #3fa0a8 49%, transparent 50%), linear-gradient(30deg, transparent 58%, #56c7d6 59%, #56c7d6 60.5%, transparent 61.5%), #13293f',
+            }}
+          />
           <div class="flex items-center justify-between px-3 pt-2.5">
             <span class="text-[10px] font-semibold text-[#E6EDF3]">Hiện trường</span>
             <span class="flex items-center gap-1 rounded-full bg-[#16341f] px-1.5 py-0.5 text-[8px] font-medium text-[#3FB950]">
@@ -102,7 +100,7 @@ export function FieldScreen(props: {
   const conflict = () => obs().filter((o) => o.sync === 'conflict').length
 
   return (
-    <div class="mx-auto flex max-w-[1200px] flex-col gap-3.5 px-4 py-5 sm:px-6" data-screen-label="Ứng dụng hiện trường">
+    <div class="flex flex-col gap-3" data-screen-label="Ứng dụng hiện trường">
       <ScreenHead
         title="Ứng dụng hiện trường"
         sub="Offline-first · đồng bộ hai chiều EAM/CMMS · xử lý xung đột phiên bản"
@@ -113,7 +111,7 @@ export function FieldScreen(props: {
         }
       />
 
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3">
         <For each={[
           ['Chờ đồng bộ', pending(), '#9A6700', 'IcClock'],
           ['Xung đột', conflict(), '#D1242F', 'IcAlert'],
@@ -135,7 +133,7 @@ export function FieldScreen(props: {
         </For>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+      <div class="grid grid-cols-1 gap-4">
         <Card pad={false} class="overflow-hidden">
           <div class="border-b border-line px-4 py-2.5 text-[13px] font-semibold text-[color:var(--text)]">
             Bản ghi từ hiện trường

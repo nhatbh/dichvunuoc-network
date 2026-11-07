@@ -19,8 +19,8 @@ export function LayerPanel(props: LayerPanelProps) {
   })
 
   return (
-    <aside class="flex w-56 shrink-0 flex-col border-r border-border bg-background text-sm">
-      <div class="border-b border-border px-3 py-2 font-semibold text-foreground">Lớp bản đồ</div>
+    <aside class="sx-float-panel sx-glass flex w-56 shrink-0 flex-col overflow-hidden text-sm" aria-label="Lớp bản đồ">
+      <div class="border-b border-border px-3 py-2 font-[family-name:var(--f-label)] text-[15px] font-bold tracking-[0.03em] text-foreground">Lớp bản đồ</div>
       <div class="flex-1 overflow-y-auto">
         <For each={[...grouped().entries()]}>
           {([grp, layers]) => (

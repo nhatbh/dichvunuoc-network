@@ -26,6 +26,9 @@ importers:
       '@deck.gl/mesh-layers':
         specifier: 9.3.11
         version: 9.3.11(@deck.gl/core@9.3.11)(@loaders.gl/core@4.4.5)(@luma.gl/core@9.3.6)(@luma.gl/engine@9.3.6(@luma.gl/core@9.3.6)(@luma.gl/shadertools@9.3.6(@luma.gl/core@9.3.6)))(@luma.gl/gltf@9.3.6(@luma.gl/core@9.3.6)(@luma.gl/engine@9.3.6(@luma.gl/core@9.3.6)(@luma.gl/shadertools@9.3.6(@luma.gl/core@9.3.6)))(@luma.gl/shadertools@9.3.6(@luma.gl/core@9.3.6)))(@luma.gl/shadertools@9.3.6(@luma.gl/core@9.3.6))(texture-compressor@1.0.2)
+      '@wn/component-models':
+        specifier: file:../component-models
+        version: file:../component-models
       '@wn/contracts':
         specifier: file:../contracts
         version: file:../contracts(zod@4.6.7)
@@ -864,6 +867,9 @@ packages:
   '@vitest/utils@2.1.9':
     resolution: {integrity: sha512-v0psaMSkNJ3A2NMrUEHFRzJtDPFn+/VWZ5WxImB21T9fjucJRmS7xCS3ppEnARb9y11OAzaD+P2Ps+b+BGX5iQ==}
 
+  '@wn/component-models@file:../component-models':
+    resolution: {directory: ../component-models, type: directory}
+
   '@wn/contracts@file:../contracts':
     resolution: {directory: ../contracts, type: directory}
     peerDependencies:
@@ -1524,6 +1530,9 @@ packages:
   texture-compressor@1.0.2:
     resolution: {integrity: sha512-dStVgoaQ11mA5htJ+RzZ51ZxIZqNOgWKAIvtjLrW1AliQQLCmrDqNzQZ8Jh91YealQ95DXt4MEduLzJmbs6lig==}
     hasBin: true
+
+  three@0.169.0:
+    resolution: {integrity: sha512-Ed906MA3dR4TS5riErd4QBsRGPcx+HBDX2O5yYE5GqJeFQTPU+M56Va/f/Oph9X7uZo3W3o4l2ZhBZ6f6qUv0w==}
 
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
@@ -2698,6 +2707,10 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 1.2.0
 
+  '@wn/component-models@file:../component-models':
+    dependencies:
+      three: 0.169.0
+
   '@wn/contracts@file:../contracts(zod@4.6.7)':
     dependencies:
       zod: 4.6.7
@@ -3385,6 +3398,8 @@ snapshots:
     dependencies:
       argparse: 1.0.10
       image-size: 0.7.5
+
+  three@0.169.0: {}
 
   tinybench@2.9.0: {}
 

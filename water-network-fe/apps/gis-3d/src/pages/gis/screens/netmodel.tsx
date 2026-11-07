@@ -4,7 +4,7 @@ import { useGis } from '../lib/gis-data'
 import { IcAlert, IcCheckCircle } from '../lib/icons'
 import { chex, cTheme, fmtInt, rad, tone } from '../lib/theme'
 import { Btn, Card, ScreenHead, StackBar } from '../ui/kit'
-import { NetworkMapOL } from '../ui/network-map-ol'
+import { MapOverlay } from '../shell/map-stage'
 import type { Pin } from '../ui/network-map-ol'
 import type { Route } from '../shell/nav'
 
@@ -114,7 +114,7 @@ export function NetModelScreen(props: { toast: (m: string, k?: string) => void; 
   }
 
   return (
-    <div class="mx-auto max-w-[1180px] px-4 py-5 sm:px-6" data-screen-label="Mô hình liên thông mạng">
+    <div class="flex flex-col gap-3" data-screen-label="Mô hình liên thông mạng">
       <ScreenHead
         title="Mô hình liên thông mạng"
         sub="Connectivity model · GIS dựng đồ thị nút–ống & xuất sang Mô phỏng thuỷ lực"
@@ -130,7 +130,7 @@ export function NetModelScreen(props: { toast: (m: string, k?: string) => void; 
         }
       />
 
-      <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div class="mt-4 grid grid-cols-2 gap-3">
         <NmStat label="Nút mạng" value={fmtInt(G.nodes.length)} unit="nút" />
         <NmStat label="Tuyến ống" value={fmtInt(m().live.length)} unit="cạnh" col="#0E7C86" />
         <NmStat label="Nguồn cấp" value={String(m().sources)} unit="điểm" col="#1A7F37" />
@@ -138,7 +138,7 @@ export function NetModelScreen(props: { toast: (m: string, k?: string) => void; 
         <NmStat label="Thành phần liên thông" value={String(m().comps)} alert={m().comps > 1} />
       </div>
 
-      <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[1.15fr_1fr]">
+      <div class="mt-3 grid grid-cols-1 gap-3">
         <Card pad={false}>
           <div class="flex items-center justify-between border-b border-line px-4 py-3">
             <span class="text-[13px] font-semibold text-[color:var(--text)]">Xem trước mô hình</span>
@@ -154,7 +154,7 @@ export function NetModelScreen(props: { toast: (m: string, k?: string) => void; 
             </div>
           </div>
           <div class="h-[360px] w-full overflow-hidden" style={{ 'border-radius': `0 0 ${rad() + 2}px ${rad() + 2}px` }}>
-            <NetworkMapOL
+            <MapOverlay
               layers={{ basemap: true, pipe: true, valve: false, source: true, node: false, dma: true }}
               pins={pins()}
               paint={{ mode: 'dma' }}

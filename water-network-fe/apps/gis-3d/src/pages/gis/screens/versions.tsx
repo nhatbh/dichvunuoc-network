@@ -47,7 +47,7 @@ export function VersionsScreen(props: {
   }
 
   return (
-    <div class="mx-auto flex max-w-[1200px] flex-col gap-3.5 px-4 py-5 sm:px-6" data-screen-label="Phiên bản & phê duyệt">
+    <div class="flex flex-col gap-3" data-screen-label="Phiên bản & phê duyệt">
       <ScreenHead
         title="Phiên bản & phê duyệt"
         sub="Change set · optimistic locking · audit đầy đủ — chỉ dữ liệu đã duyệt mới đồng bộ sang Hydraulic & DMA"
@@ -58,7 +58,7 @@ export function VersionsScreen(props: {
         }
       />
 
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3">
         <For each={[
           ['Chờ duyệt', pending(), '#9A6700', 'IcClock'],
           ['Đã duyệt', sets().filter((c) => c.status === 'approved').length, '#1A7F37', 'IcCheckCircle'],
@@ -80,7 +80,7 @@ export function VersionsScreen(props: {
         </For>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_400px]">
+      <div class="grid grid-cols-1 gap-4">
         <Card pad={false} class="overflow-hidden">
           <div class="border-b border-line px-4 py-2.5 text-[13px] font-semibold text-[color:var(--text)]">
             Danh sách change set

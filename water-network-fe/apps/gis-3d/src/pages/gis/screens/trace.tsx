@@ -3,7 +3,7 @@ import { For, Show, createMemo, createSignal, type JSX } from 'solid-js'
 import { useGis } from '../lib/gis-data'
 import { cAccent, chex, fmtInt, tone } from '../lib/theme'
 import { Badge, Btn, Card, DmaChip, Empty, ScreenHead, SegToggle } from '../ui/kit'
-import { NetworkMapOL } from '../ui/network-map-ol'
+import { MapOverlay } from '../shell/map-stage'
 
 type TraceMode = 'isolation' | 'upstream' | 'downstream'
 
@@ -14,7 +14,8 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
   const [ran, setRan] = createSignal(true)
   const [running, setRunning] = createSignal(false)
 
-  const targetPipe = G.pipeBy[ISO.target]!
+  // the seed's isolation target can be missing from the published pipes: fall back to the first pipe
+  const targetPipe = G.pipeBy[ISO.target] ?? G.pipes[0]!
 
   const empPipes = createMemo(() => {
     if (mode() === 'isolation') return ISO.affectedPipes
@@ -61,13 +62,13 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
   }
 
   return (
-    <div class="mx-auto flex max-w-[1280px] flex-col gap-3.5 px-4 py-5 sm:px-6" data-screen-label="Truy vết & cô lập">
+    <div class="flex flex-col gap-3" data-screen-label="Truy vết & cô lập">
       <ScreenHead
         title="Truy vết mạng & cô lập van"
         sub="Xác định tập van cần đóng và vùng bị ảnh hưởng khi sửa chữa — dùng chung bởi CMMS & Hydraulic"
       />
 
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr]">
+      <div class="grid grid-cols-1 gap-4">
         {/* control + results */}
         <div class="flex flex-col gap-4">
           <Card>
@@ -217,8 +218,7 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
               </span>
             </div>
           </div>
-          <div class="h-[520px]">
-            <NetworkMapOL
+          <MapOverlay
               layers={{ basemap: true, dma: true, pipe: true, valve: true, conn: true, source: true }}
               emphasis={ran() ? emphasis() : {}}
               pins={pins}
@@ -226,7 +226,6 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
               controls
               legend={false}
             />
-          </div>
         </Card>
       </div>
     </div>

@@ -435,22 +435,19 @@ export interface Toast {
 export function ToastHost(props: { toasts: Toast[] }) {
   return (
     <Portal>
-      <div class="pointer-events-none fixed bottom-6 left-1/2 z-[60] flex w-full max-w-sm -translate-x-1/2 flex-col gap-2 px-4">
+      <div class="sx-toasts" role="status" aria-live="polite">
         <For each={props.toasts}>
           {(t) => {
             const cols: Record<string, string> = { success: '#1A7F37', error: '#D1242F', info: '#0969DA' }
             const col = tone(cols[t.kind || 'info'] || cols.info!)
             return (
-              <div
-                class="crm-toast-in pointer-events-auto flex items-start gap-2.5 rounded-xl border border-line bg-[var(--surface)] px-3.5 py-2.5"
-                style={{ 'box-shadow': 'var(--toast-shadow)' }}
-              >
-                <span class="mt-px shrink-0" style={{ color: col }}>
+              <div class={'sx-toast flex items-center gap-2.5 text-left ' + (t.kind === 'error' ? 'error' : '')}>
+                <span class="shrink-0" style={{ color: t.kind === 'error' ? '#fff' : col }}>
                   <Show when={t.kind === 'success'} fallback={<Show when={t.kind === 'error'} fallback={<IcInfo size={16} />}><IcAlert size={16} /></Show>}>
                     <IcCheckCircle size={16} />
                   </Show>
                 </span>
-                <div class="min-w-0 flex-1 text-[12px] leading-snug text-[color:var(--text)]">{t.msg}</div>
+                <div class="min-w-0 flex-1">{t.msg}</div>
               </div>
             )
           }}
@@ -489,8 +486,8 @@ export function Card(props: { children?: JSX.Element; class?: string; pad?: bool
   const pad = () => props.pad !== false
   return (
     <div
-      class={'rounded-xl border border-line bg-[var(--surface)] ' + (pad() ? 'p-4 ' : '') + (props.class || '')}
-      style={{ 'box-shadow': 'var(--card-shadow)', 'border-radius': `${rad() + 2}px` }}
+      class={'border border-line bg-[var(--surface)] ' + (pad() ? 'p-3.5 ' : '') + (props.class || '')}
+      style={{ 'border-radius': '10px' }}
     >
       {props.children}
     </div>
@@ -550,9 +547,11 @@ export function SegToggle(props: { options: { id: string; label: string; icon?: 
 
 export function ScreenHead(props: { title: string; sub?: string; right?: JSX.Element }) {
   return (
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 class="text-[20px] font-semibold tracking-tight text-[color:var(--text)]">{props.title}</h1>
+    <div class="sx-screenhead flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
+      <div class="min-w-0">
+        <h1 class="sx-screenhead-title font-[family-name:var(--f-label)] text-[22px] font-bold tracking-[0.02em] text-[color:var(--text)]">
+          {props.title}
+        </h1>
         <Show when={props.sub}>
           <p class="mt-0.5 text-[12.5px] text-[color:var(--muted)]">{props.sub}</p>
         </Show>

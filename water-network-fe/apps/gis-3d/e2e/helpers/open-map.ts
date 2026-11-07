@@ -56,8 +56,8 @@ export async function stubBackend(page: Page): Promise<string[]> {
 /** Sign in (mock auth), open the map workspace and wait until the 3D engine is live. */
 export async function openMap(page: Page): Promise<void> {
   await loginAsMockDemoUser(page)
-  await page.goto('/gis')
-  await page.getByText('Mở bản đồ').first().click()
+  // the full-screen network map is the landing view of the SYSTEM 3D shell
+  await page.goto('/gis#map')
   await page.waitForFunction(() => !!window.__networkMap, null, { timeout: 60_000 })
   await expect(page.getByTestId('map-3d-controls')).toBeVisible()
   await page.waitForTimeout(1500)

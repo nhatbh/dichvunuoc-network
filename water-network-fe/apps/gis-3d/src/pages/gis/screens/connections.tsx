@@ -4,7 +4,7 @@ import { useGis } from '../lib/gis-data'
 import { IcShield } from '../lib/icons'
 import { cAccent, chex, cnorm, fmtInt, rad, tone } from '../lib/theme'
 import { Badge, Btn, Card, DmaChip, Empty, KV, ScreenHead, Select, TextInput, Tile } from '../ui/kit'
-import { NetworkMapOL } from '../ui/network-map-ol'
+import { MapOverlay } from '../shell/map-stage'
 import type { FocusBox, Pin } from '../ui/network-map-ol'
 
 function ConnStatusPill(props: { st: string }): JSX.Element {
@@ -66,7 +66,7 @@ export function ConnectionsScreen(props: { toast: (m: string, k?: string) => voi
   const pendingN = createMemo(() => G.connections.filter((c) => c.status !== 'active').length)
 
   return (
-    <div class="mx-auto flex max-w-[1280px] flex-col gap-3.5 px-4 py-5 sm:px-6" data-screen-label="Đấu nối khách hàng">
+    <div class="flex flex-col gap-3" data-screen-label="Đấu nối khách hàng">
       <ScreenHead
         title="Đấu nối khách hàng"
         sub="Đồng bộ từ CIS/Billing · geocode & gán vào DMA · chỉ lưu mã tham chiếu, không dữ liệu thương mại"
@@ -82,7 +82,7 @@ export function ConnectionsScreen(props: { toast: (m: string, k?: string) => voi
         }
       />
 
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3">
         <For each={[
           ['Tổng đấu nối', fmtInt(G.connections.length), '#9A6700', 'IcPlug'],
           ['Đã geocode', geocoded() + '%', '#1A7F37', 'IcCrosshair'],
@@ -104,7 +104,7 @@ export function ConnectionsScreen(props: { toast: (m: string, k?: string) => voi
         </For>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_400px]">
+      <div class="grid grid-cols-1 gap-4">
         <Card pad={false} class="overflow-hidden">
           <div class="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2.5">
             <div class="w-full max-w-[220px]">
@@ -186,9 +186,7 @@ export function ConnectionsScreen(props: { toast: (m: string, k?: string) => voi
         </Card>
 
         <div class="flex flex-col gap-4">
-          <Card pad={false} class="overflow-hidden">
-            <div class="h-[280px]">
-              <NetworkMapOL
+          <MapOverlay
                 layers={{ basemap: true, dma: true, pipe: true, conn: true, source: true }}
                 pins={pins()}
                 focus={focus()}
@@ -196,8 +194,6 @@ export function ConnectionsScreen(props: { toast: (m: string, k?: string) => voi
                 legend={false}
                 onBg={() => {}}
               />
-            </div>
-          </Card>
 
           <Show
             when={selConn()}

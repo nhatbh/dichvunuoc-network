@@ -1,5 +1,5 @@
 /* GIS — Bản đồ mạng lưới + Quản lý lớp (SolidJS port of map.jsx). */
-import { For, Show, createMemo, createSignal, type JSX } from 'solid-js'
+import { For, Show, createContext, createMemo, createSignal, onCleanup, useContext, type JSX } from 'solid-js'
 import {
   gisPixelDistanceM,
   gisPixelToLonLat,
@@ -10,19 +10,18 @@ import {
 } from '../lib/gis-data'
 import {
   Icon,
-  IcChevD,
   IcExternal,
-  IcFilter,
-  IcLayers,
   IcLink,
   IcRuler,
+  IcSearch,
+  IcFile,
   IcX,
-  IcCheck,
   IcLockClosed,
   IcEye,
   IcEyeOff,
 } from '../lib/icons'
 import { cAccent, chex, cTheme, cnorm, fmtInt, fmtKm, rad, tone } from '../lib/theme'
+import { MapOverlay } from '../shell/map-stage'
 import {
   AssetTypeChip,
   Badge,
@@ -35,11 +34,9 @@ import {
   Modal,
   Select,
   StackBar,
-  StatusDot,
-  TextInput,
 } from '../ui/kit'
-import { NetworkMapOL, type FocusBox, type Selection } from '../ui/network-map-ol'
 import type { Route } from '../shell/nav'
+import type { FocusBox, Selection } from '../ui/network-map-ol'
 
 const assetIndex = (G: GisData): Record<string, Asset> => {
   const m: Record<string, Asset> = {}
@@ -209,7 +206,6 @@ interface QueryFilter {
 }
 
 function QueryPanel(props: {
-  onClose: () => void
   onApply: (f: QueryFilter | null) => void
   onFocus: (a: Asset) => void
   toast: (m: string, k?: string) => void
@@ -322,20 +318,7 @@ function QueryPanel(props: {
   ]
 
   return (
-    <div class="flex w-[268px] shrink-0 flex-col overflow-hidden border-r border-line bg-[var(--surface)]">
-      <div class="flex items-center justify-between border-b border-line px-3.5 py-2.5">
-        <span class="flex items-center gap-2 text-[12.5px] font-semibold text-[color:var(--text)]">
-          <IcFilter size={15} />
-          Truy vấn tài sản
-        </span>
-        <button
-          onClick={props.onClose}
-          class="flex h-6 w-6 items-center justify-center rounded-md text-[color:var(--muted2)] hover:bg-[var(--surface2)] hover:text-[color:var(--text)]"
-        >
-          <IcX size={14} />
-        </button>
-      </div>
-
+    <div class="-mx-3.5 -my-3 flex min-h-full flex-col" data-testid="query-panel">
       <div class="flex flex-col gap-3 border-b border-line px-3.5 py-3">
         <QField label="Loại tài sản">
           <div class="flex flex-wrap gap-1.5">
@@ -559,7 +542,8 @@ function AtlasModal(props: {
 function LayerPanel(props: {
   vis: Record<string, boolean>
   setVis: (v: Record<string, boolean>) => void
-  onClose: () => void
+  paint: string
+  setPaint: (v: string) => void
 }) {
   const G = useGis()
   const groups = createMemo(() => {
@@ -570,24 +554,24 @@ function LayerPanel(props: {
     return Object.entries(g)
   })
   return (
-    <div class="flex w-[230px] shrink-0 flex-col overflow-hidden border-r border-line bg-[var(--surface)]">
-      <div class="flex items-center justify-between border-b border-line px-3.5 py-2.5">
-        <span class="flex items-center gap-2 text-[12.5px] font-semibold text-[color:var(--text)]">
-          <IcLayers size={15} />
-          Lớp bản đồ
-        </span>
-        <button
-          onClick={props.onClose}
-          class="flex h-6 w-6 items-center justify-center rounded-md text-[color:var(--muted2)] hover:bg-[var(--surface2)] hover:text-[color:var(--text)] md:hidden"
-        >
-          <IcX size={14} />
-        </button>
+    <div class="-mx-3.5 -my-3 flex min-h-full flex-col" data-testid="layer-panel">
+      <div class="border-b border-line px-3.5 py-3">
+        <div class="sx-lbl mb-2">Tô màu tuyến ống theo</div>
+        <div class="flex flex-wrap gap-1.5">
+          <For each={SYMB}>
+            {m => (
+              <QChip on={props.paint === m.id} onClick={() => props.setPaint(m.id)}>
+                {m.label}
+              </QChip>
+            )}
+          </For>
+        </div>
       </div>
       <div class="flex-1 overflow-y-auto px-2.5 py-2">
         <For each={groups()}>
           {([grp, items]) => (
             <div class="mb-1.5">
-              <div class="px-1.5 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--muted2)]">
+              <div class="sx-lbl px-1.5 pb-1 pt-2">
                 {grp}
               </div>
               <For each={items}>
@@ -747,7 +731,7 @@ export function AssetInspector(props: {
   return (
     <Show when={model()}>
       {m => (
-        <div class="flex w-[300px] shrink-0 flex-col overflow-hidden border-l border-line bg-[var(--surface)]">
+        <aside class="sx-drawer sx-glass" aria-label="Thông tin đối tượng" data-testid="inspector">
           <div class="flex items-start gap-2.5 border-b border-line px-4 py-3.5">
             <div class="min-w-0 flex-1">
               <div class="mb-1 flex items-center gap-1.5">
@@ -765,16 +749,13 @@ export function AssetInspector(props: {
                   <CondPill cond={m().condEl!} sm />
                 </Show>
               </div>
-              <h3 class="text-[14px] font-semibold leading-tight text-[color:var(--text)]">
+              <h3 class="font-[family-name:var(--f-label)] text-[17px] font-bold leading-tight tracking-[0.02em] text-[color:var(--text)]">
                 {m().title}
               </h3>
               <div class="mt-0.5 font-mono text-[11px] text-[color:var(--muted)]">{m().code}</div>
             </div>
-            <button
-              onClick={props.onClose}
-              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[color:var(--muted2)] hover:bg-[var(--surface2)] hover:text-[color:var(--text)]"
-            >
-              <IcX size={15} />
+            <button onClick={props.onClose} class="sx-xbtn" aria-label="Đóng" title="Đóng (Esc)">
+              <IcX size={17} />
             </button>
           </div>
           <div class="flex-1 overflow-y-auto px-4 py-3">
@@ -819,55 +800,61 @@ export function AssetInspector(props: {
               </Btn>
             </div>
           </Show>
-        </div>
+        </aside>
       )}
     </Show>
   )
 }
 
-export function MapScreen(props: {
-  toast: (m: string, k?: string) => void
-  go: (r: Route) => void
-  focusAsset?: { id: string }
-  openQuery?: boolean
-}): JSX.Element {
+/* ── Map controller: the base layer of the full-screen stage ──────────────────
+   Owns what the user set on the map itself (layer visibility, symbology,
+   selection, measuring, query highlight) and exposes the pieces the shell
+   places around the map: the base overlay, the Layers / Query panels, the
+   inspector drawer, the measure pill and the top-bar asset search. */
+export interface MapView {
+  vis: () => Record<string, boolean>
+  setVis: (v: Record<string, boolean>) => void
+  sel: () => Selection
+  setSel: (s: Selection) => void
+  focus: () => FocusBox | null
+  paint: () => string
+  setPaint: (v: string) => void
+  measuring: () => boolean
+  toggleMeasure: () => void
+  mpts: () => [number, number][]
+  setMpts: (fn: (a: [number, number][]) => [number, number][]) => void
+  queryEmphasis: () => { pipes: string[]; valves: string[] } | null
+  setQueryEmphasis: (v: { pipes: string[]; valves: string[] } | null) => void
+  atlas: () => boolean
+  setAtlas: (v: boolean) => void
+  goToAsset: (a: Asset) => void
+  searchAssets: (q: string) => Asset[]
+}
+
+const MapViewCtx = createContext<MapView>()
+
+export function useMapView(): MapView {
+  const v = useContext(MapViewCtx)
+  if (!v) throw new Error('useMapView must be used inside MapViewProvider')
+  return v
+}
+
+export function MapViewProvider(props: { focusAsset?: { id: string }; children: JSX.Element }) {
   const G = useGis()
   const [vis, setVis] = createSignal<Record<string, boolean>>(
     Object.fromEntries(G.LAYERS.map(l => [l.id, l.on]))
   )
   const [sel, setSel] = createSignal<Selection>(null)
   const [focus, setFocus] = createSignal<FocusBox | null>(null)
-  const [showLayers, setShowLayers] = createSignal(true)
-  const [showQuery, setShowQuery] = createSignal(props.openQuery ?? false)
+  const [paint, setPaint] = createSignal('status')
+  const [measuring, setMeasuring] = createSignal(false)
+  const [mpts, setMpts] = createSignal<[number, number][]>([])
   const [queryEmphasis, setQueryEmphasis] = createSignal<{
     pipes: string[]
     valves: string[]
   } | null>(null)
-  const [paint, setPaint] = createSignal('status')
-  const [symbOpen, setSymbOpen] = createSignal(false)
-  const [measuring, setMeasuring] = createSignal(false)
-  const [mpts, setMpts] = createSignal<[number, number][]>([])
   const [atlas, setAtlas] = createSignal(false)
-  const [q, setQ] = createSignal('')
-  const initialNetworkIsPartial = () =>
-    G.network?.truncated === true || G.network?.initialExtentPartial === true
-
-  const measTotal = createMemo(() => {
-    const a = mpts()
-    let s = 0
-    for (let i = 1; i < a.length; i++) {
-      const cur = a[i]!,
-        prev = a[i - 1]!
-      s += gisPixelDistanceM(G, prev, cur)
-    }
-    return s
-  })
-
-  const results = createMemo(() => {
-    if (!q().trim()) return []
-    const k = cnorm(q())
-    return G.assets.filter(a => cnorm(a.code).includes(k) || cnorm(a.name).includes(k)).slice(0, 7)
-  })
+  const index = assetIndex(G)
 
   const goToAsset = (a: Asset) => {
     const g = a.geomRef as Pipe & { x: number; y: number; poly: [number, number][] }
@@ -895,310 +882,275 @@ export function MapScreen(props: {
     }
     setSel({ type: a.type, id: a.id })
     setFocus({ ...box, _k: Math.random() })
-    setQ('')
     const layerId = ['device', 'pump', 'reservoir'].includes(a.type) ? 'source' : a.type
     if (!vis()[layerId] && Object.prototype.hasOwnProperty.call(vis(), layerId))
-      setVis(v => ({ ...v, [layerId]: true }))
+      setVis({ ...vis(), [layerId]: true })
   }
 
-  // focus từ route (command palette omitted in this task)
+  const searchAssets = (q: string): Asset[] => {
+    if (!q.trim()) return []
+    const k = cnorm(q)
+    return G.assets.filter(a => cnorm(a.code).includes(k) || cnorm(a.name).includes(k)).slice(0, 7)
+  }
+
   if (props.focusAsset) {
-    const a = assetIndex(G)[props.focusAsset.id]
+    const a = index[props.focusAsset.id]
     if (a) queueMicrotask(() => goToAsset(a))
   }
 
-  const miniStats: [string, number, string][] = [
-    ['Ống', G.DASH.pipeCount, '#0E7C86'],
-    ['Van', G.DASH.valveCount, '#0969DA'],
-    ['Đấu nối', G.DASH.connCount, '#9A6700'],
-  ]
+  const view: MapView = {
+    vis,
+    setVis,
+    sel,
+    setSel: s => {
+      setSel(s)
+      setFocus(null)
+    },
+    focus,
+    paint,
+    setPaint,
+    measuring,
+    toggleMeasure: () => {
+      const was = measuring()
+      setMeasuring(!was)
+      if (was) setMpts([])
+    },
+    mpts,
+    setMpts: fn => setMpts(fn),
+    queryEmphasis,
+    setQueryEmphasis,
+    atlas,
+    setAtlas,
+    goToAsset,
+    searchAssets,
+  }
+  return <MapViewCtx.Provider value={view}>{props.children}</MapViewCtx.Provider>
+}
 
+/** The user's own map state, pushed as the bottom-most stage overlay. */
+export function BaseMapOverlay(): JSX.Element {
+  const G = useGis()
+  const v = useMapView()
   return (
-    <div class="flex h-[calc(100vh-53px)] flex-col" data-screen-label="Bản đồ mạng lưới">
-      <Show when={initialNetworkIsPartial()}>
-        <div
-          role="status"
-          class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-amber-300 bg-amber-50 px-4 py-2 text-[11.5px] text-amber-900"
-        >
-          <span>
-            Bản đồ giàu tính năng đang hiển thị một phần dữ liệu của tenant
-            <Show when={G.network?.truncated}>
-              {' '}
-              (giới hạn {G.network?.limit.toLocaleString('vi-VN')} đối tượng)
-            </Show>
-            .
-          </span>
-          <a
-            href="/gis?viewer=canonical"
-            class="font-semibold underline underline-offset-2 hover:no-underline"
-          >
-            Mở chế độ dữ liệu lớn
-          </a>
-        </div>
-      </Show>
-      {/* toolbar */}
-      <div class="flex shrink-0 items-center gap-2 border-b border-line bg-[var(--surface)] px-3 py-2">
-        <button
-          onClick={() => setShowLayers(s => !s)}
-          class="flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[12px] font-medium text-[color:var(--text2)] transition-colors hover:border-[color:var(--text2)]"
-          style={{
-            'border-radius': `${rad()}px`,
-            background: showLayers() ? 'var(--surface2)' : 'transparent',
-          }}
-        >
-          <IcLayers size={15} />
-          <span class="hidden sm:inline">Lớp</span>
-        </button>
-        <div class="relative">
-          <button
-            onClick={() => setSymbOpen(o => !o)}
-            title="Tô màu tuyến ống"
-            class="flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[12px] font-medium text-[color:var(--text2)] transition-colors hover:border-[color:var(--text2)]"
-            style={{
-              'border-radius': `${rad()}px`,
-              background: paint() !== 'status' ? 'var(--surface2)' : 'transparent',
-            }}
-          >
-            <span
-              class="h-3 w-3 rounded-sm"
-              style={{
-                background:
-                  paint() === 'status'
-                    ? tone('#0E7C86')
-                    : `linear-gradient(90deg, ${tone('#0E7C86')}, ${tone('#9A6700')})`,
-              }}
-            />
-            <span class="hidden md:inline">
-              {(SYMB.find(s => s.id === paint()) || { label: '' }).label}
-            </span>
-            <IcChevD size={13} />
-          </button>
-          <Show when={symbOpen()}>
-            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-            <div class="fixed inset-0 z-20" onClick={() => setSymbOpen(false)} />
-            <div
-              class="crm-menu-in absolute left-0 top-10 z-30 w-52 overflow-hidden rounded-lg border border-line bg-[var(--surface)] py-1"
-              style={{ 'box-shadow': 'var(--toast-shadow)', 'border-radius': `${rad()}px` }}
-            >
-              <div class="px-3 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--muted2)]">
-                Tô màu ống theo
-              </div>
-              <For each={SYMB}>
-                {s => (
-                  <button
-                    onClick={() => {
-                      setPaint(s.id)
-                      setSymbOpen(false)
-                    }}
-                    class="flex w-full items-center justify-between px-3 py-1.5 text-left text-[12.5px] transition-colors hover:bg-[var(--surface2)]"
-                    style={{ color: paint() === s.id ? 'var(--text)' : 'var(--text2)' }}
-                  >
-                    {s.label}
-                    <Show when={paint() === s.id}>
-                      <span style={{ color: cAccent() }}>
-                        <IcCheck size={14} />
-                      </span>
-                    </Show>
-                  </button>
-                )}
-              </For>
-            </div>
-          </Show>
-        </div>
-        <div class="relative w-full max-w-[340px]">
-          <TextInput
-            value={q()}
-            onChange={setQ}
-            placeholder="Tìm tài sản theo mã / tên… (vd O.300)"
-            icon="IcSearch"
-          />
-          <Show when={results().length}>
-            <div
-              class="crm-menu-in absolute left-0 top-10 z-30 w-full overflow-hidden rounded-lg border border-line bg-[var(--surface)]"
-              style={{ 'box-shadow': 'var(--toast-shadow)' }}
-            >
-              <For each={results()}>
-                {a => (
-                  <button
-                    onClick={() => goToAsset(a)}
-                    class="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-[var(--surface2)]"
-                  >
-                    <span style={{ color: tone(G.ASSET_TYPES[a.type]!.col) }}>
-                      <Icon name={G.ASSET_TYPES[a.type]!.icon} size={15} />
-                    </span>
-                    <div class="min-w-0 flex-1">
-                      <div class="truncate text-[12px] font-medium text-[color:var(--text)]">
-                        {a.name}
-                      </div>
-                      <div class="font-mono text-[10px] text-[color:var(--muted)]">{a.code}</div>
-                    </div>
-                    <DmaChip dma={a.dma} sm />
-                  </button>
-                )}
-              </For>
-            </div>
-          </Show>
-        </div>
-        <div class="ml-auto flex items-center gap-2">
-          <Btn
-            size="sm"
-            variant={showQuery() ? 'primary' : 'ghost'}
-            icon="IcFilter"
-            onClick={() => setShowQuery(o => !o)}
-            title="Truy vấn tài sản"
-          >
-            <span class="hidden lg:inline">Truy vấn</span>
-          </Btn>
-          <Btn
-            size="sm"
-            variant={measuring() ? 'primary' : 'ghost'}
-            icon="IcRuler"
-            onClick={() => {
-              const was = measuring()
-              setMeasuring(m => !m)
-              if (was) setMpts([])
-            }}
-            title="Đo khoảng cách"
-          >
-            <span class="hidden lg:inline">Đo</span>
-          </Btn>
-          <Show when={!G.canonical}>
-            <Btn
-              size="sm"
-              variant="ghost"
-              icon="IcFile"
-              onClick={() => setAtlas(true)}
-              title="Xuất tập bản đồ"
-            >
-              <span class="hidden lg:inline">Tập bản đồ</span>
-            </Btn>
-            <Btn
-              size="sm"
-              variant="primary"
-              icon="IcPlus"
-              onClick={() => props.go({ name: 'editor' })}
-            >
-              <span class="hidden sm:inline">Tài sản</span>
-            </Btn>
-          </Show>
-        </div>
-      </div>
-
-      <div class="flex min-h-0 flex-1">
-        <Show when={showLayers()}>
-          <LayerPanel vis={vis()} setVis={setVis} onClose={() => setShowLayers(false)} />
-        </Show>
-        <Show when={showQuery()}>
-          <QueryPanel
-            onClose={() => {
-              setShowQuery(false)
-              setQueryEmphasis(null) // clear map highlight when the query panel closes
-            }}
-            onApply={f => setQueryEmphasis(f)}
-            onFocus={a => goToAsset(a)}
-            toast={props.toast}
-          />
-        </Show>
-        <div class="relative min-w-0 flex-1">
-          <NetworkMapOL
-            layers={vis()}
-            selected={sel()}
-            onSelect={s => {
-              setSel(s)
-              setFocus(null)
-            }}
-            focus={focus()}
-            onBg={() => setSel(null)}
-            paint={{ mode: paint() }}
-            legendRows={symbLegend(paint(), G)}
-            measure={measuring() ? mpts() : null}
-            onMeasureClick={measuring() ? pt => setMpts(a => [...a, pt]) : undefined}
-            emphasis={
-              queryEmphasis()
-                ? {
-                    dim: true,
-                    pipes: queryEmphasis()!.pipes,
-                    valvesOpen: new Set(queryEmphasis()!.valves),
-                  }
-                : undefined
+    <MapOverlay
+      layers={v.vis()}
+      selected={v.sel()}
+      onSelect={s => v.setSel(s)}
+      focus={v.focus()}
+      onBg={() => v.setSel(null)}
+      paint={{ mode: v.paint() }}
+      legendRows={symbLegend(v.paint(), G)}
+      measure={v.measuring() ? v.mpts() : null}
+      onMeasureClick={v.measuring() ? pt => v.setMpts(a => [...a, pt]) : undefined}
+      emphasis={
+        v.queryEmphasis()
+          ? {
+              dim: true,
+              pipes: v.queryEmphasis()!.pipes,
+              valvesOpen: new Set(v.queryEmphasis()!.valves),
             }
-          />
-          <Show when={measuring()}>
-            <div
-              class="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2.5 rounded-lg border border-line bg-[var(--surface)] px-3 py-1.5"
-              style={{ 'box-shadow': 'var(--card-shadow)', 'border-radius': `${rad()}px` }}
-            >
-              <span
-                class="flex items-center gap-1.5 text-[12px]"
-                style={{ color: tone(cAccent()) }}
-              >
-                <IcRuler size={14} />
-                <b class="font-mono text-[color:var(--text)]">
-                  {mpts().length > 1
-                    ? measTotal() >= 1000
-                      ? (measTotal() / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) +
-                        ' km'
-                      : Math.round(measTotal()) + ' m'
-                    : '0 m'}
-                </b>
-              </span>
-              <span class="hidden text-[11px] text-[color:var(--muted2)] sm:inline">
-                {mpts().length} điểm · bấm để thêm
-              </span>
-              <span class="h-4 w-px bg-[var(--line)]" />
-              <button
-                onClick={() => setMpts(a => a.slice(0, -1))}
-                disabled={!mpts().length}
-                class="text-[11.5px] font-medium text-[color:var(--muted)] hover:text-[color:var(--text)] disabled:opacity-40"
-              >
-                Hoàn tác
-              </button>
-              <button
-                onClick={() => setMpts([])}
-                disabled={!mpts().length}
-                class="text-[11.5px] font-medium text-[color:var(--muted)] hover:text-[color:var(--text)] disabled:opacity-40"
-              >
-                Xoá
-              </button>
-              <button
-                onClick={() => {
-                  setMeasuring(false)
-                  setMpts([])
-                }}
-                class="text-[11.5px] font-semibold"
-                style={{ color: tone(cAccent()) }}
-              >
-                Xong
-              </button>
-            </div>
-          </Show>
-          {/* mini stats */}
-          <div class="pointer-events-none absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
-            <For each={miniStats}>
-              {s => (
-                <span class="flex items-center gap-1.5 rounded-md border border-line bg-[var(--surface)]/90 px-2 py-1 text-[10.5px] backdrop-blur">
-                  <StatusDot color={tone(s[2])} size={7} />
-                  <span class="text-[color:var(--muted)]">{s[0]}</span>
-                  <span class="font-mono font-semibold text-[color:var(--text)]">
-                    {fmtInt(s[1])}
-                  </span>
-                </span>
-              )}
-            </For>
-          </div>
-        </div>
-        <Show when={sel()}>
-          <AssetInspector
-            sel={sel()}
-            onClose={() => setSel(null)}
-            go={props.go}
-            toast={props.toast}
-          />
-        </Show>
+          : undefined
+      }
+    />
+  )
+}
+
+/** Side panel: layer visibility + pipe symbology. */
+export function LayersPanel(): JSX.Element {
+  const v = useMapView()
+  return <LayerPanel vis={v.vis()} setVis={v.setVis} paint={v.paint()} setPaint={v.setPaint} />
+}
+
+/** Side panel: attribute query with live highlight on the map. */
+export function QueryPanelHost(props: { toast: (m: string, k?: string) => void }): JSX.Element {
+  const v = useMapView()
+  onCleanup(() => v.setQueryEmphasis(null))
+  return (
+    <QueryPanel
+      onApply={f => v.setQueryEmphasis(f ? { pipes: f.pipes, valves: f.valves } : null)}
+      onFocus={a => v.goToAsset(a)}
+      toast={props.toast}
+    />
+  )
+}
+
+/** Inspector drawer for the current map selection (bottom-left, over the map). */
+export function InspectorDrawer(props: {
+  go: (r: Route) => void
+  toast: (m: string, k?: string) => void
+  /** selections another panel shows instead (e.g. a sensor opens its 24 h chart) */
+  skip?: (sel: NonNullable<Selection>) => boolean
+}): JSX.Element {
+  const v = useMapView()
+  return (
+    <Show when={v.sel() && !props.skip?.(v.sel()!)}>
+      <AssetInspector sel={v.sel()} onClose={() => v.setSel(null)} go={props.go} toast={props.toast} />
+    </Show>
+  )
+}
+
+/** Floating measure read-out (top centre) while the measure tool is on. */
+export function MeasurePill(): JSX.Element {
+  const G = useGis()
+  const v = useMapView()
+  const total = createMemo(() => {
+    const a = v.mpts()
+    let s = 0
+    for (let i = 1; i < a.length; i++) s += gisPixelDistanceM(G, a[i - 1]!, a[i]!)
+    return s
+  })
+  return (
+    <Show when={v.measuring()}>
+      <div class="sx-banner sx-glass" style={{ cursor: 'default', color: 'var(--ink)' }} role="status">
+        <IcRuler size={16} />
+        <b class="sx-num">
+          {v.mpts().length > 1
+            ? total() >= 1000
+              ? (total() / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + ' km'
+              : Math.round(total()) + ' m'
+            : '0 m'}
+        </b>
+        <span class="text-[12px] font-normal text-[color:var(--muted)]">
+          {v.mpts().length} điểm · bấm lên bản đồ để thêm
+        </span>
+        <button
+          class="sx-bn-more"
+          onClick={() => v.setMpts(a => a.slice(0, -1))}
+          disabled={!v.mpts().length}
+        >
+          Hoàn tác
+        </button>
+        <button class="sx-bn-more" onClick={() => v.setMpts(() => [])} disabled={!v.mpts().length}>
+          Xoá
+        </button>
+        <button class="sx-bn-more" onClick={() => v.toggleMeasure()}>
+          Xong
+        </button>
       </div>
-      <Show when={!G.canonical}>
-        <AtlasModal open={atlas()} onClose={() => setAtlas(false)} toast={props.toast} />
+    </Show>
+  )
+}
+
+/** Banner shown when the rich viewer holds only part of the tenant's network. */
+export function PartialNetworkBanner(): JSX.Element {
+  const G = useGis()
+  const partial = () => G.network?.truncated === true || G.network?.initialExtentPartial === true
+  return (
+    <Show when={partial()}>
+      <a href="/gis?viewer=canonical" class="sx-banner warn" aria-live="polite">
+        <span>
+          Bản đồ đang hiển thị một phần dữ liệu của tenant
+          <Show when={G.network?.truncated}>
+            {' '}
+            (giới hạn {G.network?.limit.toLocaleString('vi-VN')} đối tượng)
+          </Show>
+          .
+        </span>
+        <span class="sx-bn-more">Chế độ dữ liệu lớn</span>
+      </a>
+    </Show>
+  )
+}
+
+export function AtlasHost(props: { toast: (m: string, k?: string) => void }): JSX.Element {
+  const G = useGis()
+  const v = useMapView()
+  return (
+    <Show when={!G.canonical}>
+      <AtlasModal open={v.atlas()} onClose={() => v.setAtlas(false)} toast={props.toast} />
+    </Show>
+  )
+}
+
+/** Top-bar asset search: type a code or name, pick a result to fly there. */
+export function AssetSearch(): JSX.Element {
+  const G = useGis()
+  const v = useMapView()
+  const [q, setQ] = createSignal('')
+  const [active, setActive] = createSignal(0)
+  const results = createMemo(() => v.searchAssets(q()))
+  const pick = (a: Asset) => {
+    v.goToAsset(a)
+    setQ('')
+  }
+  return (
+    <div class="sx-search" data-testid="asset-search">
+      <IcSearch size={16} />
+      <input
+        type="search"
+        value={q()}
+        placeholder="Tìm tài sản theo mã / tên… (vd O.300)"
+        aria-label="Tìm tài sản"
+        onInput={e => {
+          setQ(e.currentTarget.value)
+          setActive(0)
+        }}
+        onKeyDown={e => {
+          const r = results()
+          if (e.key === 'ArrowDown') setActive(i => Math.min(r.length - 1, i + 1))
+          else if (e.key === 'ArrowUp') setActive(i => Math.max(0, i - 1))
+          else if (e.key === 'Enter' && r[active()]) pick(r[active()]!)
+          else if (e.key === 'Escape') setQ('')
+          else return
+          e.preventDefault()
+        }}
+      />
+      <Show when={results().length}>
+        <div class="sx-pop sx-glass left-0 right-0 top-[40px]" role="listbox">
+          <For each={results()}>
+            {(a, i) => (
+              <button
+                type="button"
+                role="option"
+                aria-selected={i() === active()}
+                class="sx-menu-item"
+                onMouseMove={() => setActive(i())}
+                onClick={() => pick(a)}
+              >
+                <span style={{ color: tone(G.ASSET_TYPES[a.type]?.col ?? '#7E8997') }}>
+                  <Icon name={G.ASSET_TYPES[a.type]?.icon} size={16} />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-[13px] font-medium">{a.name}</span>
+                  <span class="block font-mono text-[10.5px] text-[color:var(--muted)]">{a.code}</span>
+                </span>
+                <DmaChip dma={a.dma} sm />
+              </button>
+            )}
+          </For>
+        </div>
       </Show>
     </div>
+  )
+}
+
+/** Top-bar map tools: measure distance, export map atlas. */
+export function MapToolButtons(): JSX.Element {
+  const G = useGis()
+  const v = useMapView()
+  return (
+    <>
+      <button
+        type="button"
+        class={'sx-btn sx-hide-sm' + (v.measuring() ? ' primary' : '')}
+        aria-pressed={v.measuring()}
+        title="Đo khoảng cách trên bản đồ"
+        onClick={() => v.toggleMeasure()}
+      >
+        <IcRuler size={16} />
+        Đo
+      </button>
+      <Show when={!G.canonical}>
+        <button
+          type="button"
+          class="sx-btn sx-hide-sm"
+          title="Xuất tập bản đồ theo DMA"
+          onClick={() => v.setAtlas(true)}
+        >
+          <IcFile size={16} />
+          Tập bản đồ
+        </button>
+      </Show>
+    </>
   )
 }

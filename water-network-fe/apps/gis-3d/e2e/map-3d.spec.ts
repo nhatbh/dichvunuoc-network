@@ -21,8 +21,9 @@ test.describe('3D network map (production bundle)', () => {
     expect(view.center.lat).toBeLessThan(21.06)
     expect(view.center.lon).toBeGreaterThan(105.82)
     expect(view.center.lon).toBeLessThan(105.89)
-    // the counters above the map: pipes / valves / connections
-    await expect(page.getByText(/Ống\s*[\d.]{3,}/).first()).toBeVisible()
+    // the HUD over the map: pipe count; the Layers panel (dock) lists the six DMAs
+    await expect(page.getByText(/[\d.]{3,} tuyến/).first()).toBeVisible()
+    await page.getByRole('button', { name: 'Lớp bản đồ' }).click()
     await expect(page.getByText('6 đối tượng').first()).toBeVisible() // six DMAs
   })
 

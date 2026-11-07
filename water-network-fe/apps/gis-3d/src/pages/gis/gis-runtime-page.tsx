@@ -4,7 +4,7 @@ import { GisHome } from './gis-home'
 import { LegacyGisHome } from './legacy-gis-home'
 import { resolveGisExperience } from './lib/gis-runtime'
 import { ThemeProvider } from './lib/theme'
-import { TenantGisShell } from './shell/gis-shell'
+import { GisShell, TenantGisShell } from './shell/gis-shell'
 import { MapPage } from './map-page'
 
 const ImportScreen = lazy(() =>
@@ -53,7 +53,14 @@ export function GisRuntimePage() {
         <LegacyGisHome />
       </Match>
       <Match when={experience === 'canonical-scalable'}>
-        <MapPage />
+        <ThemeProvider>
+          <GisShell
+            route={{ name: 'map' }}
+            go={route => (window.location.hash = route.name)}
+            dock={false}
+            stage={<MapPage />}
+          />
+        </ThemeProvider>
       </Match>
       <Match when={experience === 'canonical-rich'}>
         <GisHome />

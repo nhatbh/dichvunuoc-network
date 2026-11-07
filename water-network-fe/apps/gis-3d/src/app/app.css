@@ -2,47 +2,77 @@
    CSS custom properties (light + dark) + keyframes drive the SolidJS port; the
    design components read these via Tailwind arbitrary values (text-[color:var(--text)])
    and inline styles (background: var(--surface)). */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap&subset=vietnamese');
+@import './system-ui.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Legacy GIS variable names, mapped onto the SYSTEM 3D tokens (system-ui.css)
+   so every existing screen, kit atom and Tailwind arbitrary value follows the
+   new palette in both themes without being rewritten. */
 :root,
 [data-theme='light'] {
-  --bg: #f7f8fa;
-  --bg2: #fbfcfd;
-  --surface: #ffffff;
-  --surface2: #f3f5f8;
-  --surface-active: #eceff3;
-  --text: #16202b;
-  --text2: #364150;
-  --muted: #566270;
-  --muted2: #7e8997;
-  --faint: #aeb8c4;
-  --line: rgba(20, 30, 45, 0.13);
-  --line2: rgba(20, 30, 45, 0.08);
-  --focus: #0e7c86;
-  --card-shadow: 0 1px 2px rgba(20, 30, 45, 0.06);
-  --toast-shadow: 0 10px 30px -8px rgba(20, 30, 45, 0.25);
+  --bg2: var(--surface-2);
+  --surface2: var(--surface-2);
+  --surface-active: var(--line-2);
+  --text: var(--ink);
+  --text2: var(--ink-2);
+  --muted2: #7b8783;
+  --faint: #a9b3af;
+  --line2: var(--line-2);
+  --focus: var(--accent);
+  --card-shadow: 0 1px 2px rgba(16, 24, 22, 0.06);
+  --toast-shadow: var(--glass-shadow);
 }
 
 [data-theme='dark'] {
-  --bg: #0d1117;
-  --bg2: #0b0f14;
-  --surface: #161b22;
-  --surface2: #1c232c;
-  --surface-active: #1d2735;
-  --text: #e6edf3;
-  --text2: #c6cfd9;
-  --muted: #8b949e;
-  --muted2: #6b7682;
-  --faint: #3d4654;
-  --line: rgba(240, 246, 252, 0.1);
-  --line2: rgba(240, 246, 252, 0.06);
-  --focus: #56c7d6;
+  --muted2: #7e8b86;
+  --faint: #3d4846;
   --card-shadow: none;
-  --toast-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.6);
+}
+
+/* shadcn/ui HSL channels (login, forms, layer-control, scalable viewer) on the SYSTEM palette */
+:root,
+[data-theme='light'] {
+  --background: 150 12% 97%;
+  --foreground: 162 19% 11%;
+  --border: 150 9% 82%;
+  --input: 150 9% 82%;
+  --ring: 207 71% 40%;
+  --primary: 207 71% 40%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 150 12% 94%;
+  --secondary-foreground: 162 19% 11%;
+  --destructive: 0 61% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --muted-foreground: 162 6% 40%;
+  --accent-foreground: 162 19% 11%;
+  --popover: 150 12% 97%;
+  --popover-foreground: 162 19% 11%;
+  --card: 150 12% 97%;
+  --card-foreground: 162 19% 11%;
+  --radius: 6px;
+}
+[data-theme='dark'] {
+  --background: 165 15% 10%;
+  --foreground: 150 13% 91%;
+  --border: 169 11% 19%;
+  --input: 169 11% 19%;
+  --ring: 208 71% 59%;
+  --primary: 208 71% 59%;
+  --primary-foreground: 211 68% 7%;
+  --secondary: 167 14% 13%;
+  --secondary-foreground: 150 13% 91%;
+  --destructive: 0 61% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --muted-foreground: 160 6% 58%;
+  --accent-foreground: 150 13% 91%;
+  --popover: 165 15% 10%;
+  --popover-foreground: 150 13% 91%;
+  --card: 165 15% 10%;
+  --card-foreground: 150 13% 91%;
 }
 
 html,
@@ -55,20 +85,14 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family:
-    'Inter',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: var(--f-body);
   -webkit-font-smoothing: antialiased;
 }
 
 .font-mono,
 code,
 kbd {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--f-mono);
 }
 
 /* ── Keyframes (verbatim from design head) ── */

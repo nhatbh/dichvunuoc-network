@@ -1,12 +1,32 @@
-import { createEffect, createSignal, onCleanup, type JSX } from 'solid-js'
+import {
+  Building2,
+  ChevronsDown,
+  ChevronsUp,
+  Droplets,
+  Mountain,
+  Navigation2,
+  RotateCcw,
+  RotateCw,
+} from 'lucide-solid'
+import {
+  createContext,
+  createEffect,
+  createSignal,
+  onCleanup,
+  useContext,
+  type JSX,
+} from 'solid-js'
 import type { Camera3D, Map3DPort } from '@wn/map-runtime-3d'
-import { Building2, ChevronsDown, ChevronsUp, Droplets, Mountain, Navigation2, RotateCcw, RotateCw } from 'lucide-solid'
 
 const TILT_STEP = 10
 const ROTATE_STEP = 30
 const MAX_PITCH = 75
 
-/** Square map button in the same style as the zoom / basemap cluster (GIS theme variables). */
+/** 'bar': inline glass tool buttons (SYSTEM 3D map tool bar); 'stack': the original corner column. */
+const VariantCtx = createContext<'stack' | 'bar'>('stack')
+
+/** Square map button in the same style as the zoom / basemap cluster (GIS theme variables);
+    in the 'bar' variant a SYSTEM 3D glass tool button. */
 function ControlButton(props: {
   label: string
   title: string
@@ -15,6 +35,7 @@ function ControlButton(props: {
   testId: string
   children?: JSX.Element
 }) {
+  const bar = useContext(VariantCtx) === 'bar'
   return (
     <button
       type="button"
@@ -23,28 +44,44 @@ function ControlButton(props: {
       aria-pressed={props.pressed}
       data-testid={props.testId}
       onClick={() => props.onClick()}
-      class="flex h-8 w-8 items-center justify-center text-[11px] font-semibold transition-colors [&:not(:first-child)]:border-t [&:not(:first-child)]:border-[color:var(--line)]"
-      style={
-        props.pressed
-          ? { background: 'color-mix(in srgb, var(--focus) 16%, var(--surface))', color: 'var(--focus)' }
-          : { color: 'var(--muted)' }
+      class={
+        bar
+          ? 'sx-tool'
+          : 'flex h-8 w-8 items-center justify-center text-[11px] font-semibold transition-colors [&:not(:first-child)]:border-t [&:not(:first-child)]:border-[color:var(--line)]'
       }
-      onMouseEnter={e => !props.pressed && (e.currentTarget.style.background = 'var(--surface2)')}
-      onMouseLeave={e => !props.pressed && (e.currentTarget.style.background = '')}
+      style={
+        bar
+          ? undefined
+          : props.pressed
+            ? {
+                background: 'color-mix(in srgb, var(--focus) 16%, var(--surface))',
+                color: 'var(--focus)',
+              }
+            : { color: 'var(--muted)' }
+      }
+      onMouseEnter={e =>
+        !bar && !props.pressed && (e.currentTarget.style.background = 'var(--surface2)')
+      }
+      onMouseLeave={e => !bar && !props.pressed && (e.currentTarget.style.background = '')}
     >
       {props.children ?? props.label}
     </button>
   )
 }
 
-/** A bordered column of buttons, like the zoom cluster. */
+/** A bordered column of buttons, like the zoom cluster (a plain row in the 'bar' variant). */
 function Group(props: { label: string; children: JSX.Element }) {
+  const bar = useContext(VariantCtx) === 'bar'
   return (
     <div
       role="group"
       aria-label={props.label}
-      class="flex flex-col overflow-hidden rounded-lg border border-[color:var(--line)] bg-[var(--surface)]"
-      style={{ 'box-shadow': 'var(--card-shadow)' }}
+      class={
+        bar
+          ? 'flex items-center gap-0.5'
+          : 'flex flex-col overflow-hidden rounded-lg border border-[color:var(--line)] bg-[var(--surface)]'
+      }
+      style={bar ? undefined : { 'box-shadow': 'var(--card-shadow)' }}
     >
       {props.children}
     </div>
@@ -55,7 +92,7 @@ function Group(props: { label: string; children: JSX.Element }) {
  * 3D camera controls: 2D/3D toggle, tilt, rotate, compass (reset north),
  * extruded buildings and terrain. Talks only to the {@link Map3DPort}.
  */
-export function Map3DControls(props: { port: () => Map3DPort | null }) {
+export function Map3DControls(props: { port: () => Map3DPort | null; variant?: 'stack' | 'bar' }) {
   const [camera, setCamera] = createSignal<Camera3D>({ pitch: 0, bearing: 0 })
   const [buildings, setBuildings] = createSignal(false)
   const [terrain, setTerrain] = createSignal(false)
@@ -95,51 +132,100 @@ export function Map3DControls(props: { port: () => Map3DPort | null }) {
   }
 
   return (
-    <div
-      data-testid="map-3d-controls"
-      class="pointer-events-auto flex flex-col items-end gap-2"
-      role="group"
-      aria-label="Điều khiển 3D"
-    >
-      <Group label="Chế độ xem">
-        <ControlButton
-          label={is3D() ? '3D' : '2D'}
-          title={is3D() ? 'Chuyển về 2D' : 'Chuyển sang 3D'}
-          pressed={is3D()}
-          testId="map-3d-toggle"
-          onClick={() => props.port()?.set3DMode(!is3D())}
-        />
-      </Group>
-      <Group label="Góc nhìn">
-        <ControlButton label="Nghiêng thêm" title="Nghiêng thêm" testId="map-tilt-up" onClick={() => tilt(TILT_STEP)}>
-          <ChevronsUp size={16} />
-        </ControlButton>
-        <ControlButton label="Nghiêng bớt" title="Nghiêng bớt" testId="map-tilt-down" onClick={() => tilt(-TILT_STEP)}>
-          <ChevronsDown size={16} />
-        </ControlButton>
-        <ControlButton label="Xoay trái" title="Xoay trái" testId="map-rotate-left" onClick={() => rotate(-ROTATE_STEP)}>
-          <RotateCcw size={15} />
-        </ControlButton>
-        <ControlButton label="Xoay phải" title="Xoay phải" testId="map-rotate-right" onClick={() => rotate(ROTATE_STEP)}>
-          <RotateCw size={15} />
-        </ControlButton>
-        <ControlButton label="N" title="Hướng Bắc" testId="map-compass" onClick={() => props.port()?.resetNorth()}>
-          <span style={{ transform: `rotate(${-camera().bearing}deg)`, display: 'inline-flex' }}>
-            <Navigation2 size={15} />
-          </span>
-        </ControlButton>
-      </Group>
-      <Group label="Lớp hiển thị">
-        <ControlButton label="Toà nhà 3D" title="Toà nhà 3D" pressed={buildings()} testId="map-buildings-toggle" onClick={toggleBuildings}>
-          <Building2 size={15} />
-        </ControlButton>
-        <ControlButton label="Dòng chảy" title="Dòng chảy" pressed={flow()} testId="map-flow-toggle" onClick={toggleFlow}>
-          <Droplets size={15} />
-        </ControlButton>
-        <ControlButton label="Địa hình" title="Địa hình" pressed={terrain()} testId="map-terrain-toggle" onClick={toggleTerrain}>
-          <Mountain size={15} />
-        </ControlButton>
-      </Group>
-    </div>
+    <VariantCtx.Provider value={props.variant ?? 'stack'}>
+      <div
+        data-testid="map-3d-controls"
+        class={
+          props.variant === 'bar'
+            ? 'pointer-events-auto flex items-center gap-0.5'
+            : 'pointer-events-auto flex flex-col items-end gap-2'
+        }
+        role="group"
+        aria-label="Điều khiển 3D"
+      >
+        <Group label="Chế độ xem">
+          <ControlButton
+            label={is3D() ? '3D' : '2D'}
+            title={is3D() ? 'Chuyển về 2D' : 'Chuyển sang 3D'}
+            pressed={is3D()}
+            testId="map-3d-toggle"
+            onClick={() => props.port()?.set3DMode(!is3D())}
+          />
+        </Group>
+        <Group label="Góc nhìn">
+          <ControlButton
+            label="Nghiêng thêm"
+            title="Nghiêng thêm"
+            testId="map-tilt-up"
+            onClick={() => tilt(TILT_STEP)}
+          >
+            <ChevronsUp size={16} />
+          </ControlButton>
+          <ControlButton
+            label="Nghiêng bớt"
+            title="Nghiêng bớt"
+            testId="map-tilt-down"
+            onClick={() => tilt(-TILT_STEP)}
+          >
+            <ChevronsDown size={16} />
+          </ControlButton>
+          <ControlButton
+            label="Xoay trái"
+            title="Xoay trái"
+            testId="map-rotate-left"
+            onClick={() => rotate(-ROTATE_STEP)}
+          >
+            <RotateCcw size={15} />
+          </ControlButton>
+          <ControlButton
+            label="Xoay phải"
+            title="Xoay phải"
+            testId="map-rotate-right"
+            onClick={() => rotate(ROTATE_STEP)}
+          >
+            <RotateCw size={15} />
+          </ControlButton>
+          <ControlButton
+            label="N"
+            title="Hướng Bắc"
+            testId="map-compass"
+            onClick={() => props.port()?.resetNorth()}
+          >
+            <span style={{ transform: `rotate(${-camera().bearing}deg)`, display: 'inline-flex' }}>
+              <Navigation2 size={15} />
+            </span>
+          </ControlButton>
+        </Group>
+        <Group label="Lớp hiển thị">
+          <ControlButton
+            label="Toà nhà 3D"
+            title="Toà nhà 3D"
+            pressed={buildings()}
+            testId="map-buildings-toggle"
+            onClick={toggleBuildings}
+          >
+            <Building2 size={15} />
+          </ControlButton>
+          <ControlButton
+            label="Dòng chảy"
+            title="Dòng chảy"
+            pressed={flow()}
+            testId="map-flow-toggle"
+            onClick={toggleFlow}
+          >
+            <Droplets size={15} />
+          </ControlButton>
+          <ControlButton
+            label="Địa hình"
+            title="Địa hình"
+            pressed={terrain()}
+            testId="map-terrain-toggle"
+            onClick={toggleTerrain}
+          >
+            <Mountain size={15} />
+          </ControlButton>
+        </Group>
+      </div>
+    </VariantCtx.Provider>
   )
 }

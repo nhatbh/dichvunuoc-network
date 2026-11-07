@@ -34,7 +34,7 @@ export function AssetInspector(props: AssetInspectorProps) {
         const kvEntries = () => Object.entries(p()).filter(([k]) => !INTERNAL_KEYS.has(k))
 
         return (
-          <aside class="flex w-72 shrink-0 flex-col border-l border-border bg-background text-sm">
+          <aside class="sx-drawer sx-glass text-sm" aria-label="Thông tin đối tượng">
             {/* Header */}
             <div class="flex items-start gap-2 border-b border-border p-3">
               <div class="min-w-0 flex-1">

@@ -44,24 +44,24 @@ export function MapPage() {
 
   return (
     <AppShell active="map">
-      <Switch fallback={<TenantGisState kind="invalid" class="h-[calc(100vh-53px)]" />}>
+      <Switch fallback={<TenantGisState kind="invalid" class="h-full" />}>
         <Match when={bootstrap.isError}>
           <TenantGisState
             kind="error"
-            class="h-[calc(100vh-53px)]"
+            class="h-full"
             onRetry={() => void bootstrap.refetch()}
           />
         </Match>
         <Match when={!bootstrap.data}>
-          <div class="flex h-[calc(100vh-53px)] items-center justify-center">
+          <div class="flex h-full items-center justify-center">
             <Spinner />
           </div>
         </Match>
         <Match when={bootstrap.data?.hasData === false}>
-          <TenantGisState kind="empty" class="h-[calc(100vh-53px)]" />
+          <TenantGisState kind="empty" class="h-full" />
         </Match>
         <Match when={bootstrap.data?.hasData === true && !preparedHomeView()}>
-          <TenantGisState kind="invalid" class="h-[calc(100vh-53px)]" />
+          <TenantGisState kind="invalid" class="h-full" />
         </Match>
         <Match when={bootstrap.data?.hasData === true && preparedHomeView()}>
           <Show when={preparedHomeView()}>{home => <TenantMapViewer homeView={home()} />}</Show>
@@ -241,11 +241,11 @@ function TenantMapViewer(props: { homeView: PreparedTenantHomeView }) {
   }
 
   return (
-    <div class="flex h-[calc(100vh-53px)] min-h-0">
+    <div class="relative h-full w-full">
       <Show when={visibleLayers()}>
         <LayerPanel layers={visibleLayers()!} vis={vis()} onToggle={toggle} />
       </Show>
-      <div class="relative min-w-0 flex-1">
+      <div class="absolute inset-0">
         <div
           ref={mapRef}
           data-testid="canonical-map"
@@ -253,18 +253,18 @@ function TenantMapViewer(props: { homeView: PreparedTenantHomeView }) {
           classList={{ 'opacity-0': !homeViewApplied() }}
         />
 
-        <div class="absolute left-3 top-3 z-10">
-          <Map3DControls port={port} />
+        <div class="sx-maptools sx-glass" style={{ right: 'calc(var(--edge) + var(--sr))' }}>
+          <Map3DControls port={port} variant="bar" />
         </div>
 
         <div
-          class="pointer-events-none absolute right-3 top-3 z-10 flex max-w-sm flex-col items-end gap-2"
+          class="pointer-events-none absolute right-3 top-[calc(var(--topbar-h)+var(--st)+var(--edge))] z-10 flex max-w-sm flex-col items-end gap-2"
           aria-live="polite"
         >
           <Show when={!homeViewApplied() || !viewportRequest()}>
             <div
               role="status"
-              class="rounded border border-border bg-background/95 px-3 py-2 text-xs text-muted-foreground shadow-sm"
+              class="sx-glass rounded-[10px] px-3 py-2 text-xs text-[color:var(--ink-2)]"
             >
               Đang khởi tạo khung nhìn…
             </div>
@@ -282,7 +282,7 @@ function TenantMapViewer(props: { homeView: PreparedTenantHomeView }) {
           <Show when={viewportRequest()?.queryable && net.isPending}>
             <div
               role="status"
-              class="rounded border border-border bg-background/95 px-3 py-2 text-xs text-muted-foreground shadow-sm"
+              class="sx-glass rounded-[10px] px-3 py-2 text-xs text-[color:var(--ink-2)]"
             >
               Đang tải dữ liệu trong khung nhìn…
             </div>
@@ -291,7 +291,7 @@ function TenantMapViewer(props: { homeView: PreparedTenantHomeView }) {
           <Show when={net.isFetching && !net.isPending}>
             <div
               role="status"
-              class="rounded border border-border bg-background/95 px-3 py-1.5 text-xs text-muted-foreground shadow-sm"
+              class="sx-glass rounded-[10px] px-3 py-1.5 text-xs text-[color:var(--ink-2)]"
             >
               Đang cập nhật khung nhìn…
             </div>
@@ -325,7 +325,7 @@ function TenantMapViewer(props: { homeView: PreparedTenantHomeView }) {
         </div>
 
         <Show when={currentNetworkData()}>
-          <div class="pointer-events-none absolute bottom-3 right-3 z-10 rounded border border-border bg-background/90 px-2 py-1 text-[11px] text-muted-foreground shadow-sm">
+          <div class="sx-glass pointer-events-none absolute bottom-[calc(var(--edge)+var(--sb))] left-[calc(var(--edge)+var(--sl))] z-10 rounded-[10px] px-2.5 py-1.5 font-mono text-[11px] text-[color:var(--ink-2)]">
             {currentNetworkData()?.featureCount.toLocaleString('vi-VN')} đối tượng
           </div>
         </Show>

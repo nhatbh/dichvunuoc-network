@@ -2,6 +2,8 @@
    Canonical datasets carry a per-tenant pixel↔WGS84 transform derived from their
    own extent; legacy design data keeps the original Hanoi affine fallback. */
 import {
+  mapSymbolKind,
+  mapSymbolSVG,
   pxToLonLat,
   pxBboxToExtent,
   type MapEnginePort,
@@ -10,14 +12,18 @@ import {
   type FeatureStyle,
 } from '@wn/map-runtime-3d'
 import { createMapRuntime } from '@wn/map-runtime-3d/solid'
-import { For, Show, createEffect, createMemo, createSignal, onCleanup, type JSX } from 'solid-js'
+import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, untrack, type JSX } from 'solid-js'
+import { Portal } from 'solid-js/web'
 import { Map3DControls } from '@/features/map-3d-controls'
 import { createFlowSolver } from '../lib/flow-solver'
 import type { PipeFlow } from '@/shared/lib/hydraulics/epanet-flow'
-import { StatusDot } from './kit'
+import type { OpsMapState } from '../shell/map-stage'
 import {
   FITTING_3D_SCALE,
-  IMAGERY_CASING,
+  BADGE_PX,
+  CASING_EXTRA_PX,
+  inlineSymbolSize,
+  pipeCasing,
   PIPE_3D_SCALE,
   SELECTED_3D_SCALE,
   SELECTION_COLOR,
@@ -96,6 +102,41 @@ const BASEMAP_OPTS = [
 
 export { flowSpeedFromPressure } from './pipe-style'
 
+/** Legend swatch: a short cased pipe. */
+function LegendPipe(props: { color: string; casing: string; width: number; label: string }) {
+  return (
+    <span class="flex items-center gap-1.5">
+      <svg width="22" height="10" aria-hidden="true">
+        <line x1="1" y1="5" x2="21" y2="5" stroke={props.casing} stroke-width={props.width + 2.2} stroke-linecap="round" />
+        <line x1="1" y1="5" x2="21" y2="5" stroke={props.color} stroke-width={props.width} stroke-linecap="round" />
+      </svg>
+      {props.label}
+    </span>
+  )
+}
+
+/** Legend swatch: the map symbol itself (on a short pipe for in-line parts). */
+function LegendGlyph(props: { code: string; label: string; status?: 'normal' | 'warning' | 'critical' | 'offline'; casing?: string; pipe?: string }) {
+  const src = () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(mapSymbolSVG(props.code, { size: 18, ...(props.status ? { status: props.status } : {}) }))}`
+  return (
+    <span class="flex items-center gap-1.5">
+      <span class="relative inline-block h-[18px] w-[22px]" aria-hidden="true">
+        <Show when={props.pipe}>
+          <svg class="absolute inset-0" width="22" height="18">
+            <line x1="0" y1="9" x2="22" y2="9" stroke={props.casing} stroke-width="5.2" />
+            <line x1="0" y1="9" x2="22" y2="9" stroke={props.pipe} stroke-width="3" />
+          </svg>
+        </Show>
+        <img class="absolute left-[2px] top-0" src={src()} width="18" height="18" alt="" />
+      </span>
+      {props.label}
+    </span>
+  )
+}
+
+/** Fittings that are just lines meeting (no change to the pipe): drawn as a joint dot, not a symbol. */
+const QUIET_FITTINGS = new Set(['Tee', 'ReducingTee', 'Cross', 'Bend', 'Junction'])
+
 export function NetworkMapOL(props: {
   layers?: LayerVis
   selected?: Selection
@@ -111,6 +152,10 @@ export function NetworkMapOL(props: {
   legendRows?: { label: string; col: string }[] | null
   measure?: [number, number][] | null
   onMeasureClick?: (pt: [number, number]) => void
+  /** full-screen stage: glass tool bar (bottom centre) + glass legend instead of the corner clusters */
+  stage?: boolean
+  /** operations layer: sensor status, flows and pressure at the time cursor */
+  ops?: OpsMapState | null
 }) {
   const G = useGis()
   const theme = () => props.theme || cTheme()
@@ -123,6 +168,9 @@ export function NetworkMapOL(props: {
   const defaultBasemap = (): (typeof BASEMAP_OPTS)[number]['id'] => 'satellite'
   const [basemap, setBasemap] = createSignal<(typeof BASEMAP_OPTS)[number]['id']>(defaultBasemap())
   const [bmOpen, setBmOpen] = createSignal(false)
+  const legendPipe = (main: boolean) =>
+    pipeColor({ status: 'active', trunk: main, dn: main ? 500 : 200 } as never, isImageryBasemap(basemap()) ? 'dark' : theme(), undefined, G)
+  const legendCasing = () => pipeCasing(theme(), isImageryBasemap(basemap()))
 
   // Water flow source: EPANET hydraulic solve (direction + velocity) or the pressure-based estimate.
   const [flowSource, setFlowSource] = createSignal<'epanet' | 'pressure'>('epanet')
@@ -170,11 +218,22 @@ export function NetworkMapOL(props: {
     const eset = empSet()
     const dim = dimAll()
     const ac = SELECTION_COLOR
+    // the ops layer restyles pipes through its own effect (only when its hour changes)
+    const ops = untrack(() => props.ops)
+    const byPressure = (pipe: { from?: string; to?: string; noFlow?: boolean }): string | null => {
+      if (!ops?.pressure || !ops.pressureColor || pipe.noFlow) return null
+      const a = pipe.from ? ops.pressure.get(pipe.from) : undefined
+      const b = pipe.to ? ops.pressure.get(pipe.to) : undefined
+      const m = a !== undefined && b !== undefined ? (a + b) / 2 : (a ?? b)
+      return m === undefined ? null : ops.pressureColor(m)
+    }
     return (p): FeatureStyle => {
       const id = String(p.id ?? '')
       const pipe = G.pipeBy[id]
       if (!pipe) return { stroke: { color: '#7E8997', width: 2 } }
-      const col = pipeColor(pipe, th, paint, G)
+      const pressureCol = byPressure(pipe)
+      // on aerial imagery the lines use the bright (dark-theme) palette whatever the UI theme
+      const col = pressureCol ?? pipeColor(pipe, isImageryBasemap(basemap()) ? 'dark' : th, paint, G)
       const emphasized = eset.has(id)
       const dimmed = dim && !emphasized
       const sel = p.__selected
@@ -184,12 +243,12 @@ export function NetworkMapOL(props: {
       const style: FeatureStyle3D = {
         stroke: { color: col, width: w, dash },
         opacity: dimmed ? 0.16 : 1,
-        tube: pipeTube(pipe.dn, sel || emphasized ? ac : pipeTubeColor(pipe, th, paint, G), !!sel, tubeFittingColor(th)),
+        tube: pipeTube(pipe.dn, sel || emphasized ? ac : (pressureCol ?? pipeTubeColor(pipe, th, paint, G)), !!sel, tubeFittingColor(th)),
       }
-      const flow = pipeFlow(pipe, hydroFlows())
+      const flow = pipeFlow(pipe, ops?.flows ?? hydroFlows())
       if (flow) style.flow = flow
       if (sel || emphasized) style.halo = { color: ac, width: w + 5 }
-      else if (isImageryBasemap(basemap())) style.halo = { color: IMAGERY_CASING, width: w + 2.5 }
+      else style.halo = { color: pipeCasing(th, isImageryBasemap(basemap())), width: w + CASING_EXTRA_PX }
       return style
     }
   }
@@ -236,6 +295,7 @@ export function NetworkMapOL(props: {
           scale: PIPE_3D_SCALE * (sel ? SELECTED_3D_SCALE : 1),
           status: closed ? 'critical' : undefined,
           color: sel ? ac : undefined,
+          symbolSize: inlineSymbolSize(Number(v.dn)) * (sel ? 1.25 : 1),
         },
         solid: {
           shape: 'box',
@@ -268,8 +328,9 @@ export function NetworkMapOL(props: {
         component: {
           code: 'Hydrant',
           scale: FITTING_3D_SCALE * k,
-          status: fault ? 'critical' : 'normal',
+          status: fault ? 'critical' : undefined,
           color: sel ? ac : undefined,
+          symbolSize: sel ? BADGE_PX + 5 : BADGE_PX - 2,
         },
         solid: {
           shape: 'cylinder',
@@ -290,6 +351,7 @@ export function NetworkMapOL(props: {
     return (n): FeatureStyle => {
       const sel = n.__selected
       const code = deviceCode(n.fitting as string | undefined)
+      const quiet = !code || QUIET_FITTINGS.has(code)
       return {
         // fittings (tee, bend, reducer, cap…) from the catalog: symbol on the map, model on the pipe up close
         ...(code
@@ -300,16 +362,18 @@ export function NetworkMapOL(props: {
                 bearing: typeof n.bearing === 'number' ? n.bearing : undefined,
                 scale: PIPE_3D_SCALE * (sel ? SELECTED_3D_SCALE : 1),
                 color: sel ? ac : undefined,
-                symbolSize: sel ? 22 : 16,
+                symbol: !quiet || !!sel,
+                symbolSize: inlineSymbolSize(Number(n.dn)) * (sel ? 1.25 : 0.85),
               },
             }
           : {}),
+        // a tee or bend is where lines meet: a small joint dot, no icon
         image: {
           shape: 'circle',
-          radius: sel ? 4.5 : 2.6,
-          color: th === 'light' ? '#ffffff' : '#0D1117',
-          stroke: sel ? ac : tone('#8250DF'),
-          strokeWidth: sel ? 2 : 1.4,
+          radius: sel ? 4.5 : 1.8,
+          color: th === 'light' ? '#ffffff' : '#DCE6F0',
+          stroke: sel ? ac : 'rgba(6,11,17,0.85)',
+          strokeWidth: sel ? 2 : 1.2,
         },
       }
     }
@@ -324,7 +388,7 @@ export function NetworkMapOL(props: {
       const col =
         at === 'plant' ? tone('#0E7C86') : at === 'reservoir' ? tone('#1A7F37') : tone('#D86C1F')
       const style: FeatureStyle3D = {
-        component: { code: sourceCode(at), symbolSize: 30, color: sel ? ac : undefined },
+        component: { code: sourceCode(at), symbolSize: sel ? 30 : 25, color: sel ? ac : undefined },
         image: {
           shape: at === 'pump' ? 'circle' : 'square',
           radius: at === 'pump' ? 7 : 9,
@@ -347,10 +411,11 @@ export function NetworkMapOL(props: {
     const th = theme()
     const dim = dimAll()
     const ac = SELECTION_COLOR
+    const opsStatus = untrack(() => props.ops?.status)
     return (d): FeatureStyle => {
       const sel = d.__selected
       const code = deviceCode(d.deviceType as string) ?? 'PressureSensor'
-      const status = deviceStatus(d.status)
+      const status = deviceStatus(opsStatus?.[String(d.id)] ?? d.status)
       const col = status === 'critical' ? tone('#D1242F') : status === 'warning' ? tone('#D86C1F') : tone('#13867B')
       const style: FeatureStyle3D = {
         component: {
@@ -360,7 +425,11 @@ export function NetworkMapOL(props: {
           scale: componentScale(code, PIPE_3D_SCALE, FITTING_3D_SCALE) * (sel ? SELECTED_3D_SCALE : 1),
           status,
           color: sel ? ac : undefined,
-          symbolSize: sel ? 28 : 22,
+          // in-line devices (meters, PRV stations, strainers) sized to their pipe; sensors as badges
+          symbolSize:
+            (mapSymbolKind(code) === 'inline'
+              ? inlineSymbolSize(Number(d.dn) || (d.hostPipeId ? G.pipeBy[String(d.hostPipeId)]?.dn : undefined))
+              : BADGE_PX) * (sel ? 1.25 : 1),
         },
         image: { shape: 'circle', radius: 3.6, color: th === 'light' ? '#ffffff' : '#0D1117', stroke: col, strokeWidth: 1.6 },
         opacity: dim && !sel ? 0.3 : 1,
@@ -633,6 +702,18 @@ export function NetworkMapOL(props: {
     p.setLayerStyle('pin', pinStyle())
   })
 
+  /* ── operations layer: pipes follow the cursor's hour, sensors its slot ── */
+  const opsPipeKey = createMemo(() => props.ops?.pipeKey ?? '')
+  const opsStatus = createMemo(() => props.ops?.status)
+  createEffect(on(opsPipeKey, () => {
+    const p = port()
+    if (p) p.setLayerStyle('pipe', pipeStyle())
+  }, { defer: true }))
+  createEffect(on(opsStatus, () => {
+    const p = port()
+    if (p) p.setLayerStyle('device', deviceStyle())
+  }, { defer: true }))
+
   /* ── selection highlight ── */
   createEffect(() => {
     const p = port()
@@ -666,7 +747,8 @@ export function NetworkMapOL(props: {
     void f._k
     const p = port()
     if (!p) return
-    const extent = gisPixelBboxToExtent(G, f) ?? pxBboxToExtent(f)
+    const box = props.stage ? unoccluded(f) : f
+    const extent = gisPixelBboxToExtent(G, box) ?? pxBboxToExtent(box)
     p.fitToBbox(extent, { padding: 64, maxZoom: 18 })
   })
 
@@ -750,15 +832,28 @@ export function NetworkMapOL(props: {
         onKeyDown={onContainerKeyDown}
       />
 
+      <Show when={props.stage}>
+        <StageChrome
+          port={port}
+          zoomBtn={zoomBtn}
+          fitAll={fitAll}
+          basemap={basemap()}
+          setBasemap={setBasemap}
+          flowSource={flowSource()}
+          setFlowSource={setFlowSource}
+          solving={hydroSolving()}
+        />
+      </Show>
+
       {/* 3D camera controls (below the zoom/basemap cluster) */}
-      <Show when={props.controls !== false}>
+      <Show when={props.controls !== false && !props.stage}>
         <div class="absolute right-3 top-[330px] z-10">
           <Map3DControls port={port} />
         </div>
       </Show>
 
       {/* zoom + basemap controls (top-right) */}
-      <Show when={props.controls !== false}>
+      <Show when={props.controls !== false && !props.stage}>
         <div class="absolute right-3 top-3 z-10 flex flex-col items-end gap-2">
           <div
             class="flex flex-col overflow-hidden rounded-lg border border-line bg-[var(--surface)]"
@@ -870,7 +965,7 @@ export function NetworkMapOL(props: {
       </Show>
 
       {/* flow source toggle */}
-      <Show when={props.controls !== false}>
+      <Show when={props.controls !== false && !props.stage}>
         <div
           class="absolute bottom-14 left-3 z-10 flex items-center gap-1 rounded-lg border border-line bg-[var(--surface)]/90 p-0.5 text-[10.5px] backdrop-blur"
           role="group"
@@ -901,38 +996,24 @@ export function NetworkMapOL(props: {
       {/* legend (reuses design markup) */}
       <Show when={props.legend !== false}>
         <div
-          class="absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-x-3.5 gap-y-1 rounded-lg border border-line bg-[var(--surface)]/90 px-3 py-1.5 text-[10.5px] text-[color:var(--muted)] backdrop-blur"
-          style={{ 'max-width': '440px' }}
+          class={
+            props.stage
+              ? 'sx-legend sx-glass'
+              : 'absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-x-3.5 gap-y-1 rounded-lg border border-line bg-[var(--surface)]/90 px-3 py-1.5 text-[10.5px] text-[color:var(--muted)] backdrop-blur'
+          }
+          style={props.stage ? undefined : { 'max-width': '440px' }}
+          data-testid="map-legend"
         >
           <Show
             when={props.legendRows && props.legendRows.length}
             fallback={
               <>
-                <span class="flex items-center gap-1.5">
-                  <span
-                    class="inline-block h-[3px] w-5 rounded"
-                    style={{ background: tone('#0E7C86') }}
-                  />
-                  Ống chính
-                </span>
-                <span class="flex items-center gap-1.5">
-                  <span
-                    class="inline-block h-[3px] w-5 rounded"
-                    style={{ background: theme() === 'light' ? '#3FA0A8' : '#7fd0db' }}
-                  />
-                  Ống phân phối
-                </span>
-                <span class="flex items-center gap-1.5">
-                  <span
-                    class="inline-block h-2.5 w-2.5 rotate-45 border"
-                    style={{ 'border-color': tone('#0969DA') }}
-                  />
-                  Van
-                </span>
-                <span class="flex items-center gap-1.5">
-                  <StatusDot color={tone('#D1242F')} size={8} />
-                  Rò rỉ / cảnh báo
-                </span>
+                <LegendPipe color={legendPipe(true)} casing={legendCasing()} width={5} label="Ống chính" />
+                <LegendPipe color={legendPipe(false)} casing={legendCasing()} width={3} label="Ống phân phối" />
+                <LegendGlyph code="GateValve" label="Van" casing={legendCasing()} pipe={legendPipe(false)} />
+                <LegendGlyph code="GateValve" status="critical" label="Van đóng" casing={legendCasing()} pipe={legendPipe(false)} />
+                <LegendGlyph code="BulkMeter" label="Đồng hồ" casing={legendCasing()} pipe={legendPipe(false)} />
+                <LegendGlyph code="PressureSensor" status="normal" label="Cảm biến" />
                 <span class="flex items-center gap-1.5">
                   <span
                     class="inline-block h-2.5 w-3.5 rounded-sm border border-dashed"
@@ -959,6 +1040,136 @@ export function NetworkMapOL(props: {
       </Show>
     </div>
   ) as JSX.Element
+}
+
+/* On the full-screen stage the HUD (left) and the dock / side panel (right) float over the
+   map. Widen a focus box so that, once fitted to the whole window, the requested area lands
+   in the strip between them instead of underneath a panel. */
+function unoccluded(f: FocusBox): FocusBox {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return f
+  const W = window.innerWidth
+  if (W <= 720) return f
+  let a = 0
+  const hud = document.querySelector<HTMLElement>('.sx-hud-grid')
+  if (hud && hud.offsetParent) a = hud.getBoundingClientRect().right
+  const right = document.querySelector<HTMLElement>('.sx-side') ?? document.querySelector<HTMLElement>('.sx-dock')
+  const b = right ? right.getBoundingClientRect().left : W
+  if (!(b - a > 240) || !(f.w > 0)) return f
+  const w = (f.w * W) / (b - a)
+  return { ...f, x: f.x - (a / W) * w, w }
+}
+
+/* ── Stage chrome: one glass tool bar along the bottom edge of the full-screen map ── */
+function StageChrome(props: {
+  port: Parameters<typeof Map3DControls>[0]['port']
+  zoomBtn: (dir: number) => void
+  fitAll: () => void
+  basemap: string
+  setBasemap: (id: (typeof BASEMAP_OPTS)[number]['id']) => void
+  flowSource: 'epanet' | 'pressure'
+  setFlowSource: (v: 'epanet' | 'pressure') => void
+  solving: boolean
+}) {
+  const [bmOpen, setBmOpen] = createSignal(false)
+  const [bmAt, setBmAt] = createSignal<{ left: number; bottom: number }>({ left: 0, bottom: 0 })
+  return (
+    <div class="sx-maptools sx-glass" role="toolbar" aria-label="Công cụ bản đồ" data-testid="map-tools">
+      <button type="button" class="sx-tool" title="Phóng to" aria-label="Phóng to" onClick={() => props.zoomBtn(1)}>
+        <IcPlus size={16} />
+      </button>
+      <button type="button" class="sx-tool" title="Thu nhỏ" aria-label="Thu nhỏ" onClick={() => props.zoomBtn(-1)}>
+        <IcMinus size={16} />
+      </button>
+      <button type="button" class="sx-tool" title="Toàn mạng" aria-label="Toàn mạng" onClick={() => props.fitAll()}>
+        <IcExpand size={15} />
+      </button>
+      <span class="sx-tool-sep" />
+      <Map3DControls port={props.port} variant="bar" />
+      <span class="sx-tool-sep" />
+      <div class="relative flex">
+        <button
+          type="button"
+          class="sx-tool"
+          title="Nền bản đồ"
+          aria-label="Nền bản đồ"
+          aria-expanded={bmOpen()}
+          aria-pressed={bmOpen()}
+          onClick={e => {
+            const r = e.currentTarget.getBoundingClientRect()
+            setBmAt({
+              left: Math.max(8, Math.min(window.innerWidth - 244, r.left + r.width / 2 - 118)),
+              bottom: window.innerHeight - r.top + 10,
+            })
+            setBmOpen(o => !o)
+          }}
+        >
+          <IcLayers size={15} />
+        </button>
+        <Show when={bmOpen()}>
+          <Portal>
+          <div
+            class="sx-pop sx-glass w-[236px]"
+            style={{ position: 'fixed', left: `${bmAt().left}px`, bottom: `${bmAt().bottom}px` }}
+          >
+            <div class="sx-pop-h">Nền bản đồ</div>
+            <div class="grid grid-cols-2 gap-2">
+              <For each={BASEMAP_OPTS}>
+                {o => {
+                  const on = () => props.basemap === o.id
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        props.setBasemap(o.id)
+                        setBmOpen(false)
+                      }}
+                      title={o.label}
+                      aria-pressed={on()}
+                      class="flex flex-col gap-1 rounded-lg p-1 text-left hover:bg-[var(--hover)]"
+                    >
+                      <div
+                        class="relative h-[52px] w-full overflow-hidden rounded-md border"
+                        style={{
+                          'border-color': on() ? 'var(--accent)' : 'var(--line)',
+                          'box-shadow': on() ? '0 0 0 2px var(--accent)' : 'none',
+                          background: 'var(--surface-2)',
+                        }}
+                      >
+                        <Show when={o.thumb}>
+                          <img src={o.thumb} alt="" class="h-full w-full object-cover" loading="lazy" draggable={false} />
+                        </Show>
+                      </div>
+                      <span class="px-0.5 text-[11.5px]" classList={{ 'font-semibold': on() }}>
+                        {o.label}
+                      </span>
+                    </button>
+                  )
+                }}
+              </For>
+            </div>
+          </div>
+          </Portal>
+        </Show>
+      </div>
+      <span class="sx-tool-sep" />
+      <div class="flex items-center gap-1" role="group" aria-label="Nguồn dữ liệu dòng chảy" data-testid="flow-source">
+        <span class="sx-lbl sx-hide-sm px-1">Dòng chảy</span>
+        <For each={[['epanet', 'EPANET'], ['pressure', 'Áp suất']] as const}>
+          {([id, label]) => (
+            <button
+              type="button"
+              class="sx-tool"
+              aria-pressed={props.flowSource === id}
+              onClick={() => props.setFlowSource(id)}
+            >
+              {label}
+              <Show when={id === 'epanet' && props.flowSource === 'epanet' && props.solving}> …</Show>
+            </button>
+          )}
+        </For>
+      </div>
+    </div>
+  )
 }
 
 // re-export shared types so screens can import them from this module too.

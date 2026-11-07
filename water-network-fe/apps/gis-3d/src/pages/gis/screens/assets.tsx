@@ -4,7 +4,8 @@ import { useGis, type Asset } from '../lib/gis-data'
 import { Icon, IcChevRight } from '../lib/icons'
 import { cAccent, chex, cTheme, cnorm, fmtInt, tone } from '../lib/theme'
 import { AssetTypeChip, Btn, Card, CondPill, DmaChip, Empty, KV, ScreenHead, Select, TextInput } from '../ui/kit'
-import { NetworkMapOL, type FocusBox, type Selection } from '../ui/network-map-ol'
+import { MapOverlay } from '../shell/map-stage'
+import type { FocusBox, Selection } from '../ui/network-map-ol'
 import type { Route } from '../shell/nav'
 
 export function AssetsScreen(props: { toast: (m: string, k?: string) => void; go: (r: Route) => void }): JSX.Element {
@@ -55,7 +56,7 @@ export function AssetsScreen(props: { toast: (m: string, k?: string) => void; go
   })
 
   return (
-    <div class="mx-auto flex max-w-[1280px] flex-col gap-3.5 px-4 py-5 sm:px-6" data-screen-label="Tài sản không gian">
+    <div class="flex flex-col gap-3" data-screen-label="Tài sản không gian">
       <ScreenHead
         title="Quản lý tài sản không gian"
         sub={fmtInt(G.assets.length) + ' đối tượng GIS · geometry có lịch sử phiên bản đầy đủ'}
@@ -94,7 +95,7 @@ export function AssetsScreen(props: { toast: (m: string, k?: string) => void; go
         </For>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_400px]">
+      <div class="grid grid-cols-1 gap-4">
         {/* table */}
         <Card pad={false} class="overflow-hidden">
           <div class="flex items-center gap-2 border-b border-line px-3 py-2.5">
@@ -181,9 +182,7 @@ export function AssetsScreen(props: { toast: (m: string, k?: string) => void; go
 
         {/* map + inspector */}
         <div class="flex flex-col gap-4">
-          <Card pad={false} class="overflow-hidden">
-            <div class="h-[300px]">
-              <NetworkMapOL
+          <MapOverlay
                 layers={{ basemap: true, dma: true, pipe: true, valve: true, hydrant: true, node: true, source: true }}
                 selected={sel()}
                 focus={focus()}
@@ -192,8 +191,6 @@ export function AssetsScreen(props: { toast: (m: string, k?: string) => void; go
                 controls
                 legend={false}
               />
-            </div>
-          </Card>
           <Show
             when={selAsset()}
             fallback={
