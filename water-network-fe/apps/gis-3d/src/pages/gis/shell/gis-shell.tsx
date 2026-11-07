@@ -8,10 +8,10 @@
    Ported from the pump-station 3D prototype (simulator-trambom/web). */
 import { For, Show, createEffect, createMemo, createSignal, onCleanup, type JSX } from 'solid-js'
 import { useSessionContext } from '@/entities/session'
-import { getAccountUrl } from '@/shared/config/runtime-config'
+import { getAccountUrl, getOpsSource } from '@/shared/config/runtime-config'
 import { navigateToMenuApp } from '@/shared/lib/cross-app-sso'
 import { CommandPalette } from './command-palette'
-import { PANELS, PANEL_BY_ID, TITLES, type PanelDef, type Route } from './nav'
+import { OPS_ROUTES, PANELS, PANEL_BY_ID, TITLES, type PanelDef, type Route } from './nav'
 import { Icon, IcChevD, IcGrid, IcMoon, IcSearch, IcSun, IcUser, IcX } from '../lib/icons'
 import { useTheme } from '../lib/theme'
 
@@ -270,7 +270,8 @@ function Dock(props: { route: Route; go: (r: Route) => void; counts: Record<stri
   const [tip, setTip] = createSignal<{ p: PanelDef; x: number; y: number } | null>(null)
   const groups = createMemo(() => {
     const out: PanelDef[][] = []
-    for (const p of PANELS) if (!p.hidden) (out[p.group] ??= []).push(p)
+    const opsOn = getOpsSource() !== 'off'
+    for (const p of PANELS) if (!p.hidden && (opsOn || !OPS_ROUTES.has(p.id))) (out[p.group] ??= []).push(p)
     return out.filter(Boolean)
   })
   return (

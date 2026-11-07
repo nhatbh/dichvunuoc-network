@@ -199,3 +199,14 @@
 .ops-table tr[data-changed='true'] td {
   background: rgba(29, 108, 174, 0.08);
 }
+
+.sx-timebar .tb-sim {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: #8a5a00;
+  background: #f9eeda;
+  white-space: nowrap;
+}

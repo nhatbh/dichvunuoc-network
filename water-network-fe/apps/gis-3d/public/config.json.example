@@ -6,6 +6,7 @@
   "keycloakClientId": "frontend-sample",
   "gisDataSource": "legacy",
   "gisViewerMode": "rich",
+  "opsSource": "off",
   "organization": {
     "context": "required",
     "allowLegacyTenantIdFallback": false

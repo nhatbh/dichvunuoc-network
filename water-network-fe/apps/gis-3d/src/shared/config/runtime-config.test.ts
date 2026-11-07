@@ -4,6 +4,7 @@ import {
   applyRuntimeConfig,
   DEFAULT_MAP_VIEW,
   getGisRuntimePolicy,
+  getOpsSource,
   getRuntimeMapView,
   getRuntimeOrganizationPolicy,
   type RuntimeConfig,
@@ -127,5 +128,29 @@ describe('runtime Organization policy', () => {
         },
       } as unknown as RuntimeConfig)
     ).toThrow(/allowLegacyTenantIdFallback/)
+  })
+})
+
+describe('operations data source', () => {
+  afterEach(() => applyRuntimeConfig({}))
+
+  it('follows the deployment setting on the legacy demo network', () => {
+    applyRuntimeConfig({ opsSource: 'mock' })
+    expect(getOpsSource()).toBe('mock')
+    applyRuntimeConfig({ opsSource: 'off' })
+    expect(getOpsSource()).toBe('off')
+    applyRuntimeConfig({ opsSource: 'live' })
+    expect(getOpsSource()).toBe('live')
+  })
+
+  it('never shows the simulated day over the canonical network', () => {
+    applyRuntimeConfig({ gisDataSource: 'canonical', opsSource: 'mock' })
+    expect(getOpsSource()).toBe('off')
+    applyRuntimeConfig({ gisDataSource: 'canonical', opsSource: 'live' })
+    expect(getOpsSource()).toBe('live')
+  })
+
+  it('rejects an unknown source', () => {
+    expect(() => applyRuntimeConfig({ opsSource: 'demo' } as unknown as RuntimeConfig)).toThrow(/opsSource/)
   })
 })

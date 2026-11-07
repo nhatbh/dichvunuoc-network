@@ -1,5 +1,6 @@
 /* The shared time cursor over the map, and the bridge that puts the operations layer on the map. */
 import { For, Show, createMemo, type JSX } from 'solid-js'
+import { getOpsSource } from '@/shared/config/runtime-config'
 import './ops.css'
 import { SLOTS, STATUS_COLOR, pressureColor, slotTime, useOps } from './ops-context'
 import { MapOverlay, type OpsMapState } from '../shell/map-stage'
@@ -29,6 +30,11 @@ export function TimeBar(): JSX.Element {
       <span class="tb-time" data-testid="time-label">
         {slotTime(ops.slot())}
       </span>
+      <Show when={getOpsSource() === 'mock'}>
+        <span class="tb-sim tb-hide-sm" title="Số liệu mô phỏng trên mạng lưới mẫu — chưa nối dữ liệu đo thật" data-testid="ops-simulated">
+          Mô phỏng
+        </span>
+      </Show>
       <div class="tb-track">
         <For each={ticks()}>
           {t => <span class="tb-tick" style={{ left: `calc(7px + (100% - 14px) * ${t.at / (SLOTS - 1)})`, background: t.color }} title={t.title} />}

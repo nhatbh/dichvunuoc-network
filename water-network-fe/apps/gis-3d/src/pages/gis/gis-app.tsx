@@ -2,6 +2,7 @@
    Sidebar + mobile drawer + topbar + in-app router (route.name signal) +
    toasts + ⌘K command palette + theme effects. Home route = Dashboard. */
 import { Match, Show, Switch, createEffect, createMemo, createSignal, on, onCleanup, type JSX } from 'solid-js'
+import { getOpsSource } from '@/shared/config/runtime-config'
 import { scLoadBranches, scSaveBranches, type Branch } from './lib/branch-store'
 import { useGis } from './lib/gis-data'
 import { AssetsScreen } from './screens/assets'
@@ -38,7 +39,7 @@ import { OpsProvider, useOpsMaybe } from './ops/ops-context'
 import { OpsMapBridge, TimeBar } from './ops/time-bar'
 import { GisShell } from './shell/gis-shell'
 import { MapStageProvider } from './shell/map-stage'
-import { NAV, PANELS, TITLES } from './shell/nav'
+import { NAV, OPS_ROUTES, PANELS, TITLES } from './shell/nav'
 import { NetworkHud, TopologyBanner } from './shell/network-hud'
 import { StageMap } from './shell/stage-map'
 import { ToastHost, type Toast } from './ui/kit'
@@ -57,6 +58,8 @@ const CANONICAL_SUPPORTED_ROUTES = new Set([
   'query',
   'assets',
   'import',
+  // the operations screens run on the canonical network once /ops is live
+  ...(getOpsSource() === 'live' ? OPS_ROUTES : []),
 ])
 
 export function GisApp() {
@@ -109,8 +112,10 @@ export function GisApp() {
     field: G.DASH.fieldPending,
   }))
 
-  // the operations layer (sensors, readings, markers) is served for the seeded demo network
-  const Ops = (p: { children: JSX.Element }) => (G.canonical ? p.children : <OpsProvider>{p.children}</OpsProvider>)
+  // the operations layer (sensors, readings, markers): live from the BFF, or the demo network's
+  // simulated day; absent when the deployment has no operations source (opsSource = off)
+  const opsOn = getOpsSource() !== 'off'
+  const Ops = (p: { children: JSX.Element }) => (opsOn ? <OpsProvider>{p.children}</OpsProvider> : p.children)
 
   return (
     <MapStageProvider>
@@ -131,7 +136,11 @@ export function GisApp() {
             fallback={<PlaceholderScreen name={route().name} icon={iconOf(route().name)} go={go} />}
           >
             <Match when={route().name === 'map'}>{null}</Match>
-            <Match when={G.canonical && !CANONICAL_SUPPORTED_ROUTES.has(route().name)}>
+            <Match
+              when={
+                (G.canonical && !CANONICAL_SUPPORTED_ROUTES.has(route().name)) || (!opsOn && OPS_ROUTES.has(route().name))
+              }
+            >
               <PlaceholderScreen name={route().name} icon={iconOf(route().name)} go={go} />
             </Match>
             <Match when={route().name === 'layers'}>

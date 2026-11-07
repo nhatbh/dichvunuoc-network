@@ -21,6 +21,13 @@ export interface RuntimeConfig {
   gisDataSource?: GisDataSource
   /** Selects the UI implementation after the canonical backend is enabled. */
   gisViewerMode?: GisViewerMode
+  /**
+   * Where the operations screens (pressure, alarms, markers, production) get their data:
+   * `live` = the BFF `/ops` routes, `mock` = the demo network's simulated day (only with the
+   * legacy demo network), `off` = hide the screens. Flipped per environment when the phase gate
+   * passes (integration plan, Phase 2).
+   */
+  opsSource?: OpsSource
   mapView?: RuntimeMapView
   /**
    * Keycloak Organization context requested by this deployment.
@@ -36,6 +43,7 @@ export interface RuntimeConfig {
 
 export type GisDataSource = 'legacy' | 'canonical'
 export type GisViewerMode = 'rich' | 'scalable'
+export type OpsSource = 'live' | 'mock' | 'off'
 
 export interface GisRuntimePolicy {
   dataSource: GisDataSource
@@ -85,6 +93,8 @@ let gisRuntimePolicy: GisRuntimePolicy = {
   dataSource: 'legacy',
   viewerMode: 'rich',
 }
+let opsSourceOverride: OpsSource | undefined
+
 let organizationPolicy: RuntimeOrganizationPolicy = {
   context: 'disabled',
   allowLegacyTenantIdFallback: false,
@@ -168,6 +178,18 @@ export function getGisRuntimePolicy(): GisRuntimePolicy {
   return { ...gisRuntimePolicy }
 }
 
+/**
+ * Data source of the operations screens. Default: the simulated day when the whole app runs on
+ * mocks, otherwise off. Simulated data belongs to the seeded demo network, so it is never shown
+ * over the canonical (real) network.
+ */
+export function getOpsSource(): OpsSource {
+  const fullMock = env.VITE_USE_MOCK_DATA === 'true'
+  const source = opsSourceOverride ?? (fullMock ? 'mock' : 'off')
+  if (source === 'mock' && gisRuntimePolicy.dataSource === 'canonical') return 'off'
+  return source
+}
+
 /** Validated Organization policy. Safe to use when constructing OIDC requests. */
 export function getRuntimeOrganizationPolicy(): RuntimeOrganizationPolicy {
   return { ...organizationPolicy }
@@ -223,9 +245,14 @@ export function applyRuntimeConfig(config: RuntimeConfig): void {
   const nextOrganizationPolicy = resolveOrganizationPolicy(config.organization)
   const nextGisRuntimePolicy = resolveGisRuntimePolicy(config)
 
+  if (config.opsSource !== undefined && !['live', 'mock', 'off'].includes(config.opsSource)) {
+    throw new Error('Invalid runtime opsSource; expected live, mock or off')
+  }
+
   cached = config
   organizationPolicy = nextOrganizationPolicy
   gisRuntimePolicy = nextGisRuntimePolicy
+  opsSourceOverride = config.opsSource
 
   if (config.apiUrl) {
     ;(env as { VITE_API_URL: string }).VITE_API_URL = config.apiUrl

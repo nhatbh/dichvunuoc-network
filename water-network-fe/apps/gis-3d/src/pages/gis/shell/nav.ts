@@ -121,3 +121,6 @@ export const PANELS: PanelDef[] = [
 ]
 
 export const PANEL_BY_ID: Record<string, PanelDef> = Object.fromEntries(PANELS.map(p => [p.id, p]))
+
+/** The operations screens, shown only when the deployment has an operations data source. */
+export const OPS_ROUTES = new Set(['ops', 'leaks', 'production', 'sensor'])
