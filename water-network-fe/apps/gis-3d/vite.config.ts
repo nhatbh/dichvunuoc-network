@@ -1,11 +1,48 @@
+import { readFileSync } from 'fs'
 import path from 'path'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
-import { defineConfig } from 'vite'
+import { defineConfig, type PluginOption } from 'vite'
 import solid from 'vite-plugin-solid'
 
-export default defineConfig(({ mode, command }) => {
+/**
+ * `--mode local-stack`: the app against the backend services running on this machine.
+ * /api/gis is proxied to the BFF with a backend dev JWT (the mock login has no real token),
+ * and /config.json comes from deploy/local-stack/config.json. Dev server only.
+ */
+async function localStack(): Promise<PluginOption> {
+  // plain .mjs shared with the seed script; generated per dev-server start
+  const { devToken } = (await import(path.resolve(__dirname, 'scripts/local-stack/dev-token.mjs'))) as {
+    devToken: () => string
+  }
+  const token = devToken()
+  const config = readFileSync(path.resolve(__dirname, 'deploy/local-stack/config.json'))
+  return {
+    name: 'wn-local-stack',
+    configureServer(server) {
+      server.middlewares.use('/config.json', (_req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        res.setHeader('Cache-Control', 'no-store')
+        res.end(config)
+      })
+    },
+    config: () => ({
+      server: {
+        proxy: {
+          '/api/gis': {
+            target: process.env.WN_BFF_URL ?? 'http://localhost:8083',
+            changeOrigin: true,
+            configure: proxy => proxy.on('proxyReq', req => req.setHeader('Authorization', `Bearer ${token}`)),
+          },
+        },
+      },
+    }),
+  }
+}
+
+export default defineConfig(async ({ mode, command }) => {
   const isProduction = mode === 'production'
+  const localStackPlugin = mode === 'local-stack' && command === 'serve' ? await localStack() : null
   // Dev server reads the 3D runtime from source, so edits (and pnpm's install-time copy of
   // the package) can never leave the app running a stale dist/.
   const runtime3dSrc = path.resolve(__dirname, '../../packages/map-runtime-3d/src')
@@ -28,6 +65,7 @@ export default defineConfig(({ mode, command }) => {
         autoCodeSplitting: true,
       }),
       solid(),
+      localStackPlugin,
       isProduction &&
         visualizer({
           open: false,

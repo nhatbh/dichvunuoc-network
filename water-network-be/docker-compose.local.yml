@@ -1,0 +1,28 @@
+# Local full-stack override for running the SYSTEM 3D frontend against the real services.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+#
+# Adds a stand-in for the platform app-catalog so the BFF's tenant-to-app entitlement gate
+# (TenantAppEntitlementMiddleware) answers "allowed" locally. Never deploy this file.
+services:
+  dev-app-catalog:
+    image: nginx:1.27-alpine
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cat > /etc/nginx/conf.d/default.conf <<'CONF'
+        server {
+          listen 8080;
+          location /api/platform/app-catalog/me/apps/ { return 204; }
+          location / { return 404; }
+        }
+        CONF
+        exec nginx -g 'daemon off;'
+    networks: [wn-network]
+
+  water-network-bff:
+    environment:
+      - AppEntitlement__BaseUrl=http://dev-app-catalog:8080/
+    depends_on:
+      - dev-app-catalog

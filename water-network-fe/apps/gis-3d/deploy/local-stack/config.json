@@ -1,0 +1,10 @@
+{
+  "apiUrl": "/api/gis",
+  "gisDataSource": "canonical",
+  "gisViewerMode": "rich",
+  "opsSource": "off",
+  "organization": { "context": "disabled" },
+  "appName": "SYSTEM 3D (local stack)",
+  "mapView": { "center": { "lon": 105.806, "lat": 21.036 }, "zoom": 16 },
+  "flags": { "newEditor": false }
+}
