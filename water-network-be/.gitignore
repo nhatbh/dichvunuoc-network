@@ -7,3 +7,6 @@ docs/sample/dotnet-skeleton-sample/
 
 # macOS Finder metadata
 .DS_Store
+
+# Repo-local NuGet packages (scripts/setup-backend.ps1)
+.nuget/
