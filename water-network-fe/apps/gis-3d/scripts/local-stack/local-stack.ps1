@@ -134,7 +134,12 @@ if ($listening) {
 } else {
   Start-Process -FilePath 'cmd.exe' -WorkingDirectory $AppDir -ArgumentList '/k', 'title SYSTEM 3D - local stack & pnpm run dev:local-stack'
 }
-if (-not (Wait-Http 'http://localhost:4600/' 90)) { Fail 'the app dev server did not come up on :4600' }
+if (-not (Wait-Http 'http://localhost:4600/' 90)) { Fail 'the app dev server did not come up on :4600 - see the SYSTEM 3D window' }
+# the page must come from the local-stack dev server (canonical data source), not another one on :4600
+try { $cfg = (Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri 'http://localhost:4600/config.json').Content } catch { $cfg = '' }
+if ($cfg -notmatch '"canonical"') {
+  Fail 'port 4600 is served by another dev server (its /config.json is not the local-stack one). Close the other SYSTEM 3D window, or run this again with -Down first.'
+}
 
 # -- 4. gate check -------------------------------------------------------------------------------
 if (-not $SkipSmoke) {

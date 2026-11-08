@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs'
 import path from 'path'
+import { pathToFileURL } from 'url'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig, type PluginOption } from 'vite'
@@ -13,7 +14,7 @@ import solid from 'vite-plugin-solid'
  */
 async function localStack(): Promise<PluginOption> {
   // plain .mjs shared with the seed script; generated per dev-server start
-  const { devToken } = (await import(path.resolve(__dirname, 'scripts/local-stack/dev-token.mjs'))) as {
+  const { devToken } = (await import(pathToFileURL(path.resolve(__dirname, 'scripts/local-stack/dev-token.mjs')).href)) as {
     devToken: () => string
   }
   const token = devToken()
