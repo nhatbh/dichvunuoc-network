@@ -9,6 +9,7 @@
     <ProjectReference Include="../WaterNetwork.Design.Contracts/WaterNetwork.Design.Contracts.csproj" />
     <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.Application/WaterPlatform.BuildingBlocks.Application.csproj" />
     <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.MultiTenancy/WaterPlatform.BuildingBlocks.MultiTenancy.csproj" />
+    <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.Components/WaterPlatform.BuildingBlocks.Components.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" />

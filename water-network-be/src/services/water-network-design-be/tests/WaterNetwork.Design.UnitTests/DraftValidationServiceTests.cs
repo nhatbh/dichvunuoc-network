@@ -23,7 +23,7 @@ public sealed class DraftValidationServiceTests
 
     private static DraftNetworkAsset Node(string code, string? clientRef = null) =>
         DraftNetworkAsset.Create("rev-1", "t1", DraftAssetKind.Node, code, clientRef, Point(),
-            new Dictionary<string, string> { ["nodeType"] = "Junction" }, null, null, null);
+            new Dictionary<string, string> { ["componentCode"] = "Junction" }, null, null, null);
 
     private static DraftNetworkAsset Pipe(string code, string from, string to,
         Dictionary<string, string>? attrs = null) =>
@@ -75,12 +75,12 @@ public sealed class DraftValidationServiceTests
     }
 
     [Fact]
-    public async Task Node_Missing_NodeType_Is_Error()
+    public async Task Node_Missing_ComponentCode_Is_Error()
     {
         var node = DraftNetworkAsset.Create("rev-1", "t1", DraftAssetKind.Node, "N-1", null, Point(),
             new Dictionary<string, string>(), null, null, null);
         var result = await _sut.ValidateAsync("t1", new[] { node }, new FakeGisLookup(), CancellationToken.None);
-        result.Errors.Should().Contain(e => e.Code == "MissingRequiredAttribute" && e.Field == "nodeType");
+        result.Errors.Should().Contain(e => e.Code == "MissingRequiredAttribute" && e.Field == "componentCode");
     }
 
     [Fact]
@@ -88,9 +88,51 @@ public sealed class DraftValidationServiceTests
     {
         var node = Node("N-1", "c-n1");
         var device = DraftNetworkAsset.Create("rev-1", "t1", DraftAssetKind.Device, "D-1", null, Point(),
-            new Dictionary<string, string> { ["deviceType"] = "Valve" }, null, null, hostRef: "c-n1");
+            new Dictionary<string, string> { ["componentCode"] = "GateValve" }, null, null, hostRef: "c-n1");
         var result = await _sut.ValidateAsync("t1", new[] { node, device }, new FakeGisLookup(), CancellationToken.None);
         result.Errors.Should().Contain(e => e.Code == "InvalidDeviceHost");
+    }
+
+    private static DraftNetworkAsset Device(string code, string componentCode, string hostRef, params (string K, string V)[] props)
+    {
+        var attrs = new Dictionary<string, string> { ["componentCode"] = componentCode };
+        foreach (var (k, v) in props) attrs[k] = v;
+        return DraftNetworkAsset.Create("rev-1", "t1", DraftAssetKind.Device, code, null, Point(), attrs, null, null, hostRef);
+    }
+
+    [Theory]
+    [InlineData("ButterflyValve", "c-p1", true)]
+    [InlineData("PRV", "c-p1", true)]
+    [InlineData("Washout", "c-n1", true)]
+    [InlineData("AirValve", "c-n1", true)]
+    [InlineData("Hydrant", "c-p1", false)]
+    [InlineData("BulkMeter", "c-n1", false)]
+    public async Task Device_Host_Follows_The_Catalog(string component, string hostRef, bool valid)
+    {
+        var pipe = DraftNetworkAsset.Create("rev-1", "t1", DraftAssetKind.Pipe, "P-1", "c-p1", Line(),
+            new Dictionary<string, string> { ["diameterMm"] = "100", ["material"] = "PVC" }, "c-n1", "c-n1b", null);
+        var drafts = new[] { Node("N-1", "c-n1"), Node("N-2", "c-n1b"), pipe, Device("D-1", component, hostRef) };
+        var result = await _sut.ValidateAsync("t1", drafts, new FakeGisLookup(), CancellationToken.None);
+        result.Errors.Any(e => e.Code == "InvalidDeviceHost").Should().Be(!valid);
+    }
+
+    [Fact]
+    public async Task Unknown_Or_Wrong_Kind_Component_Is_Error()
+    {
+        var node = DraftNetworkAsset.Create("rev-1", "t1", DraftAssetKind.Node, "N-9", null, Point(),
+            new Dictionary<string, string> { ["componentCode"] = "GateValve" }, null, null, null);
+        var device = Device("D-9", "Valve", "c-n1");
+        var result = await _sut.ValidateAsync("t1", new[] { Node("N-1", "c-n1"), node, device }, new FakeGisLookup(), CancellationToken.None);
+        result.Errors.Should().Contain(e => e.Code == "ComponentKindMismatch" && e.Field == "componentCode");
+        result.Errors.Should().Contain(e => e.Code == "UnknownComponent");
+    }
+
+    [Fact]
+    public async Task Invalid_Or_Foreign_Properties_Are_Errors()
+    {
+        var drafts = new[] { Node("N-1", "c-n1"), Device("D-1", "Hydrant", "c-n1", ("dn", "huge"), ("setpoint", "3")) };
+        var result = await _sut.ValidateAsync("t1", drafts, new FakeGisLookup(), CancellationToken.None);
+        result.Errors.Where(e => e.Code == "InvalidProperty").Should().HaveCount(2);
     }
 
     [Fact]

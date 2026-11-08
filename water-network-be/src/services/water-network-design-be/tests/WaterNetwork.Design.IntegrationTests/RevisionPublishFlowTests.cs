@@ -52,7 +52,7 @@ public sealed class RevisionPublishFlowTests(PostgisFixture postgis)
             assetCode = "ND-PUB-1",
             clientRef = (string?)null,
             geometry = new { type = "Point", coordinates = new[] { new[] { 105.8, 21.0 } } },
-            attributes = new Dictionary<string, string> { ["nodeType"] = "Junction" }
+            attributes = new Dictionary<string, string> { ["componentCode"] = "Junction" }
         };
         var draft = await client.PostAsJsonAsync($"/api/design/revisions/{revisionId}/draft-assets", draftBody);
         draft.EnsureSuccessStatusCode();

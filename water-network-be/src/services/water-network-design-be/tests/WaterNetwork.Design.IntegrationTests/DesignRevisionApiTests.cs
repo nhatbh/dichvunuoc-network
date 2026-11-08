@@ -40,7 +40,7 @@ public sealed class DesignRevisionApiTests(PostgisFixture postgis)
         assetCode = code,
         clientRef,
         geometry = new { type = "Point", coordinates = new[] { new[] { 105.8, 21.0 } } },
-        attributes = new Dictionary<string, string> { ["nodeType"] = "Junction" }
+        attributes = new Dictionary<string, string> { ["componentCode"] = "Junction" }
     };
 
     [Fact]

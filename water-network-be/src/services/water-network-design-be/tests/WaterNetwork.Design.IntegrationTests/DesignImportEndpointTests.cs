@@ -31,7 +31,7 @@ public sealed class DesignImportEndpointTests(PostgisFixture postgis)
         {
             ["kind"] = "Node", ["assetCode"] = "VT-N-1", ["clientRef"] = "node-1",
             ["geometry"] = new JsonObject { ["type"] = "Point", ["coordinates"] = new JsonArray(new JsonArray(105.5, latitude)) },
-            ["attributes"] = new JsonObject { ["nodeType"] = "Junction" }
+            ["attributes"] = new JsonObject { ["componentCode"] = "Junction" }
         })
     };
 

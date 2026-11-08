@@ -45,7 +45,7 @@ public sealed class ValidateRevisionTests
     private static DraftNetworkAsset Node(string code) => DraftNetworkAsset.Create(
         "rev", "tenant-1", DraftAssetKind.Node, code, null,
         new DraftGeometry(DraftGeometryType.Point, new[] { new GeoCoordinate(105.8, 21.0) }),
-        new Dictionary<string, string> { ["nodeType"] = "Junction" }, null, null, null);
+        new Dictionary<string, string> { ["componentCode"] = "Junction" }, null, null, null);
 
     [Fact]
     public async Task Valid_Revision_Becomes_Validated()

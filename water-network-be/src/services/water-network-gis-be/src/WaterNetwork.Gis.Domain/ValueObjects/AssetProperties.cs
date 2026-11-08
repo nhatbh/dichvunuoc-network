@@ -38,30 +38,13 @@ public sealed class AssetProperties
     /// </summary>
     public static AssetProperties FromAttributes(ComponentCode component, IReadOnlyDictionary<string, string>? attributes)
     {
-        var declared = component.Definition.Properties.Select(p => p.Key).ToHashSet(StringComparer.Ordinal);
-        if (component.Definition.Kind == ComponentKind.Pipe)
-            declared.UnionWith(PipeColumns); // a pipe keeps diameter and material as its own fields
-        var foreign = (attributes ?? new Dictionary<string, string>()).Keys
-            .Where(k => !declared.Contains(k) && CatalogPropertyKeys.Value.Contains(k))
-            .Order(StringComparer.Ordinal)
-            .ToList();
-        if (foreign.Count > 0)
-            throw new DomainException("AssetProperties.Invalid",
-                $"{component} does not have the propert{(foreign.Count == 1 ? "y" : "ies")} {string.Join(", ", foreign)}.");
-        return For(component, Declared(component, attributes));
+        var problems = ComponentCatalog.Default.ValidateAttributes(component.Value, attributes);
+        if (problems.Count > 0)
+            throw new DomainException("AssetProperties.Invalid", string.Join(" ", problems));
+        return For(component, ComponentCatalog.Default.PropertiesIn(component.Value, attributes));
     }
-
-    private static readonly string[] PipeColumns = ["diameterMm", "material", "dn"];
-
-    private static readonly Lazy<HashSet<string>> CatalogPropertyKeys = new(() =>
-        ComponentCatalog.Default.All.SelectMany(d => d.Properties).Select(p => p.Key).ToHashSet(StringComparer.Ordinal));
 
     /// <summary>Only the keys the component declares (drops design-side provenance and other attributes).</summary>
     public static IReadOnlyDictionary<string, string> Declared(ComponentCode component, IReadOnlyDictionary<string, string>? attributes)
-    {
-        var keys = component.Definition.Properties.Select(p => p.Key).ToHashSet(StringComparer.Ordinal);
-        return (attributes ?? new Dictionary<string, string>())
-            .Where(kv => keys.Contains(kv.Key))
-            .ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.Ordinal);
-    }
+        => ComponentCatalog.Default.PropertiesIn(component.Value, attributes);
 }

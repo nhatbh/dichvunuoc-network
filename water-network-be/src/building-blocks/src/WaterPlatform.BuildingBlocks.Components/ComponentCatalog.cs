@@ -77,6 +77,19 @@ public interface IComponentCatalog
 
     /// <summary>Problems with an asset's properties: unknown keys, wrong types, out-of-range values.</summary>
     IReadOnlyList<string> ValidateProperties(string code, IReadOnlyDictionary<string, string>? properties);
+
+    /// <summary>
+    /// The catalog properties in a draft's attribute bag (CAD import, editor, design drafts): keys the
+    /// component declares. Attributes no component declares (provenance, the code itself, a pipe's
+    /// diameterMm/material columns) are not properties.
+    /// </summary>
+    IReadOnlyDictionary<string, string> PropertiesIn(string code, IReadOnlyDictionary<string, string>? attributes);
+
+    /// <summary>
+    /// Problems with a draft's attribute bag: invalid declared properties, and properties of other
+    /// components (e.g. a setpoint on a gate valve) which would otherwise be dropped silently.
+    /// </summary>
+    IReadOnlyList<string> ValidateAttributes(string code, IReadOnlyDictionary<string, string>? attributes);
 }
 
 public sealed class ComponentCatalog : IComponentCatalog
@@ -148,6 +161,36 @@ public sealed class ComponentCatalog : IComponentCatalog
                     break;
             }
         }
+        return problems;
+    }
+
+    // A pipe keeps diameter and material as its own fields, not as properties.
+    private static readonly string[] PipeColumns = ["diameterMm", "material", "dn"];
+
+    private HashSet<string>? _allPropertyKeys;
+
+    public IReadOnlyDictionary<string, string> PropertiesIn(string code, IReadOnlyDictionary<string, string>? attributes)
+    {
+        var definition = Require(code);
+        var keys = definition.Properties.Select(p => p.Key).ToHashSet(StringComparer.Ordinal);
+        if (definition.Kind == ComponentKind.Pipe) keys.ExceptWith(PipeColumns);
+        return (attributes ?? new Dictionary<string, string>())
+            .Where(kv => keys.Contains(kv.Key))
+            .ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.Ordinal);
+    }
+
+    public IReadOnlyList<string> ValidateAttributes(string code, IReadOnlyDictionary<string, string>? attributes)
+    {
+        var definition = Require(code);
+        var declared = definition.Properties.Select(p => p.Key).ToHashSet(StringComparer.Ordinal);
+        if (definition.Kind == ComponentKind.Pipe) declared.UnionWith(PipeColumns);
+        _allPropertyKeys ??= _byCode.Values.SelectMany(d => d.Properties).Select(p => p.Key).ToHashSet(StringComparer.Ordinal);
+        var problems = (attributes ?? new Dictionary<string, string>()).Keys
+            .Where(k => !declared.Contains(k) && _allPropertyKeys.Contains(k))
+            .Order(StringComparer.Ordinal)
+            .Select(k => $"{definition.Code} has no property '{k}'.")
+            .ToList();
+        problems.AddRange(ValidateProperties(definition.Code, PropertiesIn(definition.Code, attributes)));
         return problems;
     }
 

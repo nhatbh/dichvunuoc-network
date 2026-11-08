@@ -17,7 +17,7 @@ public sealed class DesignPublishEventsContractTests
             {
                 new ReadyForGisAssetV1("d1", "Node", "N-1", "cr-1",
                     new ReadyForGisGeometryV1("Point", new[] { coords }),
-                    new Dictionary<string, string> { ["nodeType"] = "Junction" },
+                    new Dictionary<string, string> { ["componentCode"] = "Junction" },
                     null, null, null)
             });
 
@@ -31,7 +31,7 @@ public sealed class DesignPublishEventsContractTests
         asset.GetProperty("Kind").GetString().Should().Be("Node");
         asset.GetProperty("Geometry").GetProperty("Type").GetString().Should().Be("Point");
         asset.GetProperty("Geometry").GetProperty("Coordinates")[0][0].GetDouble().Should().Be(106.7);
-        asset.GetProperty("Attributes").GetProperty("nodeType").GetString().Should().Be("Junction");
+        asset.GetProperty("Attributes").GetProperty("componentCode").GetString().Should().Be("Junction");
     }
 
     [Fact]

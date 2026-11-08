@@ -49,7 +49,7 @@ public sealed class GisImportCompletedConsumerTests(PostgisFixture postgis)
             assetCode = "ND-GIS-1",
             clientRef = (string?)null,
             geometry = new { type = "Point", coordinates = new[] { new[] { 105.8, 21.0 } } },
-            attributes = new Dictionary<string, string> { ["nodeType"] = "Junction" }
+            attributes = new Dictionary<string, string> { ["componentCode"] = "Junction" }
         };
         var draft = await client.PostAsJsonAsync($"/api/design/revisions/{revisionId}/draft-assets", draftBody);
         draft.EnsureSuccessStatusCode();
@@ -135,7 +135,7 @@ public sealed class GisImportCompletedConsumerTests(PostgisFixture postgis)
             assetCode = "ND-GIS-2",
             clientRef = (string?)null,
             geometry = new { type = "Point", coordinates = new[] { new[] { 105.9, 21.1 } } },
-            attributes = new Dictionary<string, string> { ["nodeType"] = "Junction" }
+            attributes = new Dictionary<string, string> { ["componentCode"] = "Junction" }
         };
 
         // Note: we can't add drafts after approval, so use separate asset IDs in the gis event payload

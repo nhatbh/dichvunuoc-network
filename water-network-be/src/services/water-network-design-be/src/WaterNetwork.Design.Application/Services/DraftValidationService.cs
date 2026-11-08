@@ -3,15 +3,13 @@ using WaterNetwork.Design.Application.Geometry;
 using WaterNetwork.Design.Application.Ports;
 using WaterNetwork.Design.Domain.Entities;
 using WaterNetwork.Design.Domain.ValueObjects;
+using WaterPlatform.BuildingBlocks.Components;
 
 namespace WaterNetwork.Design.Application.Services;
 
 public sealed class DraftValidationService : IDraftValidationService
 {
-    private static readonly HashSet<string> ValveLikeNeedingPipe = new(StringComparer.OrdinalIgnoreCase)
-        { "Valve", "FlowMeter" };
-    private static readonly HashSet<string> NodeHostDevices = new(StringComparer.OrdinalIgnoreCase)
-        { "Pump", "Hydrant" };
+    private static IComponentCatalog Catalog => ComponentCatalog.Default;
 
     public async Task<ValidationResult> ValidateAsync(
         string tenantId, IReadOnlyList<DraftNetworkAsset> drafts, IGisLookupPort gisLookup, CancellationToken ct)
@@ -58,18 +56,17 @@ public sealed class DraftValidationService : IDraftValidationService
                 errors.Add(new ValidationIssue("InvalidGeometry", d.Id, d.ClientRef, "geometry",
                     "Geometry is not OGC-valid."));
 
+            // Rule: every asset is a catalog component of its kind (decision 0028); pipes default to "Pipe".
+            var component = ValidateComponent(d, errors);
+
             switch (d.Kind)
             {
-                case DraftAssetKind.Node:
-                    RequireAttr(d, "nodeType", errors);
-                    break;
-
                 case DraftAssetKind.Pipe:
                     ValidatePipe(d, byRef, errors);
                     break;
 
-                case DraftAssetKind.Device:
-                    ValidateDevice(d, byRef, errors);
+                case DraftAssetKind.Device when component is not null:
+                    ValidateDeviceHost(d, component, byRef, errors);
                     break;
             }
         }
@@ -101,30 +98,48 @@ public sealed class DraftValidationService : IDraftValidationService
         }
     }
 
-    private static void ValidateDevice(
-        DraftNetworkAsset device, Dictionary<string, DraftNetworkAsset> byRef, List<ValidationIssue> errors)
+    private static ComponentDefinition? ValidateComponent(DraftNetworkAsset d, List<ValidationIssue> errors)
     {
-        if (!device.Attributes.TryGetValue("deviceType", out var deviceType) || string.IsNullOrWhiteSpace(deviceType))
+        var raw = d.Attributes.GetValueOrDefault("componentCode");
+        if (string.IsNullOrWhiteSpace(raw))
         {
-            errors.Add(new ValidationIssue("MissingRequiredAttribute", device.Id, device.ClientRef, "deviceType",
-                "Device requires attribute 'deviceType'."));
-            return;
+            if (d.Kind == DraftAssetKind.Pipe) raw = "Pipe";
+            else
+            {
+                errors.Add(new ValidationIssue("MissingRequiredAttribute", d.Id, d.ClientRef, "componentCode",
+                    $"{d.Kind} requires attribute 'componentCode' (a catalog component)."));
+                return null;
+            }
         }
 
-        var host = device.HostRef is not null && byRef.TryGetValue(device.HostRef, out var h) ? h : null;
-        var hostKind = host?.Kind;
-
-        bool ok = deviceType switch
+        var component = Catalog.Find(raw);
+        if (component is null)
         {
-            _ when ValveLikeNeedingPipe.Contains(deviceType) => hostKind == DraftAssetKind.Pipe,
-            "PressureSensor" => hostKind is DraftAssetKind.Pipe or DraftAssetKind.Node,
-            _ when NodeHostDevices.Contains(deviceType) => hostKind == DraftAssetKind.Node,
-            _ => true // unknown device type → no host rule enforced (treated as valid here)
-        };
+            errors.Add(new ValidationIssue("UnknownComponent", d.Id, d.ClientRef, "componentCode",
+                $"'{raw}' is not a component code in the platform catalog."));
+            return null;
+        }
+        if (component.Kind.ToString() != d.Kind.ToString())
+        {
+            errors.Add(new ValidationIssue("ComponentKindMismatch", d.Id, d.ClientRef, "componentCode",
+                $"'{component.Code}' is a {component.Kind}, not a {d.Kind}."));
+            return null;
+        }
 
-        if (!ok)
+        foreach (var problem in Catalog.ValidateAttributes(component.Code, d.Attributes))
+            errors.Add(new ValidationIssue("InvalidProperty", d.Id, d.ClientRef, "attributes", problem));
+        return component;
+    }
+
+    private static void ValidateDeviceHost(
+        DraftNetworkAsset device, ComponentDefinition component,
+        Dictionary<string, DraftNetworkAsset> byRef, List<ValidationIssue> errors)
+    {
+        var host = device.HostRef is not null && byRef.TryGetValue(device.HostRef, out var h) ? h : null;
+        var expected = component.Host == ComponentHosts.Pipe ? DraftAssetKind.Pipe : DraftAssetKind.Node;
+        if (host?.Kind != expected)
             errors.Add(new ValidationIssue("InvalidDeviceHost", device.Id, device.ClientRef, "hostRef",
-                $"Device type '{deviceType}' has an invalid or missing host reference."));
+                $"A {component.Code} attaches to a {expected.ToString().ToLowerInvariant()}; its host reference is invalid or missing."));
     }
 
     private static void RequireAttr(DraftNetworkAsset d, string key, List<ValidationIssue> errors)

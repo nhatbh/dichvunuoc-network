@@ -81,7 +81,7 @@ public sealed class DesignRevisionPublishTransitionTests
         {
             new DraftAssetSnapshot("d1", "Node", "N-1", "cr-1",
                 new DraftGeometrySnapshot("Point", [PointCoords]),
-                new Dictionary<string, string> { ["nodeType"] = "Junction" }, null, null, null)
+                new Dictionary<string, string> { ["componentCode"] = "Junction" }, null, null, null)
         };
 
         rev.BeginPublish(drafts, approvedBy: "approver");

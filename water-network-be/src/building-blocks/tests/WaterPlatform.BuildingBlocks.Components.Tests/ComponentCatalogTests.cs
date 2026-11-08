@@ -51,4 +51,20 @@ public sealed class ComponentCatalogTests
         Catalog.ValidateProperties("PRV", new Dictionary<string, string> { ["setpoint"] = "35", ["state"] = "open" })
             .Should().BeEmpty();
     }
+
+    [Fact]
+    public void Attribute_bags_keep_declared_properties_and_reject_foreign_ones()
+    {
+        var catalog = ComponentCatalog.Default;
+        var attrs = new Dictionary<string, string> { ["componentCode"] = "GateValve", ["source"] = "cad", ["state"] = "closed", ["dn"] = "150" };
+        Assert.Equal(new Dictionary<string, string> { ["state"] = "closed", ["dn"] = "150" }, catalog.PropertiesIn("GateValve", attrs));
+        Assert.Empty(catalog.ValidateAttributes("GateValve", attrs));
+
+        var foreign = catalog.ValidateAttributes("GateValve", new Dictionary<string, string> { ["setpoint"] = "30" });
+        Assert.Contains(foreign, p => p.Contains("setpoint", StringComparison.Ordinal));
+
+        var pipe = new Dictionary<string, string> { ["diameterMm"] = "200", ["material"] = "HDPE", ["year"] = "1999" };
+        Assert.Empty(catalog.ValidateAttributes("Pipe", pipe));
+        Assert.Equal(["year"], catalog.PropertiesIn("Pipe", pipe).Keys);
+    }
 }

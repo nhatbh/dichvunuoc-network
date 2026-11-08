@@ -43,7 +43,7 @@ public sealed class CreateDraftAssetTests
     private static DraftAssetInput NodeInput(string code, string? clientRef = null) => new(
         "Node", code, clientRef,
         new DraftGeometryInput("Point", PointCoords),
-        new Dictionary<string, string> { ["nodeType"] = "Junction" }, null, null, null);
+        new Dictionary<string, string> { ["componentCode"] = "Junction" }, null, null, null);
 
     [Fact]
     public async Task Single_Create_Adds_Draft()

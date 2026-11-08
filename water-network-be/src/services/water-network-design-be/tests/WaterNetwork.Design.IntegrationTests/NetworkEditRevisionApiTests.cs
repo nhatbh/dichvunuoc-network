@@ -33,7 +33,7 @@ public sealed class NetworkEditRevisionApiTests(PostgisFixture postgis)
         var path=$"/api/design/revisions/{id}/network-edits";
         var initial=await client.GetFromJsonAsync<JsonNode>(path);var version=initial!["version"]!.GetValue<int>();
         var body=new {expectedVersion=version,operations=new[]{new NetworkEditOperationV1("new1","Add","Node",null,null,
-            new("new1","Node","N-EDIT","new1",new("Point",[[105,21]]),new Dictionary<string,string>{{"nodeType","Junction"}},null,null,null),null)}};
+            new("new1","Node","N-EDIT","new1",new("Point",[[105,21]]),new Dictionary<string,string>{{"componentCode","Junction"}},null,null,null),null)}};
         (await client.PutAsJsonAsync(path,body)).StatusCode.Should().Be(HttpStatusCode.OK);
         (await client.PutAsJsonAsync(path,body)).StatusCode.Should().Be(HttpStatusCode.Conflict);
         var reload=await client.GetFromJsonAsync<JsonNode>(path);

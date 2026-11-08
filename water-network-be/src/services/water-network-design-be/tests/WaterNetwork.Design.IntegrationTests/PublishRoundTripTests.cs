@@ -125,7 +125,7 @@ public sealed class PublishRoundTripTests : IAsyncLifetime
             assetCode = "N-1",
             clientRef = "cr-n1",
             geometry = new { type = "Point", coordinates = new[] { PointN1 } },
-            attributes = new Dictionary<string, string> { ["nodeType"] = "Junction" }
+            attributes = new Dictionary<string, string> { ["componentCode"] = "Junction" }
         });
         n1Resp.EnsureSuccessStatusCode();
         var draftN1Id = (await n1Resp.Content.ReadFromJsonAsync<JsonNode>())!["id"]!.GetValue<string>();
@@ -137,7 +137,7 @@ public sealed class PublishRoundTripTests : IAsyncLifetime
             assetCode = "N-2",
             clientRef = "cr-n2",
             geometry = new { type = "Point", coordinates = new[] { PointN2 } },
-            attributes = new Dictionary<string, string> { ["nodeType"] = "Junction" }
+            attributes = new Dictionary<string, string> { ["componentCode"] = "Junction" }
         });
         n2Resp.EnsureSuccessStatusCode();
         var draftN2Id = (await n2Resp.Content.ReadFromJsonAsync<JsonNode>())!["id"]!.GetValue<string>();
@@ -219,7 +219,7 @@ public sealed class PublishRoundTripTests : IAsyncLifetime
             var seededNode = NetworkNode.Register(
                 tenantId,
                 new AssetCode("N-2"),
-                NodeType.Junction,
+                ComponentCode.Junction,
                 new GeoPoint(21.1, 105.9));
             await nodeRepo.SaveAsync(seededNode);
         }
@@ -455,8 +455,8 @@ public sealed class PublishRoundTripTests : IAsyncLifetime
         var initial = await client.GetFromJsonAsync<JsonNode>(editPath);
         var operations = new NetworkEditOperationV1[]
         {
-            new("n1", "Add", "Node", null, null, new("n1","Node","EDIT-N1","n1",new("Point",[[105,21]]),new Dictionary<string,string>{{"nodeType","Junction"}},null,null,null),null),
-            new("n2", "Add", "Node", null, null, new("n2","Node","EDIT-N2","n2",new("Point",[[105.001,21]]),new Dictionary<string,string>{{"nodeType","Junction"}},null,null,null),null),
+            new("n1", "Add", "Node", null, null, new("n1","Node","EDIT-N1","n1",new("Point",[[105,21]]),new Dictionary<string,string>{{"componentCode","Junction"}},null,null,null),null),
+            new("n2", "Add", "Node", null, null, new("n2","Node","EDIT-N2","n2",new("Point",[[105.001,21]]),new Dictionary<string,string>{{"componentCode","Junction"}},null,null,null),null),
             new("p", "Add", "Pipe", null, null, new("p","Pipe","EDIT-P1","p",new("LineString",[[105,21],[105.001,21]]),new Dictionary<string,string>{{"diameterMm","100"},{"material","HDPE"}},"n1","n2",null),null)
         };
         var save = await client.PutAsJsonAsync(editPath,new {expectedVersion=initial!["version"]!.GetValue<int>(),operations});

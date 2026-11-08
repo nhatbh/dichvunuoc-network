@@ -15,7 +15,7 @@ public sealed class DraftNetworkAssetTests
     {
         var d = DraftNetworkAsset.Create(
             "rev-1", "tenant-1", DraftAssetKind.Node, "N-001", clientRef: "c1",
-            geometry: Point(), attributes: new Dictionary<string, string> { ["nodeType"] = "Junction" },
+            geometry: Point(), attributes: new Dictionary<string, string> { ["componentCode"] = "Junction" },
             fromRef: null, toRef: null, hostRef: null);
 
         d.Id.Should().NotBeNullOrEmpty();
@@ -23,7 +23,7 @@ public sealed class DraftNetworkAssetTests
         d.Kind.Should().Be(DraftAssetKind.Node);
         d.AssetCode.Should().Be("N-001");
         d.ClientRef.Should().Be("c1");
-        d.Attributes.Should().ContainKey("nodeType");
+        d.Attributes.Should().ContainKey("componentCode");
     }
 
     [Fact]
