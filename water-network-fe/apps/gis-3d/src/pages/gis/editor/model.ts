@@ -167,6 +167,19 @@ export const EAM_REG: EamRec[] = [
   { code: 'EAM-PK-1203', kind: 'node', name: 'Cút / Tê gang DN300', serial: 'FIT-DI-300-77', maker: 'Saint-Gobain', year: 2024 },
 ]
 
+/* ── component choices (each maps to a catalog code in revision-ops) ── */
+export const ED_VALVE_KINDS = [
+  { value: 'gate', label: 'Van cổng' },
+  { value: 'butterfly', label: 'Van bướm' },
+  { value: 'ball', label: 'Van bi' },
+  { value: 'boundary', label: 'Van biên DMA' },
+  { value: 'check', label: 'Van một chiều' },
+  { value: 'prv', label: 'Van giảm áp' },
+  { value: 'air', label: 'Van xả khí' },
+  { value: 'washout', label: 'Van xả cặn' },
+]
+export const ED_FITTINGS = ['Tê', 'Tê thu', 'Chữ thập', 'Cút', 'Côn thu', 'Mối nối', 'Nắp bịt', 'Nút tách'].map(v => ({ value: v, label: v }))
+
 /* ── feature templates (presets) ── */
 export interface EdTemplate {
   id: string

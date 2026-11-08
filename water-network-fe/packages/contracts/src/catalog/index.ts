@@ -50,6 +50,65 @@ export const codeEntry = (code: string): CodeListEntry | undefined => BY_CODE.ge
 export const componentDoes = (code: string, fn: ComponentFunction): boolean =>
   BY_CODE.get(code)?.functions.includes(fn) ?? false;
 
+// A pipe keeps diameter and material as its own fields, not as properties.
+const PIPE_COLUMNS = ['diameterMm', 'material', 'dn'];
+const ALL_PROPERTY_KEYS = new Set(COMPONENT_CODE_LIST.flatMap((c) => c.properties.map((p) => p.key)));
+const BY_FOLDED = new Map(COMPONENT_CODE_LIST.map((c) => [c.code.toLowerCase(), c]));
+
+/** The entry for a code, case-insensitive (gis-be accepts any case; the entry's code is canonical). */
+export const findComponent = (code: string | undefined | null): CodeListEntry | undefined =>
+  code ? BY_FOLDED.get(code.trim().toLowerCase()) : undefined;
+
+/** The catalog properties in a draft's attribute bag (mirror of IComponentCatalog.PropertiesIn). */
+export function propertiesIn(code: string, attributes: Record<string, string>): Record<string, string> {
+  const entry = findComponent(code);
+  if (!entry) return {};
+  const keys = new Set(entry.properties.map((p) => p.key));
+  if (entry.kind === 'Pipe') for (const k of PIPE_COLUMNS) keys.delete(k);
+  return Object.fromEntries(Object.entries(attributes).filter(([k]) => keys.has(k)));
+}
+
+function valueProblem(spec: PropertySpec, value: string): string | null {
+  if (value.length > 200) return `${spec.key}: value longer than 200 characters.`;
+  const range = (n: number) =>
+    (spec.min !== undefined && n < spec.min) || (spec.max !== undefined && n > spec.max)
+      ? `${spec.key}: ${n} is outside ${spec.min}–${spec.max}${spec.unit ? ' ' + spec.unit : ''}.`
+      : null;
+  switch (spec.type) {
+    case 'int':
+      return /^[+-]?\d+$/.test(value) ? range(Number(value)) : `${spec.key}: '${value}' is not a whole number.`;
+    case 'number': {
+      const n = Number(value);
+      return value.trim() !== '' && Number.isFinite(n) ? range(n) : `${spec.key}: '${value}' is not a number.`;
+    }
+    case 'enum':
+      return spec.values?.includes(value) ? null : `${spec.key}: '${value}' is not one of ${(spec.values ?? []).join(', ')}.`;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Problems with a draft's attribute bag (mirror of IComponentCatalog.ValidateAttributes): invalid
+ * declared properties, and properties of other components (e.g. a setpoint on a gate valve).
+ */
+export function validateAttributes(code: string, attributes: Record<string, string>): string[] {
+  const entry = findComponent(code);
+  if (!entry) return [`'${code}' is not a component code in the platform catalog.`];
+  const declared = new Set(entry.properties.map((p) => p.key));
+  if (entry.kind === 'Pipe') for (const k of PIPE_COLUMNS) declared.add(k);
+  const problems = Object.keys(attributes)
+    .filter((k) => !declared.has(k) && ALL_PROPERTY_KEYS.has(k))
+    .sort()
+    .map((k) => `${entry.code} has no property '${k}'.`);
+  for (const [key, value] of Object.entries(propertiesIn(entry.code, attributes))) {
+    const spec = entry.properties.find((p) => p.key === key)!;
+    const problem = valueProblem(spec, value);
+    if (problem) problems.push(problem);
+  }
+  return problems;
+}
+
 /** A schema accepting only known component codes. */
 export const ComponentCode = z.string().refine((c) => BY_CODE.has(c), { message: 'unknown component code' });
 

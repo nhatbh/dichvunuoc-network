@@ -6,6 +6,7 @@ import type {
   GeometryVertexSelection,
 } from '@wn/map-runtime-3d'
 import type { FeatureCollection, Geometry } from 'geojson'
+import { COMPONENT_CODE_LIST } from '@wn/contracts/catalog'
 import { useSession } from '@/entities/session/api/use-session'
 import { importSessionScope } from '../import-workspace/api'
 import { createNetworkEditorApi, type EditorApi } from './api'
@@ -290,8 +291,8 @@ export function NetworkEditor() {
         kind === 'Pipe'
           ? { diameterMm: '100', material: 'HDPE' }
           : kind === 'Node'
-            ? { nodeType: 'Junction' }
-            : { deviceType: 'Valve' },
+            ? { componentCode: 'Junction' }
+            : { componentCode: 'GateValve' },
       fromRef: null,
       toRef: null,
       hostRef: null,
@@ -308,7 +309,7 @@ export function NetworkEditor() {
           kind: 'Node',
           assetCode: `N-${nodeId.slice(0, 8)}`,
           geometry: { type: 'Point', coordinates: [point] },
-          attributes: { nodeType: 'Junction' },
+          attributes: { componentCode: 'Junction' },
         })
         return nodeId
       })
@@ -781,29 +782,17 @@ export function NetworkEditor() {
                   </label>
                   <Show when={a().kind === 'Node'}>
                     <label>
-                      Loại nút
+                      Loại cấu kiện
                       <select
-                        value={a().attributes.nodeType}
+                        value={a().attributes.componentCode}
                         onChange={e =>
                           change({
-                            attributes: { ...a().attributes, nodeType: e.currentTarget.value },
+                            attributes: { ...a().attributes, componentCode: e.currentTarget.value },
                           })
                         }
                       >
-                        <For each={['Junction', 'Reservoir', 'Tank', 'Hydrant', 'Other']}>
-                          {t => (
-                            <option value={t}>
-                              {
-                                {
-                                  Junction: 'Nút nối',
-                                  Reservoir: 'Nguồn / hồ',
-                                  Tank: 'Bể chứa',
-                                  Hydrant: 'Trụ cứu hỏa',
-                                  Other: 'Khác',
-                                }[t]
-                              }
-                            </option>
-                          )}
+                        <For each={COMPONENT_CODE_LIST.filter(c => c.kind === 'Node')}>
+                          {c => <option value={c.code}>{c.vi}</option>}
                         </For>
                       </select>
                     </label>
@@ -869,15 +858,15 @@ export function NetworkEditor() {
                     <label>
                       Loại thiết bị
                       <select
-                        value={a().attributes.deviceType}
+                        value={a().attributes.componentCode}
                         onChange={e =>
                           change({
-                            attributes: { ...a().attributes, deviceType: e.currentTarget.value },
+                            attributes: { ...a().attributes, componentCode: e.currentTarget.value },
                           })
                         }
                       >
-                        <For each={['Valve', 'Pump', 'FlowMeter', 'PressureSensor', 'Hydrant']}>
-                          {t => <option>{t}</option>}
+                        <For each={COMPONENT_CODE_LIST.filter(c => c.kind === 'Device')}>
+                          {c => <option value={c.code}>{c.vi}</option>}
                         </For>
                       </select>
                     </label>

@@ -9,11 +9,14 @@
      within SNAP_M of a node is moved onto it, otherwise a junction is added there;
    - a node dropped on a pipe (`splitOf`) splits it: the pipe keeps the first part and ends on
      the node, a new pipe takes the rest;
-   - valves sit on a pipe, hydrants on a node (the nearest one, or a new node at the hydrant);
+   - every asset names its catalog component (`componentCode`, decision 0028); the editor's
+     valve kinds and fitting labels map to codes (VALVE_COMPONENT, FITTING_COMPONENT);
+   - in-line devices (valves, meters) sit on a pipe; point devices (hydrants, air valves,
+     washouts) on a node (the nearest one, or a new junction at the device);
    - every `after.draftAssetId` is the operation id, existing assets keep their code.
    Operations the editor did not draw itself carry `derived` and are dropped on reopen. */
-import { pipeMaterialCode, pipeMaterialLabel } from '@wn/contracts/catalog'
-import { NODE_TYPES, nearMetres, type EditState } from '@wn/contracts/network-edits'
+import { findComponent, pipeMaterialCode, pipeMaterialLabel } from '@wn/contracts/catalog'
+import { nearMetres, type EditState } from '@wn/contracts/network-edits'
 import type { Draft, DraftKind, Pt, RuleIssue } from './model'
 import type { Asset, Edit, Issue, Kind, Point } from '../network-editor/model'
 
@@ -38,14 +41,49 @@ const round = (v: number) => Math.round(v * 1e8) / 1e8
 const str = (v: unknown) => (v === undefined || v === null || v === '' ? undefined : String(v))
 const code = (s: string) => s.replace(/[^A-Za-z0-9_-]+/g, '-').slice(0, 64)
 
-function nodeType(label: string | undefined): string {
-  const l = (label ?? '').trim().toLowerCase()
-  const exact = NODE_TYPES.find(t => t.toLowerCase() === l)
-  if (exact) return exact
-  if (/^bể|reservoir|nhà máy/.test(l)) return 'Reservoir'
-  if (/^đài|tank/.test(l)) return 'Tank'
+/** Editor valve kinds → catalog components. */
+export const VALVE_COMPONENT: Record<string, string> = {
+  gate: 'GateValve',
+  boundary: 'GateValve',
+  butterfly: 'ButterflyValve',
+  ball: 'BallValve',
+  check: 'CheckValve',
+  prv: 'PRV',
+  air: 'AirValve',
+  washout: 'Washout',
+}
+/** Editor fitting labels → catalog components. */
+export const FITTING_COMPONENT: Record<string, string> = {
+  'Tê': 'Tee',
+  'Tê thu': 'ReducingTee',
+  'Chữ thập': 'Cross',
+  'Cút': 'Bend',
+  'Côn thu': 'Reducer',
+  'Nắp bịt': 'Cap',
+  'Mối nối': 'Coupling',
+  'Nút tách': 'Junction',
+}
+
+/** The node component for a fitting label (or a catalog code). */
+export function nodeComponent(label: string | undefined): string {
+  const l = (label ?? '').trim()
+  const direct = findComponent(l)
+  if (direct?.kind === 'Node') return direct.code
+  if (FITTING_COMPONENT[l]) return FITTING_COMPONENT[l]
+  const low = l.toLowerCase()
+  if (/^bể|reservoir|nhà máy/.test(low)) return 'Reservoir'
+  if (/^đài|tank/.test(low)) return 'Tank'
   return 'Junction'
 }
+
+/** The device component of a valve or hydrant draft (`vkind` may also be a catalog code). */
+export function deviceComponent(d: Pick<Draft, 'kind' | 'vkind'>): string {
+  if (d.kind === 'hydrant') return 'Hydrant'
+  const direct = findComponent(d.vkind)
+  if (direct?.kind === 'Device') return direct.code
+  return VALVE_COMPONENT[d.vkind ?? ''] ?? 'GateValve'
+}
+const onNode = (componentCode: string | undefined) => findComponent(componentCode)?.host === 'node'
 
 function attributes(d: Draft): Record<string, string> {
   const raw: Record<string, unknown> = { dma: d.dma }
@@ -57,9 +95,14 @@ function attributes(d: Draft): Record<string, string> {
       cond: d.cond,
       trunk: d.trunk,
     })
-  if (d.kind === 'valve') Object.assign(raw, { deviceType: 'Valve', dn: d.dn, valveKind: d.vkind, state: d.state })
-  if (d.kind === 'hydrant') Object.assign(raw, { deviceType: 'Hydrant', hydrantType: d.htype })
-  if (d.kind === 'node') Object.assign(raw, { nodeType: nodeType(d.ntype), fitting: d.ntype, z: d.z, splitOf: d.splitOf })
+  if (d.kind === 'valve') {
+    const component = deviceComponent(d)
+    const operable = findComponent(component)?.properties.some(p => p.key === 'state')
+    Object.assign(raw, { componentCode: component, dn: d.dn, valveKind: d.vkind, state: operable ? d.state : undefined })
+  }
+  if (d.kind === 'hydrant') Object.assign(raw, { componentCode: 'Hydrant', hydrantType: d.htype })
+  if (d.kind === 'node')
+    Object.assign(raw, { componentCode: nodeComponent(d.ntype), fitting: d.ntype, z: d.z, elevationM: d.z, splitOf: d.splitOf })
   if (d.eam) Object.assign(raw, { eamCode: d.eam.code, eamName: d.eam.name, eamSerial: d.eam.serial, eamMaker: d.eam.maker, eamYear: d.eam.year })
   if (d.imported) raw.imported = true
   const out: Record<string, string> = {}
@@ -179,7 +222,7 @@ export function draftsToOperations(drafts: Draft[], p: Projector, base: EditStat
         kind: 'Node',
         assetCode: code(`NUT-${id}`),
         geometry: { type: 'Point', coordinates: [at] },
-        attributes: { nodeType: type, derived: why },
+        attributes: { componentCode: type, derived: why },
         fromRef: null,
         toRef: null,
         hostRef: null,
@@ -288,25 +331,28 @@ export function draftsToOperations(drafts: Draft[], p: Projector, base: EditStat
     }
   }
 
-  // devices: valves on the nearest piece of their pipe, hydrants on a node
+  // devices: in-line ones on the nearest piece of their pipe, point devices on a node
   for (const op of ops) {
     const a = op.after
     if (!a || a.kind !== 'Device') continue
     const at = a.geometry.coordinates[0]!
-    if (a.attributes.deviceType === 'Valve' && a.hostRef) a.hostRef = nearestPiece(a.hostRef, at)
-    if (a.attributes.deviceType === 'Hydrant')
-      a.hostRef = nearestNode(at, HYDRANT_HOST_M) ?? addNode(`${op.id}-N`, at, 'Hydrant', 'host')
+    if (onNode(a.attributes.componentCode))
+      a.hostRef = nearestNode(at, HYDRANT_HOST_M) ?? addNode(`${op.id}-N`, at, 'Junction', 'host')
+    else if (a.hostRef) a.hostRef = nearestPiece(a.hostRef, at)
   }
 
   return [...ops, ...derived]
 }
+
+const valveKindOf = (componentCode: string | undefined) =>
+  Object.entries(VALVE_COMPONENT).find(([, c]) => c === componentCode)?.[0] ?? componentCode
 
 const num = (v: string | undefined) => (v === undefined || v === '' || !Number.isFinite(Number(v)) ? undefined : Number(v))
 
 function draftKind(e: Edit): DraftKind {
   if (e.kind === 'Pipe') return 'pipe'
   if (e.kind === 'Node') return 'node'
-  return (e.after?.attributes.deviceType ?? '').toLowerCase() === 'hydrant' ? 'hydrant' : 'valve'
+  return findComponent(e.after?.attributes.componentCode)?.code === 'Hydrant' ? 'hydrant' : 'valve'
 }
 
 /** Revision operations → local drafts (reopening a saved revision). Deletes need `kindOf` for devices.
@@ -337,9 +383,9 @@ export function operationsToDrafts(edits: Edit[], p: Projector, kindOf: (id: str
           cond: a.cond,
           trunk: a.trunk === 'true',
         })
-      if (kind === 'valve') Object.assign(d, { dn: num(a.dn), vkind: a.valveKind, state: a.state })
+      if (kind === 'valve') Object.assign(d, { dn: num(a.dn), vkind: a.valveKind ?? valveKindOf(a.componentCode), state: a.state })
       if (kind === 'hydrant') d.htype = a.hydrantType
-      if (kind === 'node') Object.assign(d, { ntype: a.fitting ?? a.nodeType, z: num(a.z), splitOf: a.splitOf })
+      if (kind === 'node') Object.assign(d, { ntype: a.fitting ?? a.componentCode, z: num(a.z ?? a.elevationM), splitOf: a.splitOf })
       if (e.after && kind === 'valve') d.onPipe = e.after.hostRef ?? null
       if (e.after) d.eam = a.eamCode ? { code: a.eamCode, kind, name: a.eamName ?? a.eamCode, serial: a.eamSerial ?? '', maker: a.eamMaker ?? '', year: num(a.eamYear) ?? 0 } : null
       if (a.imported === 'true') d.imported = true

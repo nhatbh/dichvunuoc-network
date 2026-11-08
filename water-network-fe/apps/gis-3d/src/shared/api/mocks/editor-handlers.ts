@@ -6,8 +6,8 @@
    The network is held in the server's terms (diameterMm, material codes, node types, devices on
    their hosts, pipes ending on nodes) and checked with the port of gis-be's validator, so what
    passes here passes on the real service. */
-import { pipeMaterialCode, pipeMaterialLabel } from '@wn/contracts/catalog'
-import { inspectNetworkEdits, NODE_TYPES } from '@wn/contracts/network-edits'
+import { findComponent, pipeMaterialCode, pipeMaterialLabel } from '@wn/contracts/catalog'
+import { inspectNetworkEdits } from '@wn/contracts/network-edits'
 import { http, HttpResponse } from 'msw'
 import { buildLegacyFullSeed } from './legacy-full-seed'
 
@@ -94,7 +94,20 @@ const clean = (o: Record<string, unknown>) => {
 
 /** gis-be asset codes are [A-Za-z0-9_-]; the seed's dotted codes are mapped once. */
 const gisCode = (c: unknown) => String(c).replace(/[^A-Za-z0-9_-]+/g, '-')
-const asNodeType = (kind: unknown) => NODE_TYPES.find(t => t.toLowerCase() === String(kind ?? '').toLowerCase()) ?? 'Junction'
+/** Seed fittings and valve kinds → catalog components (decision 0028), as the editor maps them. */
+const SEED_FITTING: Record<string, string> = { 'Tê': 'Tee', 'Tê thu': 'ReducingTee', 'Chữ thập': 'Cross', 'Cút': 'Bend', 'Côn thu': 'Reducer', 'Nắp bịt': 'Cap' }
+const SEED_VALVE: Record<string, string> = { butterfly: 'ButterflyValve', ball: 'BallValve', check: 'CheckValve', prv: 'PRV', air: 'AirValve', washout: 'Washout' }
+const nodeComponent = (kind: unknown) => {
+  const k = String(kind ?? '')
+  const direct = findComponent(k)
+  return direct?.kind === 'Node' ? direct.code : (SEED_FITTING[k] ?? 'Junction')
+}
+const valveComponent = (kind: unknown) => {
+  const k = String(kind ?? '')
+  const direct = findComponent(k)
+  return direct?.kind === 'Device' ? direct.code : (SEED_VALVE[k] ?? 'GateValve')
+}
+const isHydrant = (a: Asset) => findComponent(a.attributes.componentCode)?.code === 'Hydrant'
 
 /** Official network as revision assets, in the server's terms (built once from the seed, then
  *  kept current by publishing). */
@@ -119,7 +132,7 @@ function assets(): Record<string, { asset: Asset; version: number }> {
   for (const n of nodes) {
     const at = toLonLat(g, n.x as number, n.y as number)
     nodeAt.set(String(n.id), at)
-    put(String(n.id), 'Node', String(n.code), { type: 'Point', coordinates: [at] }, clean({ nodeType: asNodeType(n.kind), fitting: n.kind, z: n.z }))
+    put(String(n.id), 'Node', String(n.code), { type: 'Point', coordinates: [at] }, clean({ componentCode: nodeComponent(n.kind), fitting: n.kind, z: n.z }))
   }
   for (const p of seed.pipes as Rec[]) {
     const coords = (p.pts as Point[]).map(([x, y]) => toLonLat(g, x, y))
@@ -133,7 +146,7 @@ function assets(): Record<string, { asset: Asset; version: number }> {
   }
   for (const v of seed.valves as Rec[])
     put(String(v.id), 'Device', String(v.code), { type: 'Point', coordinates: [toLonLat(g, v.x as number, v.y as number)] },
-      clean({ deviceType: 'Valve', dn: v.dn, valveKind: v.kind, state: v.state, year: v.year, dma: v.dma }), { hostRef: s(v.pipe) ?? null })
+      clean({ componentCode: valveComponent(v.kind), dn: v.dn, valveKind: v.kind, state: v.state, year: v.year, dma: v.dma }), { hostRef: s(v.pipe) ?? null })
   for (const h of seed.hydrants as Rec[]) {
     const at = toLonLat(g, h.x as number, h.y as number)
     let host: string | null = null, best = Infinity
@@ -141,7 +154,7 @@ function assets(): Record<string, { asset: Asset; version: number }> {
       const d = (n[0] - at[0]) ** 2 + (n[1] - at[1]) ** 2
       if (d < best) [best, host] = [d, id]
     }
-    put(String(h.id), 'Device', String(h.code), { type: 'Point', coordinates: [at] }, clean({ deviceType: 'Hydrant', status: h.status, dma: h.dma }), { hostRef: host })
+    put(String(h.id), 'Device', String(h.code), { type: 'Point', coordinates: [at] }, clean({ componentCode: 'Hydrant', status: h.status, dma: h.dma }), { hostRef: host })
   }
   state = out
   return out
@@ -186,7 +199,7 @@ export function applyPublishedEdits(seed: Record<string, unknown>): Record<strin
   const hydrants = seed.hydrants as Rec[]
   const nodes = seed.nodes as Rec[]
   const listFor = (a: Asset | null, id: string): Rec[] =>
-    a ? (a.kind === 'Pipe' ? pipes : a.kind === 'Node' ? nodes : a.attributes.deviceType?.toLowerCase() === 'hydrant' ? hydrants : valves)
+    a ? (a.kind === 'Pipe' ? pipes : a.kind === 'Node' ? nodes : isHydrant(a) ? hydrants : valves)
       : [pipes, valves, hydrants, nodes].find(l => l.some(x => x.id === id)) ?? []
   for (const op of published) {
     const id = op.targetId ?? op.after!.draftAssetId
@@ -205,8 +218,8 @@ export function applyPublishedEdits(seed: Record<string, unknown>): Record<strin
     } else {
       const [x, y] = px[0]!
       rec = a.kind === 'Node'
-        ? { id, code: a.assetCode, x, y, i: 0, j: 0, z: Number(at.z) || 0, kind: at.fitting ?? at.nodeType ?? 'Junction' }
-        : at.deviceType?.toLowerCase() === 'hydrant'
+        ? { id, code: a.assetCode, x, y, i: 0, j: 0, z: Number(at.z) || 0, kind: at.fitting ?? at.componentCode ?? 'Junction' }
+        : isHydrant(a)
           ? { id, code: a.assetCode, x, y, dma: at.dma ?? 'DMA-01', status: at.status ?? 'ok' }
           : { id, code: a.assetCode, x, y, pipe: a.hostRef ?? '', dn: Number(at.dn) || 0, kind: at.valveKind ?? 'isolation', state: at.state ?? 'open', dma: at.dma ?? 'DMA-01', year: Number(at.year) || 2026 }
     }

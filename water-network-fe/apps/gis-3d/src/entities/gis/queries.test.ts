@@ -29,7 +29,7 @@ describe('toNetworkResponse', () => {
             kind: 'Node',
             assetCode: 'N-1',
             status: 'Active',
-            nodeType: 'Junction',
+            componentCode: 'Tee',
           },
         },
       ],
@@ -44,7 +44,7 @@ describe('toNetworkResponse', () => {
       code: 'N-1',
       name: 'N-1',
       status: 'Active',
-      nodeType: 'Junction',
+      componentCode: 'Tee',
     })
   })
 
@@ -96,7 +96,7 @@ describe('toNetworkResponse', () => {
           geometry: { type: 'Point', coordinates: [105.805, 21.005] },
           properties: {
             kind: 'Device',
-            deviceType: 'Valve',
+            componentCode: 'GateValve',
             assetCode: 'V-1',
             hostPipeId: 'p-1',
           },
@@ -112,25 +112,29 @@ describe('toNetworkResponse', () => {
       assetCode: 'V-1',
       code: 'V-1',
       name: 'V-1',
-      deviceType: 'Valve',
+      componentCode: 'GateValve',
       hostPipeId: 'p-1',
     })
   })
 
   it.each([
     ['Hydrant', 'hydrant'],
-    ['FlowMeter', 'source'],
+    ['ButterflyValve', 'valve'],
+    ['PRV', 'valve'],
+    ['CheckValve', 'valve'],
+    ['AirValve', 'source'],
+    ['BulkMeter', 'source'],
     ['Pump', 'source'],
     ['PressureSensor', 'source'],
-  ] as const)('routes Device subtype %s to the %s layer', (deviceType, expectedLayer) => {
+  ] as const)('routes component %s to the %s layer', (componentCode, expectedLayer) => {
     const result = toNetworkResponse({
       type: 'FeatureCollection',
       features: [
         {
           type: 'Feature',
-          id: `device-${deviceType}`,
+          id: `device-${componentCode}`,
           geometry: { type: 'Point', coordinates: [105.805, 21.005] },
-          properties: { kind: 'Device', deviceType, assetCode: `D-${deviceType}` },
+          properties: { kind: 'Device', componentCode, assetCode: `D-${componentCode}` },
         },
       ],
       truncated: false,
@@ -139,7 +143,7 @@ describe('toNetworkResponse', () => {
     expect(result[expectedLayer]?.features[0]?.properties).toMatchObject({
       kind: 'component',
       assetType: expectedLayer,
-      deviceType,
+      componentCode,
     })
   })
 })

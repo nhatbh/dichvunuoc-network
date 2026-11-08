@@ -206,7 +206,7 @@ describe('MapPage', () => {
                 kind: 'Node',
                 assetCode: 'NODE-READONLY',
                 status: 'Active',
-                nodeType: 'Junction',
+                componentCode: 'Junction',
               },
             },
           ],

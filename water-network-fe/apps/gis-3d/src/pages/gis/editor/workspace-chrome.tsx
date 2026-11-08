@@ -4,7 +4,7 @@
    docked, tabbed panels on the right. */
 import { For, Show, createSignal, onCleanup, type JSX } from 'solid-js'
 import { Portal } from 'solid-js/web'
-import { ED_TEMPLATES, ED_TOOLS, ED_TOOL_GRP, KIND_META, type EdTemplate, type EdTool } from './model'
+import { ED_TEMPLATES, ED_VALVE_KINDS, ED_TOOLS, ED_TOOL_GRP, KIND_META, type EdTemplate, type EdTool } from './model'
 import { Icon } from '../lib/icons'
 import { cAccent, cTheme, chex, tone } from '../lib/theme'
 import type { EditorDefaults, SnapModes } from './canvas'
@@ -189,12 +189,6 @@ export function EdToolStrip(props: { tool: string; setTool: (id: string) => void
 /* ───────────────────────────── options bar ───────────────────────────── */
 
 const DN_OPTIONS = [50, 63, 75, 90, 100, 110, 150, 160, 200, 250, 300, 400, 500, 600, 800, 1000]
-const VALVE_KINDS = [
-  { value: 'gate', label: 'Van cổng' },
-  { value: 'butterfly', label: 'Van bướm' },
-  { value: 'boundary', label: 'Van biên DMA' },
-  { value: 'air', label: 'Van xả khí' },
-]
 
 function OptSep(): JSX.Element {
   return <span class="mx-1 h-5 w-px shrink-0 bg-[var(--line)]" />
@@ -322,7 +316,7 @@ export function EdOptionsBar(props: {
         <OptLabel>Đường kính</OptLabel>
         <OptSelect label="Đường kính van" value={props.defaults.valve.dn} options={dnOpts(props.defaults.valve.dn)} onChange={(v) => props.setDefaults({ ...props.defaults, valve: { ...props.defaults.valve, dn: +v } })} />
         <OptLabel>Loại</OptLabel>
-        <OptSelect label="Loại van" value={props.defaults.valve.vkind} options={VALVE_KINDS} onChange={(v) => props.setDefaults({ ...props.defaults, valve: { ...props.defaults.valve, vkind: v } })} />
+        <OptSelect label="Loại van" value={props.defaults.valve.vkind} options={ED_VALVE_KINDS} onChange={(v) => props.setDefaults({ ...props.defaults, valve: { ...props.defaults.valve, vkind: v } })} />
       </Show>
       <Show when={t().id === 'offset'}>
         <OptLabel>Khoảng cách</OptLabel>

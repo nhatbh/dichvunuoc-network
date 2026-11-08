@@ -4,7 +4,7 @@ import { inspectNetworkEdits, type EditAsset, type EditOperation, type EditState
 
 const node = (id: string, x = 105): EditAsset => ({
   draftAssetId: id, kind: 'Node', assetCode: id, clientRef: id,
-  geometry: { type: 'Point', coordinates: [[x, 21]] }, attributes: { nodeType: 'Junction' },
+  geometry: { type: 'Point', coordinates: [[x, 21]] }, attributes: { componentCode: 'Junction' },
   fromRef: null, toRef: null, hostRef: null,
 });
 const pipe = (): EditAsset => ({
@@ -57,13 +57,21 @@ describe('inspectNetworkEdits (port of gis-be NetworkEditValidator)', () => {
     const r = inspectNetworkEdits(state(), [op('a', 'Update', 'Node', 'n1', 2, { ...node('n1') })]);
     expect(r.errors.map((e) => e.code)).toContain('INVALID_OPERATION');
   });
-  it('hosts a hydrant on a node and a valve on a pipe', () => {
-    const dev = (id: string, type: string, host: string): EditAsset => ({
-      ...node(id), kind: 'Device', attributes: { deviceType: type }, hostRef: host,
-    });
+  const dev = (id: string, code: string, host: string, props: Record<string, string> = {}): EditAsset => ({
+    ...node(id), kind: 'Device', attributes: { componentCode: code, ...props }, hostRef: host,
+  });
+  it('hosts devices where the catalog says', () => {
     expect(inspectNetworkEdits(state(), [op('h', 'Add', 'Device', null, null, dev('h', 'Hydrant', 'n1'))]).errors).toEqual([]);
-    expect(inspectNetworkEdits(state(), [op('v', 'Add', 'Device', null, null, dev('v', 'valve', 'p'))]).errors).toEqual([]);
+    expect(inspectNetworkEdits(state(), [op('w', 'Add', 'Device', null, null, dev('w', 'Washout', 'n1'))]).errors).toEqual([]);
+    expect(inspectNetworkEdits(state(), [op('v', 'Add', 'Device', null, null, dev('v', 'butterflyvalve', 'p', { state: 'closed' }))]).errors).toEqual([]);
     expect(inspectNetworkEdits(state(), [op('h', 'Add', 'Device', null, null, dev('h', 'Hydrant', 'p'))]).errors[0]!.code).toBe('INVALID_PROPERTIES');
+  });
+  it('rejects unknown components, components of another kind and foreign properties', () => {
+    expect(inspectNetworkEdits(state(), [op('x', 'Add', 'Device', null, null, dev('x', 'Valve', 'p'))]).errors[0]!.code).toBe('COMPONENT');
+    expect(inspectNetworkEdits(state(), [op('y', 'Add', 'Device', null, null, dev('y', 'Tee', 'p'))]).errors[0]!.code).toBe('COMPONENT');
+    const foreign = inspectNetworkEdits(state(), [op('z', 'Add', 'Device', null, null, dev('z', 'GateValve', 'p', { setpoint: '3' }))]).errors[0]!;
+    expect(foreign.code).toBe('INVALID_PROPERTIES');
+    expect(foreign.message).toContain('setpoint');
   });
   it('keeps published asset codes and refuses duplicates', () => {
     expect(inspectNetworkEdits(state(), [op('a', 'Update', 'Node', 'n1', 2, { ...node('a'), assetCode: 'X' })]).errors[0]!.code).toBe('ASSET_CODE_IMMUTABLE');

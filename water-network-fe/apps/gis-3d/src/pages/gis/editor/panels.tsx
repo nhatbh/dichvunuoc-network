@@ -4,8 +4,10 @@
 import { For, Show, createSignal, type JSX } from 'solid-js'
 import {
   ED_DN,
+  ED_FITTINGS,
   ED_RULE_DEFS,
   ED_U2M,
+  ED_VALVE_KINDS,
   EAM_REG,
   KIND_META,
   type BaseRef,
@@ -119,7 +121,7 @@ export function PropBody(props: {
                 <Show when={ff().kind === 'valve'}>
                   <div class="grid grid-cols-2 gap-2.5">
                     <Field label="Đường kính"><Select value={String(ff().dn)} onChange={(v) => set('dn', +v)} options={ED_DN.map((d) => ({ value: String(d), label: 'DN ' + d }))} /></Field>
-                    <Field label="Loại van"><Select value={ff().vkind!} onChange={(v) => set('vkind', v)} options={[{ value: 'gate', label: 'Van cổng' }, { value: 'butterfly', label: 'Van bướm' }, { value: 'boundary', label: 'Van biên DMA' }, { value: 'air', label: 'Van xả khí' }]} /></Field>
+                    <Field label="Loại van"><Select value={ff().vkind!} onChange={(v) => set('vkind', v)} options={ED_VALVE_KINDS} /></Field>
                     <Field label="Trạng thái"><Select value={ff().state!} onChange={(v) => set('state', v)} options={[{ value: 'open', label: 'Đang mở' }, { value: 'closed', label: 'Đang đóng' }]} /></Field>
                     <Field label="Vị trí"><div class="flex h-9 items-center text-[12px] text-[color:var(--muted)]"><Show when={ff().onPipe} fallback={'Tự do'}><span class="font-mono">{ff().onPipe}</span></Show></div></Field>
                   </div>
@@ -129,7 +131,7 @@ export function PropBody(props: {
                 </Show>
                 <Show when={ff().kind === 'node'}>
                   <div class="grid grid-cols-2 gap-2.5">
-                    <Field label="Loại phụ kiện"><Select value={ff().ntype!} onChange={(v) => set('ntype', v)} options={[{ value: 'Tê', label: 'Tê' }, { value: 'Cút', label: 'Cút' }, { value: 'Côn thu', label: 'Côn thu' }, { value: 'Nút tách', label: 'Nút tách' }, { value: 'Nắp bịt', label: 'Nắp bịt' }]} /></Field>
+                    <Field label="Loại phụ kiện"><Select value={ff().ntype!} onChange={(v) => set('ntype', v)} options={ED_FITTINGS} /></Field>
                     <Field label="Cao độ (m)"><TextInput value={String(ff().z)} onChange={(v) => set('z', v.replace(/[^\d.]/g, ''))} mono /></Field>
                   </div>
                 </Show>

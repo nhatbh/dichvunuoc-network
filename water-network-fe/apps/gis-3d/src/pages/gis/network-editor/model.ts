@@ -170,7 +170,7 @@ export function splitPipe(state: State, edits: Edit[], key: string, point: Point
     kind: 'Node',
     assetCode: `N-${nodeId.slice(0, 8)}`,
     geometry: { type: 'Point', coordinates: [split.point] },
-    attributes: { nodeType: 'Junction' },
+    attributes: { componentCode: 'Junction' },
     fromRef: null,
     toRef: null,
     hostRef: null,

@@ -15,7 +15,7 @@ const node = (id: string, x: number): Asset => ({
   assetCode: id,
   clientRef: id,
   geometry: { type: 'Point', coordinates: [[x, 21]] },
-  attributes: { nodeType: 'Junction' },
+  attributes: { componentCode: 'Junction' },
   fromRef: null,
   toRef: null,
   hostRef: null,

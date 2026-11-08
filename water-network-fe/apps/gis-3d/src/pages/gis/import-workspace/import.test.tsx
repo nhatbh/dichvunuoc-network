@@ -713,11 +713,11 @@ describe('CAD blocks and Design approval', () => {
     await ready()
     fireEvent.click(screen.getByRole('button', { name: 'Ký hiệu' }))
     fireEvent.change(screen.getByLabelText('Phân loại ký hiệu VAN file-1'), {
-      target: { value: 'device' },
+      target: { value: 'component' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Lưu bản nháp' }))
-    expect(screen.getByRole('alert')).toHaveTextContent('loại nút hoặc loại thiết bị')
-    fireEvent.change(screen.getByLabelText('Loại thiết bị VAN'), { target: { value: 'Valve' } })
+    expect(screen.getByRole('alert')).toHaveTextContent('Chọn thành phần trong danh mục')
+    fireEvent.change(screen.getByLabelText('Thành phần VAN'), { target: { value: 'ButterflyValve' } })
     fireEvent.input(screen.getByLabelText('Đối tượng chứa valve-1'), {
       target: { value: 'line-1' },
     })
@@ -726,7 +726,7 @@ describe('CAD blocks and Design approval', () => {
       expect(reviewBody?.deviceHosts).toEqual([{ featureId: 'valve-1', hostFeatureId: 'line-1' }])
     )
     expect(reviewBody?.blockRules).toEqual([
-      { fileId: 'file-1', blockName: 'VAN', action: 'device', deviceType: 'Valve' },
+      { fileId: 'file-1', blockName: 'VAN', action: 'component', componentCode: 'ButterflyValve' },
     ])
   })
 
@@ -833,7 +833,26 @@ describe('import API boundary', () => {
     handleRequest = async () => response(raw)
     const result = await createImportApi('reviewer:shw', new AbortController().signal).get('job-1')
     expect(result.reviewConfig?.layerRules[0]?.material).toBeUndefined()
-    expect(result.reviewConfig?.blockRules?.[0]?.nodeType).toBeUndefined()
+    expect(result.reviewConfig?.blockRules?.[0]).toEqual({ fileId: 'file-1', blockName: 'VAN', action: 'review', componentCode: undefined })
+  })
+
+  it('reads saved node/device block rules as catalog components', async () => {
+    const raw = {
+      ...jobFixture(),
+      reviewConfig: {
+        ...reviewForJob(jobFixture()),
+        blockRules: [
+          { fileId: 'file-1', blockName: 'VAN', action: 'device', deviceType: 'Valve' },
+          { fileId: 'file-1', blockName: 'BE', action: 'node', nodeType: 'Tank' },
+        ],
+      },
+    }
+    handleRequest = async () => response(raw)
+    const result = await createImportApi('reviewer:shw', new AbortController().signal).get('job-1')
+    expect(result.reviewConfig?.blockRules?.map(r => [r.action, r.componentCode])).toEqual([
+      ['component', 'GateValve'],
+      ['component', 'Tank'],
+    ])
   })
 
   it('rejects malformed server data', async () => {

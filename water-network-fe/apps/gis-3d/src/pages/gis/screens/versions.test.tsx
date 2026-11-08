@@ -28,8 +28,8 @@ async function submitted(name: string) {
   await call(`/revisions/${rev.id}`, 'PUT', {
     expectedVersion: rev.version,
     operations: [
-      add('A', 'Node', [LINE[0]!], { nodeType: 'Junction', derived: 'endpoint' }),
-      add('B', 'Node', [LINE[1]!], { nodeType: 'Junction', derived: 'endpoint' }),
+      add('A', 'Node', [LINE[0]!], { componentCode: 'Junction', derived: 'endpoint' }),
+      add('B', 'Node', [LINE[1]!], { componentCode: 'Junction', derived: 'endpoint' }),
       add('P', 'Pipe', LINE, { diameterMm: '200', material: 'HDPE' }, { fromRef: 'A', toRef: 'B' }),
     ],
   })

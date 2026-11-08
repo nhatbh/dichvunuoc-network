@@ -30,6 +30,12 @@ function props(feature: Feature): Record<string, unknown> {
   return (feature.properties ?? {}) as Record<string, unknown>
 }
 
+/** Catalog properties of a feature (gis-be `assetProperties`, decision 0028). */
+function assetProps(properties: Record<string, unknown>): Record<string, string> {
+  const bag = properties.assetProperties
+  return bag && typeof bag === 'object' ? (bag as Record<string, string>) : {}
+}
+
 function text(value: unknown, fallback = ''): string {
   return typeof value === 'string' && value.trim() ? value.trim() : fallback
 }
@@ -495,8 +501,8 @@ export function createCanonicalGisData(
         y,
         i: index,
         j: index,
-        z: 0,
-        kind: text(props(feature).nodeType, 'Chưa xác định'),
+        z: numberValue(assetProps(props(feature)).elevationM),
+        kind: text(props(feature).componentCode, 'Junction'),
       },
     ]
   })
@@ -543,8 +549,8 @@ export function createCanonicalGisData(
         x: coordinate[0],
         y: coordinate[1],
         pipe: text(properties.hostPipeId),
-        dn: numberValue(properties.diameterMm),
-        kind: text(properties.deviceType, 'Valve'),
+        dn: numberValue(properties.diameterMm ?? assetProps(properties).dn),
+        kind: text(properties.componentCode, 'GateValve'),
         state: valvePhysicalState(assetMetadata(feature).physicalState),
         dma: '',
         year: 0,
@@ -573,8 +579,8 @@ export function createCanonicalGisData(
     const coordinate = toDevicePoint(feature)
     if (!coordinate) continue
     const properties = props(feature)
-    const type = text(properties.deviceType, 'Khác')
-    if (normalizeToken(type) === 'pump') {
+    const type = text(properties.componentCode, 'Khác')
+    if (type === 'Pump') {
       pumps.push({
         id: idOf(feature),
         name: codeOf(feature),

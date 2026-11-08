@@ -8,26 +8,9 @@ import type { createImportWorkspace } from './workspace'
 const blockActions: [BlockRule['action'], string][] = [
   ['review', 'Cần xác minh'],
   ['component', 'Thành phần (danh mục)'],
-  ['node', 'Nút mạng'],
-  ['device', 'Thiết bị'],
   ['reference', 'Tham chiếu'],
   ['exclude', 'Loại khỏi mạng'],
 ]
-const nodeTypes = [
-  ['Junction', 'Nút đấu nối'],
-  ['Reservoir', 'Nguồn nước'],
-  ['Tank', 'Bể chứa'],
-  ['Hydrant', 'Nút cứu hỏa'],
-  ['Other', 'Nút khác'],
-] as const
-const deviceTypes = [
-  ['Valve', 'Van'],
-  ['FlowMeter', 'Đồng hồ lưu lượng'],
-  ['PressureSensor', 'Cảm biến áp lực'],
-  ['Pump', 'Máy bơm'],
-  ['Hydrant', 'Trụ cứu hỏa'],
-] as const
-
 /** Catalog components a CAD block can stand for (pipes come from layer rules), by category. */
 const componentGroups = (() => {
   const groups = new Map<string, typeof COMPONENT_CODE_LIST[number][]>()
@@ -35,16 +18,14 @@ const componentGroups = (() => {
   return [...groups]
 })()
 
-/** What a block rule makes in gis-be: a node, a device (with its type), or nothing. */
-export function ruleTarget(rule: BlockRule | undefined): { kind: 'node' } | { kind: 'device'; deviceType?: string } | null {
-  if (!rule) return null
-  if (rule.action === 'node') return { kind: 'node' }
-  if (rule.action === 'device') return { kind: 'device', deviceType: rule.deviceType }
-  if (rule.action === 'component') {
-    const c = codeEntry(rule.componentCode ?? '')
-    if (c?.kind === 'Node') return { kind: 'node' }
-    if (c?.kind === 'Device') return { kind: 'device', deviceType: c.code }
-  }
+/** What a block rule makes in gis-be: a node, a device (with its component and host), or nothing. */
+export function ruleTarget(
+  rule: BlockRule | undefined
+): { kind: 'node' } | { kind: 'device'; componentCode: string; host: 'pipe' | 'node' } | null {
+  if (rule?.action !== 'component') return null
+  const c = codeEntry(rule.componentCode ?? '')
+  if (c?.kind === 'Node') return { kind: 'node' }
+  if (c?.kind === 'Device') return { kind: 'device', componentCode: c.code, host: c.host === 'pipe' ? 'pipe' : 'node' }
   return null
 }
 
@@ -159,14 +140,10 @@ export function BlockMapping(props: {
           rule.fileId === device.properties.fileId && rule.blockName === device.properties.blockName
       )
     )
-    const type = target?.kind === 'device' ? target.deviceType : undefined
-    return hosts().filter(
-      host =>
-        type === 'PressureSensor' ||
-        (['Valve', 'FlowMeter'].includes(type ?? '')
-          ? host.geometry.type === 'LineString'
-          : host.geometry.type === 'Point')
-    )
+    // in-line devices sit on a pipe; point devices on a node, or on a pipe end (the import
+    // service attaches them to that end's node)
+    const onPipe = target?.kind === 'device' && target.host === 'pipe'
+    return hosts().filter(host => (onPipe ? host.geometry.type === 'LineString' : true))
   }
   return (
     <Show when={rules().length}>
@@ -253,8 +230,6 @@ export function BlockMapping(props: {
                           update(rule(), {
                             action: event.currentTarget.value as BlockRule['action'],
                             componentCode: undefined,
-                            nodeType: undefined,
-                            deviceType: undefined,
                           })
                         }
                       >
@@ -283,44 +258,6 @@ export function BlockMapping(props: {
                                 </For>
                               </optgroup>
                             )}
-                          </For>
-                        </select>
-                      </Show>
-                      <Show when={rule().action === 'node'}>
-                        <select
-                          class={importField}
-                          disabled={w.locked()}
-                          aria-label={`Loại nút ${rule().blockName}`}
-                          value={rule().nodeType ?? ''}
-                          onChange={event =>
-                            update(rule(), {
-                              nodeType:
-                                (event.currentTarget.value as BlockRule['nodeType']) || undefined,
-                            })
-                          }
-                        >
-                          <option value="">Chọn loại nút…</option>
-                          <For each={nodeTypes}>
-                            {([value, label]) => <option value={value}>{label}</option>}
-                          </For>
-                        </select>
-                      </Show>
-                      <Show when={rule().action === 'device'}>
-                        <select
-                          class={importField}
-                          disabled={w.locked()}
-                          aria-label={`Loại thiết bị ${rule().blockName}`}
-                          value={rule().deviceType ?? ''}
-                          onChange={event =>
-                            update(rule(), {
-                              deviceType:
-                                (event.currentTarget.value as BlockRule['deviceType']) || undefined,
-                            })
-                          }
-                        >
-                          <option value="">Chọn loại thiết bị…</option>
-                          <For each={deviceTypes}>
-                            {([value, label]) => <option value={value}>{label}</option>}
                           </For>
                         </select>
                       </Show>

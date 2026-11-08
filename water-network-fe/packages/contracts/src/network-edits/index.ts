@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { findComponent, validateAttributes } from '../catalog/index.js';
 
 /**
  * Network-edit revisions (`/api/gis/editor/*` on the BFF → design-be `/api/design/revisions/{id}/network-edits`).
@@ -10,19 +11,7 @@ import { z } from 'zod';
  * Coordinates are always EPSG:4326 `[lon, lat]`.
  */
 
-export const NODE_TYPES = ['Junction', 'Reservoir', 'Tank', 'Hydrant', 'Other'] as const;
-export type NodeType = (typeof NODE_TYPES)[number];
 export const GIS_PIPE_MATERIALS = ['HDPE', 'PVC', 'DuctileIron', 'Steel', 'CastIron', 'Concrete'] as const;
-export const GIS_DEVICE_TYPES = ['Valve', 'FlowMeter', 'PressureSensor', 'Pump', 'Hydrant'] as const;
-export type GisDeviceType = (typeof GIS_DEVICE_TYPES)[number];
-/** Which host each gis-be device type takes (DeviceHost). */
-export const DEVICE_HOST: Record<GisDeviceType, 'pipe' | 'node' | 'either'> = {
-  Valve: 'pipe',
-  FlowMeter: 'pipe',
-  Pump: 'node',
-  Hydrant: 'node',
-  PressureSensor: 'either',
-};
 /** Max distance between a pipe end and its node (metres). */
 export const ENDPOINT_TOLERANCE_M = 1;
 
@@ -171,8 +160,17 @@ export function inspectNetworkEdits(
       error('GEOMETRY', opId, 'geometry', `${a.assetCode}: hình học hoặc tọa độ chưa hợp lệ.`);
       continue;
     }
-    if (a.kind === 'Node' && !(NODE_TYPES as readonly string[]).includes(a.attributes.nodeType ?? ''))
-      error('NODE_TYPE', opId, 'nodeType', `${a.assetCode}: chọn loại nút.`);
+    // Every asset is a catalog component (decision 0028); pipes default to "Pipe".
+    const component = findComponent(a.attributes.componentCode ?? (a.kind === 'Pipe' ? 'Pipe' : undefined));
+    if (!component || component.kind !== a.kind) {
+      error('COMPONENT', opId, 'componentCode', `${a.assetCode}: chọn loại cấu kiện hợp lệ cho ${a.kind}.`);
+      continue;
+    }
+    const problems = validateAttributes(component.code, a.attributes);
+    if (problems.length > 0) {
+      error('INVALID_PROPERTIES', opId, 'attributes', `${a.assetCode}: ${problems.join(' ')}`);
+      continue;
+    }
     if (a.kind === 'Pipe') {
       const dn = a.attributes.diameterMm ?? '';
       if (!/^[+-]?\d+$/.test(dn.trim()) || Number(dn) <= 0)
@@ -193,17 +191,12 @@ export function inspectNetworkEdits(
         error('GEOMETRY', opId, 'geometry', `Ống ${a.assetCode} không có chiều dài.`);
     }
     if (a.kind === 'Device') {
-      const type = ciFind(GIS_DEVICE_TYPES, a.attributes.deviceType);
-      if (!type) {
-        error('INVALID_PROPERTIES', opId, 'attributes', `${a.assetCode}: loại thiết bị '${a.attributes.deviceType ?? ''}' không hợp lệ.`);
-        continue;
-      }
       const onPipe = exists(host, 'Pipe');
       const onNode = exists(host, 'Node');
       if (!onPipe && !onNode)
         error('DEPENDENCY', opId, 'hostRef', `Thiết bị ${a.assetCode} cần ống hoặc nút gắn còn tồn tại. Chuyển thiết bị hoặc xóa cùng bản nháp.`);
-      else if ((DEVICE_HOST[type] === 'pipe' && !onPipe) || (DEVICE_HOST[type] === 'node' && !onNode)) {
-        error('INVALID_PROPERTIES', opId, 'attributes', `${a.assetCode}: ${type} phải gắn vào ${DEVICE_HOST[type] === 'pipe' ? 'ống' : 'nút'}.`);
+      else if ((component.host === 'pipe' && !onPipe) || (component.host === 'node' && !onNode)) {
+        error('INVALID_PROPERTIES', opId, 'attributes', `${a.assetCode}: ${component.code} phải gắn vào ${component.host === 'pipe' ? 'ống' : 'nút'}.`);
         continue;
       }
     }

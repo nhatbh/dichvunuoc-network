@@ -21,8 +21,8 @@ const add = (id: string, kind: string, coordinates: [number, number][], attribut
 const LINE: [number, number][] = [[105.85, 21.03], [105.851, 21.03]]
 /** A new pipe between two new junctions, in the server's terms. */
 const segment = (id: string, coords = LINE, attrs: Record<string, string> = {}) => [
-  add(id + '-A', 'Node', [coords[0]!], { nodeType: 'Junction' }),
-  add(id + '-B', 'Node', [coords[coords.length - 1]!], { nodeType: 'Junction' }),
+  add(id + '-A', 'Node', [coords[0]!], { componentCode: 'Junction' }),
+  add(id + '-B', 'Node', [coords[coords.length - 1]!], { componentCode: 'Junction' }),
   add(id, 'Pipe', coords, { diameterMm: '200', material: 'HDPE', dma: 'DMA-01', ...attrs }, { fromRef: id + '-A', toRef: id + '-B' }),
 ]
 

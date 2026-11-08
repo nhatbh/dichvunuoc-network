@@ -56,19 +56,20 @@ async function main() {
     return
   }
 
-  // nodes: junctions, then facilities as nodes (plant/reservoir = Reservoir, elevated tank = Tank, pump station = Other)
+  // nodes: junctions, then facilities as nodes (plant/reservoir = Reservoir, elevated tank = Tank,
+  // pump station = PumpStation). Every asset names its catalog component (decision 0028).
   const nodes = [] // { id, at, code }
-  const addNode = async (assetCode, nodeType, at) => {
-    const { id } = await call('POST', '/api/network/nodes', { assetCode, nodeType, latitude: at[1], longitude: at[0] })
+  const addNode = async (assetCode, componentCode, at) => {
+    const { id } = await call('POST', '/api/network/nodes', { assetCode, componentCode, latitude: at[1], longitude: at[0] })
     nodes.push({ id, at, code: assetCode })
     stats.nodes++
     return id
   }
   for (const f of seed.node.features) await addNode(code(f.properties.code ?? f.id), 'Junction', f.geometry.coordinates)
-  const facilityNode = new Map()
+  const facilityNode = new Map() // seed facility id → node id
   for (const f of seed.source.features) {
     const t = f.properties.assetType
-    const type = t === 'pump' ? 'Other' : /đài/i.test(f.properties.name ?? '') ? 'Tank' : 'Reservoir'
+    const type = t === 'pump' ? 'PumpStation' : /đài/i.test(f.properties.name ?? '') ? 'Tank' : 'Reservoir'
     facilityNode.set(f.id, await addNode(code(f.properties.code ?? f.id), type, f.geometry.coordinates))
   }
 
@@ -121,26 +122,27 @@ async function main() {
     return !b || d < b.d ? { id: n.id, d } : b
   }, null)
 
-  const install = async (assetCode, deviceType, host, at) => {
-    await call('POST', '/api/network/devices', { assetCode, deviceType, ...host, latitude: at[1], longitude: at[0] })
+  const install = async (assetCode, componentCode, host, at, properties) => {
+    await call('POST', '/api/network/devices', { assetCode, componentCode, ...host, latitude: at[1], longitude: at[0], properties })
     stats.devices++
   }
   for (const f of seed.valve.features) {
     const at = f.geometry.coordinates
     const p = nearestPipe(at)
     if (!p || p.d > 25) { stats.skipped.push(`${f.id}: no pipe within 25 m`); continue }
-    await install(code(f.properties.code ?? f.id), 'Valve', { hostPipeId: p.id }, at)
+    const kind = String(f.properties.kind ?? '').toLowerCase()
+    const component = kind.includes('butterfly') || kind.includes('bướm') ? 'ButterflyValve' : 'GateValve'
+    const state = ['open', 'closed', 'throttled'].includes(f.properties.state) ? { state: f.properties.state } : undefined
+    await install(code(f.properties.code ?? f.id), component, { hostPipeId: p.id }, at, state)
   }
   for (const f of seed.hydrant.features) {
     const at = f.geometry.coordinates
     const n = nearestNode(at)
     // a hydrant sits on its own branch node when no network node is close
-    const host = n && n.d <= 5 ? n.id : await addNode(`${code(f.properties.code ?? f.id)}-N`, 'Hydrant', at)
+    const host = n && n.d <= 5 ? n.id : await addNode(`${code(f.properties.code ?? f.id)}-N`, 'Junction', at)
     await install(code(f.properties.code ?? f.id), 'Hydrant', { hostNodeId: host }, at)
   }
-  for (const f of seed.source.features.filter((x) => x.properties.assetType === 'pump')) {
-    await install(`${code(f.properties.code ?? f.id)}-P`, 'Pump', { hostNodeId: facilityNode.get(f.id) }, f.geometry.coordinates)
-  }
+  // pump stations are PumpStation nodes (above); a Pump device sits on a pipe, so none is added here
 
   const after = await call('GET', '/api/network/assets/bootstrap')
   console.log(JSON.stringify({ seeded: stats, gisCounts: after?.counts }, null, 2))

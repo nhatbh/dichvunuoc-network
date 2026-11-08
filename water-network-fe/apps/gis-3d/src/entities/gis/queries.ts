@@ -1,4 +1,5 @@
 import { queryOptions } from '@tanstack/solid-query'
+import { findComponent } from '@wn/contracts/catalog'
 import { httpClient } from '@/shared/api/http-client'
 import type {
   CanonicalNetworkData,
@@ -31,15 +32,15 @@ const VIEWER_STYLE_KIND: Record<CanonicalBackendKind, ViewerStyleKind> = {
   device: 'component',
 }
 
-/** Device subtypes are split into the existing viewer layers; all other
- * canonical devices deliberately share the generic `source` layer. */
-const DEVICE_ASSET_TYPE: Record<string, keyof NetworkResponse> = {
-  valve: 'valve',
-  isolationvalve: 'valve',
-  hydrant: 'hydrant',
-  flowmeter: 'source',
-  pump: 'source',
-  pressuresensor: 'source',
+/** Device layers by catalog component (decision 0028): in-line valves that isolate or control
+ * go to the valve layer, hydrants to theirs; every other device shares the generic `source`
+ * layer and is drawn from its component code. */
+function deviceLayer(componentCode: unknown): keyof NetworkResponse {
+  const entry = findComponent(typeof componentCode === 'string' ? componentCode : undefined)
+  if (!entry) return 'source'
+  if (entry.code === 'Hydrant') return 'hydrant'
+  if (entry.host === 'pipe' && (entry.functions.includes('isolates') || entry.functions.includes('controls'))) return 'valve'
+  return 'source'
 }
 
 function nonEmptyString(value: unknown): string | undefined {
@@ -61,18 +62,13 @@ function assetTypeFor(
 ): keyof NetworkResponse {
   if (kind === 'node') return 'node'
   if (kind === 'pipe') return 'pipe'
-  if (kind === 'device') {
-    const deviceType = String(properties.deviceType ?? '')
-      .replaceAll(/[^a-z0-9]/gi, '')
-      .toLowerCase()
-    return DEVICE_ASSET_TYPE[deviceType] ?? 'source'
-  }
+  if (kind === 'device') return deviceLayer(properties.componentCode)
   return 'source'
 }
 
 /**
  * Adapt the BE GeoJSON property bag without discarding domain fields. Raw
- * `assetCode`, `diameterMm`, `deviceType`, etc. remain available while the
+ * `assetCode`, `diameterMm`, `componentCode`, `assetProperties`, etc. remain available while the
  * viewer receives the aliases it needs for styling and inspection.
  */
 export function normalizeCanonicalFeature(feature: Feature): Feature {

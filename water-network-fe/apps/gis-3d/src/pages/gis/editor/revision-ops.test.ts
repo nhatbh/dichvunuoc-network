@@ -13,7 +13,7 @@ const ll = (x: number, y: number) => proj.toLonLat(x, y)
 
 const node = (id: string, x: number, y: number): Asset => ({
   draftAssetId: id, kind: 'Node', assetCode: `N-${id}`, clientRef: null,
-  geometry: { type: 'Point', coordinates: [ll(x, y)] }, attributes: { nodeType: 'Junction' }, fromRef: null, toRef: null, hostRef: null,
+  geometry: { type: 'Point', coordinates: [ll(x, y)] }, attributes: { componentCode: 'Junction' }, fromRef: null, toRef: null, hostRef: null,
 })
 const pipe = (id: string, from: string, to: string, pts: [number, number][]): Asset => ({
   draftAssetId: id, kind: 'Pipe', assetCode: `ONG-${id}`, clientRef: null,
@@ -27,7 +27,7 @@ const base: EditState = {
   n3: { asset: node('n3', 150, 0), version: 1 },
   'P-0001': { asset: pipe('P-0001', 'n1', 'n2', [[0, 0], [50, 0]]), version: 4 },
   'P-0007': { asset: pipe('P-0007', 'n2', 'n3', [[50, 0], [150, 0]]), version: 1 },
-  'H-0003': { asset: { ...node('H-0003', 50, 0), kind: 'Device', assetCode: 'TRU-3', attributes: { deviceType: 'Hydrant' }, hostRef: 'n2' }, version: 2 },
+  'H-0003': { asset: { ...node('H-0003', 50, 0), kind: 'Device', assetCode: 'TRU-3', attributes: { componentCode: 'Hydrant' }, hostRef: 'n2' }, version: 2 },
 }
 
 const drafts: Draft[] = [
@@ -55,10 +55,10 @@ describe('revision-ops', () => {
     expect(ops.every(o => !o.after || o.after.draftAssetId === o.id)).toBe(true)
   })
 
-  it('speaks the server vocabulary: diameterMm, material codes, device types', () => {
+  it('speaks the server vocabulary: diameterMm, material codes, component codes', () => {
     expect(ops[0]!.after!.attributes).toMatchObject({ diameterMm: '200', material: 'HDPE' })
     expect(ops[2]!.after!.attributes).toMatchObject({ diameterMm: '300', material: 'DuctileIron' })
-    expect(ops[1]!.after!.attributes).toMatchObject({ deviceType: 'Valve', valveKind: 'gate', eamCode: 'EAM-9' })
+    expect(ops[1]!.after!.attributes).toMatchObject({ componentCode: 'GateValve', valveKind: 'gate', state: 'open', eamCode: 'EAM-9' })
     expect(ops[1]!.after!.hostRef).toBe('P-0007')
   })
 
@@ -68,7 +68,7 @@ describe('revision-ops', () => {
     expect(a.geometry.coordinates[0]).toEqual(base.n3!.asset.geometry.coordinates[0])
     const junction = ops.find(o => o.id === a.toRef)!
     expect(junction).toMatchObject({ action: 'Add', kind: 'Node' })
-    expect(junction.after!.attributes).toMatchObject({ nodeType: 'Junction', derived: 'endpoint' })
+    expect(junction.after!.attributes).toMatchObject({ componentCode: 'Junction', derived: 'endpoint' })
     expect(ops[2]!.after!.fromRef).toBe('n1')
     expect(ops[2]!.after!.toRef).toBe('n2')
   })
@@ -81,7 +81,7 @@ describe('revision-ops', () => {
     const rest = out.find(o => o.action === 'Add' && o.kind === 'Pipe')!
     expect(first.after!.toRef).toBe('DRF-N1')
     expect(rest.after).toMatchObject({ fromRef: 'DRF-N1', toRef: 'n3' })
-    expect(out[0]!.after!.attributes).toMatchObject({ nodeType: 'Junction', fitting: 'Nút tách' })
+    expect(out[0]!.after!.attributes).toMatchObject({ componentCode: 'Junction', fitting: 'Nút tách', elevationM: '12' })
     // reopening shows only what was drawn
     expect(operationsToDrafts(out, proj).map(d => d.id)).toEqual(['DRF-N1'])
   })
@@ -94,7 +94,25 @@ describe('revision-ops', () => {
     const out = draftsToOperations(h, proj, base)
     expect(inspectNetworkEdits(base, out).errors).toEqual([])
     expect(out[0]!.after!.hostRef).toBe('n2')
-    expect(out.find(o => o.id === out[1]!.after!.hostRef)!.after!.attributes.nodeType).toBe('Hydrant')
+    expect(out.find(o => o.id === out[1]!.after!.hostRef)!.after!.attributes.componentCode).toBe('Junction')
+  })
+
+  it('draws any catalog fitting and device: butterfly valve on its pipe, washout on a node', () => {
+    const d: Draft[] = [
+      { id: 'DRF-B1', op: 'add', kind: 'valve', geom: 'point', x: 100, y: 0, dn: 150, vkind: 'butterfly', state: 'closed', dma: 'DMA-02', eam: null, onPipe: 'P-0007' },
+      { id: 'DRF-W1', op: 'add', kind: 'valve', geom: 'point', x: 150, y: 1, dn: 100, vkind: 'washout', state: 'open', dma: 'DMA-02', eam: null, onPipe: 'P-0007' },
+      { id: 'DRF-T1', op: 'add', kind: 'node', geom: 'point', x: 120, y: 0.2, dma: 'DMA-02', ntype: 'Tê', z: 9, eam: null, splitOf: 'P-0007' },
+    ]
+    const out = draftsToOperations(d, proj, base)
+    expect(inspectNetworkEdits(base, out).errors).toEqual([])
+    const by = (id: string) => out.find(o => o.id === id)!.after!
+    expect(by('DRF-B1').attributes).toMatchObject({ componentCode: 'ButterflyValve', state: 'closed' })
+    expect(by('DRF-B1').hostRef).toBe('P-0007')
+    expect(by('DRF-W1').attributes.componentCode).toBe('Washout')
+    expect(by('DRF-W1').attributes.state).toBeUndefined() // a washout has no operable state
+    expect(by('DRF-W1').hostRef).toBe('n3')
+    expect(by('DRF-T1').attributes.componentCode).toBe('Tee')
+    expect(operationsToDrafts(out, proj).find(x => x.id === 'DRF-W1')).toMatchObject({ kind: 'valve', vkind: 'washout' })
   })
 
   it('round-trips back to the same drafts', () => {

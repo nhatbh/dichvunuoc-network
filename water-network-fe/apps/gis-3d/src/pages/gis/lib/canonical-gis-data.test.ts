@@ -30,7 +30,7 @@ const network: CanonicalNetworkData = {
           type: 'Feature',
           id: 'n-1',
           geometry: { type: 'Point', coordinates: [105.45, 21.35] },
-          properties: { assetCode: 'N-1', nodeType: 'Junction' },
+          properties: { assetCode: 'N-1', componentCode: 'Tee', assetProperties: { elevationM: '12.5' } },
         },
       ],
     },
@@ -70,7 +70,7 @@ const network: CanonicalNetworkData = {
           geometry: { type: 'Point', coordinates: [105.5, 21.4] },
           properties: {
             assetCode: 'V-1',
-            deviceType: 'Valve',
+            componentCode: 'ButterflyValve',
             status: 'Active',
             lifecycleStatus: 'Suspended',
           },
@@ -84,7 +84,7 @@ const network: CanonicalNetworkData = {
           type: 'Feature',
           id: 'm-1',
           geometry: { type: 'Point', coordinates: [105.52, 21.42] },
-          properties: { assetCode: 'M-1', deviceType: 'FlowMeter', status: 'Active' },
+          properties: { assetCode: 'M-1', componentCode: 'BulkMeter', status: 'Active' },
         },
       ],
     },
@@ -110,8 +110,10 @@ describe('createCanonicalGisData', () => {
       cond: 'commissioned',
     })
     expect(data.pipes[0]?.vertices).toHaveLength(3)
-    expect(data.sourceDevices[0]).toMatchObject({ id: 'm-1', deviceType: 'FlowMeter' })
+    expect(data.sourceDevices[0]).toMatchObject({ id: 'm-1', deviceType: 'BulkMeter' })
     expect(data.valves[0]?.state).toBe('unknown')
+    expect(data.valves[0]?.kind).toBe('ButterflyValve')
+    expect(data.nodes[0]).toMatchObject({ kind: 'Tee', z: 12.5 })
     expect(data.assets.find(asset => asset.id === 'v-1')).toMatchObject({
       status: 'ok',
       cond: 'suspended',
@@ -162,7 +164,7 @@ describe('createCanonicalGisData', () => {
     expect(data.canonical).toBe(true)
     expect(data.sourceDevices).toEqual(adapted.sourceDevices)
     expect(data.sourceDevices).toHaveLength(1)
-    expect(data.sourceDevices[0]).toMatchObject({ id: 'm-1', deviceType: 'FlowMeter' })
+    expect(data.sourceDevices[0]).toMatchObject({ id: 'm-1', deviceType: 'BulkMeter' })
     expect(data.assetLinks(data.assets[0] ?? null)).toEqual([])
   })
 

@@ -25,24 +25,29 @@ const layerRuleSchema = z.object({
   diameterMm: optionalNumber,
   material: optionalString,
 })
-const blockRuleSchema = z.object({
-  fileId: z.string(),
-  blockName: z.string(),
-  action: z.enum(['component', 'node', 'device', 'reference', 'exclude', 'review']),
-  /** A catalog component (@wn/contracts/catalog); gis-be's node or device type follows from it. */
-  componentCode: z
-    .string()
-    .nullish()
-    .transform(value => value ?? undefined),
-  nodeType: z
-    .enum(['Junction', 'Reservoir', 'Tank', 'Hydrant', 'Other'])
-    .nullish()
-    .transform(value => value ?? undefined),
-  deviceType: z
-    .enum(['Valve', 'FlowMeter', 'PressureSensor', 'Pump', 'Hydrant'])
-    .nullish()
-    .transform(value => value ?? undefined),
-})
+/** Block rules saved before decision 0028 named a gis-be type; the import service and this
+ *  schema translate them to the catalog component. */
+const LEGACY_NODE: Record<string, string> = { Junction: 'Junction', Reservoir: 'Reservoir', Tank: 'Tank', Hydrant: 'Hydrant', Other: 'Junction' }
+const LEGACY_DEVICE: Record<string, string> = { Valve: 'GateValve', FlowMeter: 'BulkMeter', PressureSensor: 'PressureSensor', Pump: 'Pump', Hydrant: 'Hydrant' }
+const blockRuleSchema = z.preprocess(
+  raw => {
+    if (!raw || typeof raw !== 'object') return raw
+    const { nodeType, deviceType, ...rule } = raw as Record<string, unknown>
+    if (rule.action === 'node') return { ...rule, action: 'component', componentCode: LEGACY_NODE[String(nodeType)] }
+    if (rule.action === 'device') return { ...rule, action: 'component', componentCode: LEGACY_DEVICE[String(deviceType)] }
+    return rule
+  },
+  z.object({
+    fileId: z.string(),
+    blockName: z.string(),
+    action: z.enum(['component', 'reference', 'exclude', 'review']),
+    /** A catalog component (@wn/contracts/catalog); the asset kind and host follow from it. */
+    componentCode: z
+      .string()
+      .nullish()
+      .transform(value => value ?? undefined),
+  }),
+)
 const controlCoordinateSchema = z.tuple([z.number().finite(), z.number().finite()]).nullable()
 export const controlPointSchema = z.object({
   source: controlCoordinateSchema,
@@ -423,12 +428,9 @@ export function validateReview(config: ReviewConfig): string | null {
     return 'Ngưỡng gắn thiết bị phải lớn hơn 0 và không vượt 2 mét.'
   if (
     config.blockRules?.some(
-      rule =>
-        (rule.action === 'node' && !rule.nodeType) ||
-        (rule.action === 'device' && !rule.deviceType) ||
-        (rule.action === 'component' && !rule.componentCode)
+      rule => rule.action === 'component' && !rule.componentCode
     )
   )
-    return 'Chọn thành phần, loại nút hoặc loại thiết bị cho từng ký hiệu đã phân loại.'
+    return 'Chọn thành phần trong danh mục cho từng ký hiệu đã phân loại.'
   return null
 }
