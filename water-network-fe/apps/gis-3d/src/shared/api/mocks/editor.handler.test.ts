@@ -79,6 +79,6 @@ describe('mock design-revision service', () => {
     await call(`/revisions/${rev.id}/submit`, 'POST', {})
     expect((await call(`/revisions/${rev.id}/reject`, 'POST', {})).status).toBe(400)
     expect((await call(`/revisions/${rev.id}/reject`, 'POST', { reason: 'Sai DN' })).status).toBe(200)
-    expect((await call(`/revisions/${rev.id}`)).json).toMatchObject({ status: 'Rejected', reason: 'Sai DN' })
+    expect((await call(`/revisions/${rev.id}`)).json).toMatchObject({ status: 'Draft', reason: 'Sai DN' })
   })
 })

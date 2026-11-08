@@ -216,6 +216,7 @@ export const mockAuth = {
         name: user.name,
         roles: mockRoles(),
         permissions: mockPermissions(),
+        ...(env.VITE_MOCK_TENANT ? { tenantId: env.VITE_MOCK_TENANT } : {}),
       },
       session: {
         token: session.token,

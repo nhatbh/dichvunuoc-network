@@ -58,6 +58,8 @@ const CANONICAL_SUPPORTED_ROUTES = new Set([
   'query',
   'assets',
   'import',
+  // design revisions from design-be (BFF /editor/*); #editor opens the server-native editor
+  'versions',
   // the operations screens run on the canonical network once /ops is live
   ...(getOpsSource() === 'live' ? OPS_ROUTES : []),
 ])

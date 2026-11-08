@@ -19,6 +19,8 @@ const envSchema = z.object({
   // so role/permission guards can be exercised without a real IdP.
   VITE_MOCK_ROLES: z.string().optional().default('user'),
   VITE_MOCK_PERMISSIONS: z.string().optional().default(''),
+  /** Tenant of the mock session (local-stack runs: must match the backend dev token). */
+  VITE_MOCK_TENANT: z.string().optional(),
   VITE_KEYCLOAK_URL: z.string().optional().default(''),
   VITE_KEYCLOAK_REALM: z.string().optional().default(''),
   VITE_KEYCLOAK_CLIENT_ID: z.string().optional().default(''),
@@ -120,6 +122,7 @@ function getEnv(): Env {
       VITE_USE_MOCK_AUTH: import.meta.env.VITE_USE_MOCK_AUTH || 'true',
       VITE_MOCK_ROLES: import.meta.env.VITE_MOCK_ROLES ?? 'user',
       VITE_MOCK_PERMISSIONS: import.meta.env.VITE_MOCK_PERMISSIONS ?? '',
+      VITE_MOCK_TENANT: import.meta.env.VITE_MOCK_TENANT || undefined,
       VITE_KEYCLOAK_URL: import.meta.env.VITE_KEYCLOAK_URL || '',
       VITE_KEYCLOAK_REALM: import.meta.env.VITE_KEYCLOAK_REALM || '',
       VITE_KEYCLOAK_CLIENT_ID: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || '',

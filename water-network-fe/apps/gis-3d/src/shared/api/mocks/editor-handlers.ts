@@ -284,7 +284,8 @@ export const editorHandlers = [
       case 'reject':
         if (r.status !== 'Submitted') return problem(409, 'Chỉ trả lại được bản đã gửi.')
         if (!body.reason?.trim()) return problem(400, 'Cần nêu lý do trả lại.')
-        r.status = 'Rejected'
+        // as design-be: a returned revision goes back to Draft, with the reason
+        r.status = 'Draft'
         r.reason = body.reason.trim()
         r.updatedAt = now()
         return HttpResponse.json({ isValid: true })
