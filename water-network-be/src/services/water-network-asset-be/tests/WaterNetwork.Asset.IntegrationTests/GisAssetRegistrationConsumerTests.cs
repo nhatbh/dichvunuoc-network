@@ -23,14 +23,14 @@ public class GisAssetRegistrationConsumerTests(PostgisFixture postgis) : IClassF
     {
         EventId = Guid.NewGuid().ToString(), EventType = "network.node.registered", EventVersion = 1,
         OccurredAt = DateTime.UtcNow, SourceAggregateId = id, SourceAggregateType = "NetworkNode",
-        Data = new NetworkNodeRegisteredV1(id, "tenant-1", assetCode, "Junction", 10.7, 106.6)
+        Data = new NetworkNodeRegisteredV2(id, "tenant-1", assetCode, "Junction", ["connects"], new Dictionary<string, string>(), 10.7, 106.6)
     };
 
     private static object NodeRegisteredConcreteWith(string id, string tenantId, string assetCode) => new
     {
         EventId = Guid.NewGuid().ToString(), EventType = "network.node.registered", EventVersion = 1,
         OccurredAt = DateTime.UtcNow, SourceAggregateId = id, SourceAggregateType = "NetworkNode",
-        Data = new NetworkNodeRegisteredV1(id, tenantId, assetCode, "Junction", 10.7, 106.6)
+        Data = new NetworkNodeRegisteredV2(id, tenantId, assetCode, "Junction", ["connects"], new Dictionary<string, string>(), 10.7, 106.6)
     };
 
     private static async Task<(AssetApiFactory f, IServiceScope s)> BootAsync(PostgisFixture postgis)
@@ -58,10 +58,10 @@ public class GisAssetRegistrationConsumerTests(PostgisFixture postgis) : IClassF
             "network.node.registered" => NodeRegisteredConcrete(id, $"ND-{uniqueSuffix}"),
             "network.pipe.registered" => new { EventId = Guid.NewGuid().ToString(), EventType = eventType, EventVersion = 1,
                 OccurredAt = DateTime.UtcNow, SourceAggregateId = id, SourceAggregateType = "NetworkPipe",
-                Data = new NetworkPipeRegisteredV1(id, "tenant-1", $"PP-{uniqueSuffix}", "n1", "n2", 12.5, 150, "PVC") },
+                Data = new NetworkPipeRegisteredV2(id, "tenant-1", $"PP-{uniqueSuffix}", "n1", "n2", 12.5, 150, "PVC", "Pipe", new Dictionary<string, string>()) },
             _ => new { EventId = Guid.NewGuid().ToString(), EventType = eventType, EventVersion = 1,
                 OccurredAt = DateTime.UtcNow, SourceAggregateId = id, SourceAggregateType = "NetworkDevice",
-                Data = new NetworkDeviceInstalledV1(id, "tenant-1", $"DV-{uniqueSuffix}", "Valve", null, "n1", 10.7, 106.6) }
+                Data = new NetworkDeviceInstalledV2(id, "tenant-1", $"DV-{uniqueSuffix}", "Hydrant", ["fireFlow"], new Dictionary<string, string>(), null, "n1", 10.7, 106.6) }
         };
 
         var consumer = scope.ServiceProvider.GetRequiredService<GisAssetRegistrationConsumer>();
@@ -71,6 +71,7 @@ public class GisAssetRegistrationConsumerTests(PostgisFixture postgis) : IClassF
         var asset = await repo.GetByIdAsync(id);
         asset.Should().NotBeNull();
         asset!.AssetType.Should().Be(expected);
+        asset.ComponentCode.Should().Be(expected switch { AssetType.Node => "Junction", AssetType.Pipe => "Pipe", _ => "Hydrant" });
         asset.Status.Should().Be(AssetStatus.Active);
     }
 

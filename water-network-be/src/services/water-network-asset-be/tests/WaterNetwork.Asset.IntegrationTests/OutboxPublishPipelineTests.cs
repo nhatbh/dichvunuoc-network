@@ -35,7 +35,7 @@ public class OutboxPublishPipelineTests(PostgisFixture postgis) : IClassFixture<
         {
             await scope.ServiceProvider.GetRequiredService<AssetDbContext>().Database.MigrateAsync();
             var repo = scope.ServiceProvider.GetRequiredService<INetworkAssetRepository>();
-            await repo.SaveAsync(NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, "ND-001"));
+            await repo.SaveAsync(NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, "ND-001", "Junction"));
         }
         using (var scope = factory.Services.CreateScope())
             await scope.ServiceProvider.GetRequiredService<IOutboxProcessor>().ProcessOutboxAsync(CancellationToken.None);

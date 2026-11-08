@@ -13,6 +13,8 @@ public sealed class NetworkAsset : AggregateRoot
     public string TenantId { get; private set; }
     public AssetType AssetType { get; private set; }
     public string AssetCode { get; private set; }
+    /// <summary>The catalog component of the GIS asset (decision 0028), e.g. GateValve, Tee.</summary>
+    public string ComponentCode { get; private set; }
     public AssetStatus Status { get; private set; }
     public IReadOnlyList<AssetLifecycleEntry> LifecycleEntries => _lifecycleEntries.AsReadOnly();
     public string? DecommissionReason { get; private set; }
@@ -20,13 +22,14 @@ public sealed class NetworkAsset : AggregateRoot
     public AssetTechnicalProfile? TechnicalProfile { get; private set; }
 
     private NetworkAsset(
-        string id, string tenantId, AssetType assetType, string assetCode, AssetStatus status,
+        string id, string tenantId, AssetType assetType, string assetCode, string componentCode, AssetStatus status,
         int version = 0, DateTime? createdAt = null, DateTime? updatedAt = null)
         : base(id, version, createdAt, updatedAt)
     {
         TenantId = tenantId;
         AssetType = assetType;
         AssetCode = assetCode;
+        ComponentCode = componentCode;
         Status = status;
     }
 
@@ -35,9 +38,13 @@ public sealed class NetworkAsset : AggregateRoot
     /// (shared key → natural idempotency). Default business status is Active (US-P1-05),
     /// recorded as a Registered→Active transition.
     /// </summary>
-    public static NetworkAsset RegisterFromGis(string assetId, string tenantId, AssetType assetType, string assetCode)
+    public static NetworkAsset RegisterFromGis(
+        string assetId, string tenantId, AssetType assetType, string assetCode, string componentCode)
     {
-        var asset = new NetworkAsset(assetId, tenantId, assetType, assetCode, AssetStatus.Active);
+        if (string.IsNullOrWhiteSpace(componentCode))
+            throw BusinessRuleException.Violation("ComponentCodeRequired",
+                "[ComponentCodeRequired] A GIS asset registration must name its catalog component.");
+        var asset = new NetworkAsset(assetId, tenantId, assetType, assetCode, componentCode, AssetStatus.Active);
         asset._lifecycleEntries.Add(new AssetLifecycleEntry(
             AssetStatus.Registered, AssetStatus.Active, actorId: "system", reason: "gis-registration", occurredAt: DateTime.UtcNow));
         asset.MarkAsModified();
@@ -46,7 +53,8 @@ public sealed class NetworkAsset : AggregateRoot
             TenantId: tenantId,
             AssetType: assetType.ToString(),
             AssetCode: assetCode,
-            Status: AssetStatus.Active.ToString())));
+            Status: AssetStatus.Active.ToString(),
+            ComponentCode: componentCode)));
         return asset;
     }
 
@@ -54,9 +62,9 @@ public sealed class NetworkAsset : AggregateRoot
         string id, string tenantId, AssetType assetType, string assetCode, AssetStatus status,
         int version, DateTime createdAt, DateTime updatedAt, IEnumerable<AssetLifecycleEntry> lifecycleEntries,
         string? decommissionReason = null, string? decommissionedBy = null,
-        AssetTechnicalProfile? technicalProfile = null)
+        AssetTechnicalProfile? technicalProfile = null, string componentCode = "")
     {
-        var asset = new NetworkAsset(id, tenantId, assetType, assetCode, status, version, createdAt, updatedAt);
+        var asset = new NetworkAsset(id, tenantId, assetType, assetCode, componentCode, status, version, createdAt, updatedAt);
         asset._lifecycleEntries.AddRange(lifecycleEntries);
         asset.DecommissionReason = decommissionReason;
         asset.DecommissionedBy = decommissionedBy;

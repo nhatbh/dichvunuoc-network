@@ -18,7 +18,7 @@ public class CrossTenantRepositoryTests(PostgisFixture postgis) : IClassFixture<
         var repo = scope.ServiceProvider.GetRequiredService<INetworkAssetRepository>();
 
         var id = $"node-{Guid.CreateVersion7():N}";
-        var asset = NetworkAsset.RegisterFromGis(id, "tenant-A", AssetType.Node, $"ND-{id[^8..]}");
+        var asset = NetworkAsset.RegisterFromGis(id, "tenant-A", AssetType.Node, $"ND-{id[^8..]}", "Junction");
         await repo.SaveAsync(asset);
 
         (await repo.GetByIdAsync("tenant-A", id)).Should().NotBeNull();

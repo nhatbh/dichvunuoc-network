@@ -11,7 +11,7 @@ public class OutboxEventTypeRegistryContractTests
         // OutboxProcessor resolves concrete domain events by Type.Name; the domain event's
         // EventType string MUST equal it, or the typed mapper never matches.
         typeof(AssetRegistered).Name.Should().Be("AssetRegistered");
-        var data = new AssetRegisteredData("t", "Node", "ND-001", "Active");
+        var data = new AssetRegisteredData("t", "Node", "ND-001", "Active", "Junction");
         new AssetRegistered("node-1", data).EventType.Should().Be("AssetRegistered");
     }
 }

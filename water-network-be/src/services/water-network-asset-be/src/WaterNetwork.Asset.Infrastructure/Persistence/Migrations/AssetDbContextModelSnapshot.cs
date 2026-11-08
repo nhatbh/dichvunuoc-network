@@ -122,6 +122,14 @@ namespace WaterNetwork.Asset.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(16)")
                         .HasColumnName("asset_type");
 
+                    b.Property<string>("ComponentCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("component_code");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -162,6 +170,9 @@ namespace WaterNetwork.Asset.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId", "AssetCode")
                         .IsUnique()
                         .HasDatabaseName("ux_network_assets_tenant_asset_code");
+
+                    b.HasIndex("TenantId", "ComponentCode")
+                        .HasDatabaseName("ix_network_assets_tenant_component");
 
                     b.ToTable("network_assets", (string)null);
                 });

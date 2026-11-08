@@ -25,7 +25,7 @@ public class AssetLifecycleCommandHandlerTests
     }
 
     private NetworkAsset Active(string id = "node-1") =>
-        NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, "ND-001");
+        NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, "ND-001", "Junction");
 
     [Fact]
     public async Task Suspend_Loads_Mutates_Saves()

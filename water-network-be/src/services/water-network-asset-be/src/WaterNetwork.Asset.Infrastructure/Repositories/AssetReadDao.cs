@@ -16,6 +16,7 @@ public sealed class AssetReadDao(AssetDbContext dbContext) : IAssetReadDao
                    a.tenant_id    AS TenantId,
                    a.asset_type   AS AssetType,
                    a.asset_code   AS AssetCode,
+                   a.component_code AS ComponentCode,
                    a.status       AS Status,
                    a.created_at   AS CreatedAt,
                    a.updated_at   AS UpdatedAt,
@@ -61,17 +62,19 @@ public sealed class AssetReadDao(AssetDbContext dbContext) : IAssetReadDao
 
         return new AssetDetailDto(
             row.Id, row.TenantId, row.AssetType, row.AssetCode, row.Status,
-            row.CreatedAt, row.UpdatedAt, profile, entries);
+            row.CreatedAt, row.UpdatedAt, profile, entries, row.ComponentCode);
     }
 
     public async Task<AssetPagedResult> GetPagedAsync(
-        string tenantId, string? type, string? status, int page, int pageSize, CancellationToken ct = default)
+        string tenantId, string? type, string? status, int page, int pageSize, string? componentCode,
+        CancellationToken ct = default)
     {
         var skip = (page - 1) * pageSize;
 
         var whereClauses = new List<string> { "tenant_id = @tenantId" };
         if (type is not null) whereClauses.Add("asset_type = @type");
         if (status is not null) whereClauses.Add("status = @status");
+        if (componentCode is not null) whereClauses.Add("component_code = @componentCode");
         var where = string.Join(" AND ", whereClauses);
 
         var dataSql = $"""
@@ -79,7 +82,8 @@ public sealed class AssetReadDao(AssetDbContext dbContext) : IAssetReadDao
                    asset_type  AS AssetType,
                    asset_code  AS AssetCode,
                    status      AS Status,
-                   updated_at  AS UpdatedAt
+                   updated_at  AS UpdatedAt,
+                   component_code AS ComponentCode
             FROM network_assets
             WHERE {where}
             ORDER BY updated_at DESC
@@ -89,7 +93,7 @@ public sealed class AssetReadDao(AssetDbContext dbContext) : IAssetReadDao
         var countSql = $"SELECT COUNT(*) FROM network_assets WHERE {where}";
 
         var connection = dbContext.Database.GetDbConnection();
-        var parameters = new { tenantId, type, status, take = pageSize, skip };
+        var parameters = new { tenantId, type, status, componentCode, take = pageSize, skip };
 
         var data = (await connection.QueryAsync<AssetSummaryDto>(
             new CommandDefinition(dataSql, parameters, cancellationToken: ct))).ToList();
@@ -106,6 +110,7 @@ public sealed class AssetReadDao(AssetDbContext dbContext) : IAssetReadDao
         public string TenantId { get; set; } = default!;
         public string AssetType { get; set; } = default!;
         public string AssetCode { get; set; } = default!;
+        public string ComponentCode { get; set; } = "";
         public string Status { get; set; } = default!;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

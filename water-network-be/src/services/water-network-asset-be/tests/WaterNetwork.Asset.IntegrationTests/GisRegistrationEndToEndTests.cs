@@ -32,7 +32,7 @@ public class GisRegistrationEndToEndTests(PostgisFixture postgis, RabbitMqFixtur
         {
             EventId = eventId, EventType = "network.node.registered", EventVersion = 1,
             OccurredAt = DateTime.UtcNow, SourceAggregateId = id, SourceAggregateType = "NetworkNode",
-            Data = new NetworkNodeRegisteredV1(id, "tenant-e2e", $"ND-{id[..8]}", "Junction", 10.7, 106.6)
+            Data = new NetworkNodeRegisteredV2(id, "tenant-e2e", $"ND-{id[..8]}", "Junction", ["connects"], new Dictionary<string, string>(), 10.7, 106.6)
         };
         return new IntegrationEventEnvelope(eventId, "network.node.registered", 1, DateTime.UtcNow,
             null, null, null, null, null, "water-network-gis-be",

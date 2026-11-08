@@ -9,4 +9,5 @@ public sealed record AssetDetailDto(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     AssetTechnicalProfileDto? TechnicalProfile,
-    IReadOnlyList<AssetLifecycleEntryDto> LifecycleHistory);
+    IReadOnlyList<AssetLifecycleEntryDto> LifecycleHistory,
+    string ComponentCode);

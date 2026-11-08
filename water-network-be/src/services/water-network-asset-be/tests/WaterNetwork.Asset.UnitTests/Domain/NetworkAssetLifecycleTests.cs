@@ -9,7 +9,7 @@ namespace WaterNetwork.Asset.UnitTests.Domain;
 public class NetworkAssetLifecycleTests
 {
     private static NetworkAsset NewActiveAsset() =>
-        NetworkAsset.RegisterFromGis("node-1", "tenant-1", AssetType.Node, "ND-001");
+        NetworkAsset.RegisterFromGis("node-1", "tenant-1", AssetType.Node, "ND-001", "Junction");
 
     private static NetworkAsset AssetInStatus(AssetStatus status) =>
         NetworkAsset.Reconstitute("node-1", "tenant-1", AssetType.Node, "ND-001", status,

@@ -62,11 +62,11 @@ public sealed class AssetsEndpointModule : IEndpointModule
             })
             .RequirePermission("network-asset:read");
 
-        group.MapGet("/", async (string? type, string? status, int? page, int? pageSize, IQueryBus bus, CancellationToken ct) =>
+        group.MapGet("/", async (string? type, string? status, string? componentCode, int? page, int? pageSize, IQueryBus bus, CancellationToken ct) =>
             {
                 var p = Math.Max(page ?? 1, 1);
                 var size = Math.Clamp(pageSize ?? 20, 1, 200);
-                var result = await bus.ExecuteAsync(new GetAssetsQuery(type, status, p, size), ct);
+                var result = await bus.ExecuteAsync(new GetAssetsQuery(type, status, p, size, componentCode), ct);
                 return Results.Ok(result);
             })
             .RequirePermission("network-asset:read");

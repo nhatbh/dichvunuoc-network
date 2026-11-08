@@ -14,6 +14,6 @@ public sealed class GetAssetsQueryHandler(
     {
         var tenant = tenantAccessor.Current
             ?? throw UnauthorizedException.InvalidToken("Tenant context is required.");
-        return readDao.GetPagedAsync(tenant.TenantId, query.Type, query.Status, query.Page, query.PageSize, ct);
+        return readDao.GetPagedAsync(tenant.TenantId, query.Type, query.Status, query.Page, query.PageSize, query.ComponentCode, ct);
     }
 }

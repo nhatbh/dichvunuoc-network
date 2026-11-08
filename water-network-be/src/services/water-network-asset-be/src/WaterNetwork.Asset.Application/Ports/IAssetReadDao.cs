@@ -12,5 +12,6 @@ public interface IAssetReadDao
         string? status,
         int page,
         int pageSize,
+        string? componentCode,
         CancellationToken ct = default);
 }

@@ -32,7 +32,7 @@ public sealed partial class GisAssetRegistrationConsumer(
     {
         // non-null: the base only calls HandleAsync after Subscribes() gated this event type.
         var assetType = AssetTypeMapping.FromGisEventType(envelope.EventType)!.Value;
-        var (assetId, tenantId, assetCode) = ExtractIdentity(envelope, assetType);
+        var (assetId, tenantId, assetCode, componentCode) = ExtractIdentity(envelope, assetType);
 
         // PK == GIS id → natural idempotency. Pre-check avoids a guaranteed unique-violation on redelivery.
         if (!await repository.ExistsAsync(assetId, ct))
@@ -40,7 +40,7 @@ public sealed partial class GisAssetRegistrationConsumer(
             try
             {
                 await repository.SaveAsync(
-                    NetworkAsset.RegisterFromGis(assetId, tenantId, assetType, assetCode), ct);
+                    NetworkAsset.RegisterFromGis(assetId, tenantId, assetType, assetCode, componentCode), ct);
             }
             catch (Exception ex) when (IsUniqueViolation(ex))
             {
@@ -56,21 +56,21 @@ public sealed partial class GisAssetRegistrationConsumer(
         }
     }
 
-    private static (string assetId, string tenantId, string assetCode) ExtractIdentity(
+    private static (string assetId, string tenantId, string assetCode, string componentCode) ExtractIdentity(
         IntegrationEventEnvelope envelope, AssetType assetType)
     {
         using var doc = JsonDocument.Parse(envelope.Payload);
         var data = doc.RootElement.GetProperty("Data");
         return assetType switch
         {
-            AssetType.Node => Read<NetworkNodeRegisteredV1>(data, d => (d.NodeId, d.TenantId, d.AssetCode)),
-            AssetType.Pipe => Read<NetworkPipeRegisteredV1>(data, d => (d.PipeId, d.TenantId, d.AssetCode)),
-            AssetType.Device => Read<NetworkDeviceInstalledV1>(data, d => (d.DeviceId, d.TenantId, d.AssetCode)),
+            AssetType.Node => Read<NetworkNodeRegisteredV2>(data, d => (d.NodeId, d.TenantId, d.AssetCode, d.ComponentCode)),
+            AssetType.Pipe => Read<NetworkPipeRegisteredV2>(data, d => (d.PipeId, d.TenantId, d.AssetCode, d.ComponentCode)),
+            AssetType.Device => Read<NetworkDeviceInstalledV2>(data, d => (d.DeviceId, d.TenantId, d.AssetCode, d.ComponentCode)),
             _ => throw new InvalidOperationException($"Unhandled asset type {assetType}")
         };
     }
 
-    private static (string, string, string) Read<T>(JsonElement data, Func<T, (string, string, string)> select)
+    private static (string, string, string, string) Read<T>(JsonElement data, Func<T, (string, string, string, string)> select)
         => select(data.Deserialize<T>()
                   ?? throw new InvalidOperationException($"Envelope payload Data did not deserialize to {typeof(T).Name}."));
 

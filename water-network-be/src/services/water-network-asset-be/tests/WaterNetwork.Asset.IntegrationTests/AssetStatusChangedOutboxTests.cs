@@ -35,7 +35,7 @@ public class AssetStatusChangedOutboxTests(PostgisFixture postgis) : IClassFixtu
         {
             await scope.ServiceProvider.GetRequiredService<AssetDbContext>().Database.MigrateAsync();
             var repo = scope.ServiceProvider.GetRequiredService<INetworkAssetRepository>();
-            var asset = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[..8]}");
+            var asset = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[..8]}", "Junction");
             await repo.SaveAsync(asset);              // asset.registered
             asset.Suspend("user-7", "win");
             await repo.SaveAsync(asset);              // asset.status.changed

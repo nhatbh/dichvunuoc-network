@@ -3,4 +3,5 @@ using WaterPlatform.BuildingBlocks.Application.Queries;
 
 namespace WaterNetwork.Asset.Application.Queries;
 
-public sealed record GetAssetsQuery(string? Type, string? Status, int Page, int PageSize) : IQuery<AssetPagedResult>;
+public sealed record GetAssetsQuery(
+    string? Type, string? Status, int Page, int PageSize, string? ComponentCode = null) : IQuery<AssetPagedResult>;

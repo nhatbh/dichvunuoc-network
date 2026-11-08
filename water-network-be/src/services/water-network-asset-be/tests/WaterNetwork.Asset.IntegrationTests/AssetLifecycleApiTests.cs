@@ -31,7 +31,7 @@ public class AssetLifecycleApiTests(PostgisFixture postgis) : IClassFixture<Post
         var assetId = id ?? $"node-{Guid.CreateVersion7():N}";
         using var scope = factory.Services.CreateScope();
         var repo = scope.ServiceProvider.GetRequiredService<INetworkAssetRepository>();
-        var asset = NetworkAsset.RegisterFromGis(assetId, TestTenantId, AssetType.Node, $"ND-{assetId[^8..]}");
+        var asset = NetworkAsset.RegisterFromGis(assetId, TestTenantId, AssetType.Node, $"ND-{assetId[^8..]}", "Junction");
         await repo.SaveAsync(asset);
         return assetId;
     }

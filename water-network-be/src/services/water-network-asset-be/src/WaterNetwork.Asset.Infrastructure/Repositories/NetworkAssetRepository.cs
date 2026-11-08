@@ -104,6 +104,7 @@ public sealed class NetworkAssetRepository(
         TenantId = a.TenantId,
         AssetType = a.AssetType.ToString(),
         AssetCode = a.AssetCode,
+        ComponentCode = a.ComponentCode,
         Status = a.Status.ToString(),
         Version = a.Version,
         CreatedAt = a.CreatedAt,
@@ -142,6 +143,6 @@ public sealed class NetworkAssetRepository(
             m.LifecycleEntries.Select(e => new AssetLifecycleEntry(
                 Enum.Parse<AssetStatus>(e.FromStatus), Enum.Parse<AssetStatus>(e.ToStatus),
                 e.ActorId, e.Reason, e.OccurredAt)),
-            m.DecommissionReason, m.DecommissionedBy, profile);
+            m.DecommissionReason, m.DecommissionedBy, profile, m.ComponentCode);
     }
 }

@@ -25,7 +25,7 @@ public class AssetLifecyclePersistenceTests(PostgisFixture postgis) : IClassFixt
         var (f, scope) = Boot(postgis); await using var _ = f; using var __ = scope;
         var repo = scope.ServiceProvider.GetRequiredService<INetworkAssetRepository>();
         var id = $"node-{Guid.CreateVersion7():N}";
-        var a = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[^8..]}");
+        var a = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[^8..]}", "Junction");
         await repo.SaveAsync(a);
         a.Suspend("user-7", "win");
         await repo.SaveAsync(a);
@@ -42,7 +42,7 @@ public class AssetLifecyclePersistenceTests(PostgisFixture postgis) : IClassFixt
         var (f, scope) = Boot(postgis); await using var _ = f; using var __ = scope;
         var repo = scope.ServiceProvider.GetRequiredService<INetworkAssetRepository>();
         var id = $"node-{Guid.CreateVersion7():N}";
-        var a = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[^8..]}");
+        var a = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[^8..]}", "Junction");
         await repo.SaveAsync(a);
         a.UpdateTechnicalProfile("user-7", 2019, "Acme", "V-200",
             new Dictionary<string, string?> { ["pressureRating"] = "PN16" });
@@ -59,7 +59,7 @@ public class AssetLifecyclePersistenceTests(PostgisFixture postgis) : IClassFixt
         var (f, scope) = Boot(postgis); await using var _ = f; using var __ = scope;
         var repo = scope.ServiceProvider.GetRequiredService<INetworkAssetRepository>();
         var id = $"node-{Guid.CreateVersion7():N}";
-        var a = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[^8..]}");
+        var a = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[^8..]}", "Junction");
         await repo.SaveAsync(a);
         a.UpdateTechnicalProfile("user-7", 2019, "Acme", "V-200",
             new Dictionary<string, string?> { ["pressureRating"] = "PN16" });
@@ -82,7 +82,7 @@ public class AssetLifecyclePersistenceTests(PostgisFixture postgis) : IClassFixt
         var (f, scope) = Boot(postgis); await using var _ = f; using var __ = scope;
         var repo = scope.ServiceProvider.GetRequiredService<INetworkAssetRepository>();
         var id = $"node-{Guid.CreateVersion7():N}";
-        var a = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[^8..]}");
+        var a = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, $"ND-{id[^8..]}", "Junction");
         await repo.SaveAsync(a);
         a.Decommission("user-7", "eol");
         await repo.SaveAsync(a);

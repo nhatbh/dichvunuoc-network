@@ -6,6 +6,7 @@ public sealed class NetworkAssetPersistenceModel
     public string TenantId { get; set; } = default!;
     public string AssetType { get; set; } = default!;
     public string AssetCode { get; set; } = default!;
+    public string ComponentCode { get; set; } = "";
     public string Status { get; set; } = default!;
     public int Version { get; set; }
     public DateTime CreatedAt { get; set; }

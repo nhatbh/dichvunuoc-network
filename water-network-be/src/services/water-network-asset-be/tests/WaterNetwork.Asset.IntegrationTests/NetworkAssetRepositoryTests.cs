@@ -23,7 +23,7 @@ public class NetworkAssetRepositoryTests(PostgisFixture postgis) : IClassFixture
         var repo = scope.ServiceProvider.GetRequiredService<INetworkAssetRepository>();
 
         var id = $"node-{Guid.CreateVersion7():N}";
-        var asset = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, "ND-001");
+        var asset = NetworkAsset.RegisterFromGis(id, "tenant-1", AssetType.Node, "ND-001", "Junction");
         await repo.SaveAsync(asset);
 
         (await repo.ExistsAsync(id)).Should().BeTrue();

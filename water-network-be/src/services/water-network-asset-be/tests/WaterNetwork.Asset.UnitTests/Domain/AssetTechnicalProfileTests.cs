@@ -9,7 +9,7 @@ namespace WaterNetwork.Asset.UnitTests.Domain;
 public class AssetTechnicalProfileTests
 {
     private static NetworkAsset NewActiveAsset() =>
-        NetworkAsset.RegisterFromGis("node-1", "tenant-1", AssetType.Node, "ND-001");
+        NetworkAsset.RegisterFromGis("node-1", "tenant-1", AssetType.Node, "ND-001", "Junction");
 
     [Fact]
     public void UpdateTechnicalProfile_Sets_Fields_And_Raises_Event()

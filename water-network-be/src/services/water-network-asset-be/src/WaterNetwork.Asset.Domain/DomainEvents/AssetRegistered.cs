@@ -6,7 +6,8 @@ public sealed record AssetRegisteredData(
     string TenantId,
     string AssetType,
     string AssetCode,
-    string Status);
+    string Status,
+    string ComponentCode);
 
 public sealed record AssetRegistered(
     string AggregateId,

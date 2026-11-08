@@ -13,6 +13,8 @@ public sealed class NetworkAssetConfiguration : IEntityTypeConfiguration<Network
         builder.Property(x => x.TenantId).HasColumnName("tenant_id").HasMaxLength(64).IsRequired();
         builder.Property(x => x.AssetType).HasColumnName("asset_type").HasMaxLength(16).IsRequired();
         builder.Property(x => x.AssetCode).HasColumnName("asset_code").HasMaxLength(64).IsRequired();
+        builder.Property(x => x.ComponentCode).HasColumnName("component_code").HasMaxLength(64).HasDefaultValue("").IsRequired();
+        builder.HasIndex(x => new { x.TenantId, x.ComponentCode }).HasDatabaseName("ix_network_assets_tenant_component");
         builder.Property(x => x.Status).HasColumnName("status").HasMaxLength(32).IsRequired();
         builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken();
         builder.Property(x => x.CreatedAt).HasColumnName("created_at");
