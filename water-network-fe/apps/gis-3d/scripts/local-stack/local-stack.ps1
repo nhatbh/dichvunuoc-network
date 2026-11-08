@@ -78,7 +78,8 @@ foreach ($tool in 'docker', 'node', 'pnpm') {
 if ($Down) {
   Step 'Stopping the app dev server (port 4600)'
   Get-NetTCPConnection -LocalPort 4600 -State Listen -ErrorAction SilentlyContinue |
-    ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }
+    Select-Object -ExpandProperty OwningProcess -Unique |
+    ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
   Step 'docker compose down'
   Run 'docker' ($Compose + @('down')) $BeRoot | Out-Null
   exit 0
@@ -128,17 +129,30 @@ if ((Run 'node' @('scripts/local-stack/seed.mjs', '--gis', 'http://localhost:808
 
 # -- 3. app --------------------------------------------------------------------------------------
 Step 'Starting SYSTEM 3D on http://localhost:4600 (local-stack mode) in a new window'
+function Get-AppConfig {
+  try { return (Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri 'http://localhost:4600/config.json').Content } catch { return '' }
+}
+function Stop-Port4600 {
+  Get-NetTCPConnection -LocalPort 4600 -State Listen -ErrorAction SilentlyContinue |
+    Select-Object -ExpandProperty OwningProcess -Unique |
+    ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
+  for ($i = 0; $i -lt 20 -and (Get-NetTCPConnection -LocalPort 4600 -State Listen -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 500 }
+}
 $listening = Get-NetTCPConnection -LocalPort 4600 -State Listen -ErrorAction SilentlyContinue
-if ($listening) {
-  Write-Host '    port 4600 is already in use - assuming the dev server is running (use -Down to stop it)' -ForegroundColor Yellow
+if ($listening -and (Get-AppConfig) -match '"canonical"') {
+  Write-Host '    the local-stack dev server is already running on :4600 - reusing it'
 } else {
+  if ($listening) {
+    # another SYSTEM 3D dev server (mock / gis-dev) holds the port: stop it so this one can start
+    Write-Host '    stopping the other dev server on :4600' -ForegroundColor Yellow
+    Stop-Port4600
+  }
   Start-Process -FilePath 'cmd.exe' -WorkingDirectory $AppDir -ArgumentList '/k', 'title SYSTEM 3D - local stack & pnpm run dev:local-stack'
 }
 if (-not (Wait-Http 'http://localhost:4600/' 90)) { Fail 'the app dev server did not come up on :4600 - see the SYSTEM 3D window' }
 # the page must come from the local-stack dev server (canonical data source), not another one on :4600
-try { $cfg = (Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri 'http://localhost:4600/config.json').Content } catch { $cfg = '' }
-if ($cfg -notmatch '"canonical"') {
-  Fail 'port 4600 is served by another dev server (its /config.json is not the local-stack one). Close the other SYSTEM 3D window, or run this again with -Down first.'
+if ((Get-AppConfig) -notmatch '"canonical"') {
+  Fail 'the dev server on :4600 is not in local-stack mode - see the SYSTEM 3D window for its error.'
 }
 
 # -- 4. gate check -------------------------------------------------------------------------------
