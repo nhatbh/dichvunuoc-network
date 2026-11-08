@@ -17,13 +17,15 @@ struct ExportPage {
 struct ExportItem {
     kind: String,
     id: String,
-    node_type: Option<String>,
+    #[serde(default)]
+    component_code: String,
+    #[serde(default)]
+    functions: Vec<String>,
     from_node_id: Option<String>,
     to_node_id: Option<String>,
     diameter_mm: Option<i32>,
     material: Option<String>,
     length_m: Option<f64>,
-    device_type: Option<String>,
     host_pipe_id: Option<String>,
     host_node_id: Option<String>,
 }
@@ -95,7 +97,7 @@ fn item_to_kind(item: &ExportItem) -> Option<GraphEventKind> {
     match item.kind.as_str() {
         "Node" => Some(GraphEventKind::NodeRegistered {
             node_id: item.id.clone(),
-            node_type: item.node_type.clone().unwrap_or_default(),
+            component_code: item.component_code.clone(),
             lat: 0.0,
             lng: 0.0,
         }),
@@ -109,7 +111,8 @@ fn item_to_kind(item: &ExportItem) -> Option<GraphEventKind> {
         }),
         "Device" => Some(GraphEventKind::DeviceInstalled {
             device_id: item.id.clone(),
-            device_type: item.device_type.clone().unwrap_or_default(),
+            component_code: item.component_code.clone(),
+            isolates: item.functions.iter().any(|f| f == "isolates"),
             host_pipe_id: item.host_pipe_id.clone(),
             host_node_id: item.host_node_id.clone(),
             lat: 0.0,
@@ -135,7 +138,7 @@ mod tests {
             .and(path("/api/network/assets/export"))
             .and(query_param("limit", "2"))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-                "items": [{"kind":"Node","id":"node-1","assetCode":"ND-1","nodeType":"Junction"}],
+                "items": [{"kind":"Node","id":"node-1","assetCode":"ND-1","componentCode":"Junction","functions":["connects"]}],
                 "nextCursor": "node-1"
             })))
             .up_to_n_times(1)

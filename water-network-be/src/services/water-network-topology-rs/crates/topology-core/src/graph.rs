@@ -24,7 +24,12 @@ pub struct NodeVertex {
 /// A device's placement, tracked so deletes can find and unmark the host edge.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DevicePlacement {
-    pub device_type: String,
+    /// Catalog component code (decision 0028).
+    #[serde(alias = "device_type")]
+    pub component_code: String,
+    /// Operable to close its host pipe; only these bound an isolation segment.
+    #[serde(default)]
+    pub isolates: bool,
     pub host_pipe_id: Option<String>,
     pub host_node_id: Option<String>,
 }
@@ -163,18 +168,20 @@ impl NetworkGraph {
     pub fn set_device(
         &mut self,
         device_id: &str,
-        device_type: &str,
+        component_code: &str,
+        isolates: bool,
         host_pipe_id: Option<&str>,
         host_node_id: Option<&str>,
     ) {
         // If re-installing, clear any previous valve mark first.
         self.remove_device(device_id);
         let placement = DevicePlacement {
-            device_type: device_type.to_string(),
+            component_code: component_code.to_string(),
+            isolates,
             host_pipe_id: host_pipe_id.map(str::to_string),
             host_node_id: host_node_id.map(str::to_string),
         };
-        if device_type == "Valve" {
+        if isolates {
             if let Some(pid) = host_pipe_id {
                 if let Some(&ix) = self.pipe_ix.get(pid) {
                     self.graph[ix].valves.insert(device_id.to_string());
@@ -186,7 +193,7 @@ impl NetworkGraph {
 
     pub fn remove_device(&mut self, device_id: &str) {
         if let Some(prev) = self.devices.remove(device_id) {
-            if prev.device_type == "Valve" {
+            if prev.isolates {
                 if let Some(pid) = prev.host_pipe_id {
                     if let Some(&ix) = self.pipe_ix.get(&pid) {
                         self.graph[ix].valves.remove(device_id);
@@ -493,7 +500,7 @@ mod tests {
     fn valve_marks_host_edge() {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2");
-        g.set_device("d1", "Valve", Some("p1"), None);
+        g.set_device("d1", "GateValve", true, Some("p1"), None);
         assert!(g.pipe_has_valve("p1"));
         g.remove_device("d1");
         assert!(!g.pipe_has_valve("p1"));
@@ -503,7 +510,7 @@ mod tests {
     fn non_valve_device_does_not_mark_edge() {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2");
-        g.set_device("d1", "PressureSensor", Some("p1"), None);
+        g.set_device("d1", "PressureSensor", false, Some("p1"), None);
         assert!(!g.pipe_has_valve("p1"));
     }
 
@@ -511,9 +518,9 @@ mod tests {
     fn remove_node_drops_orphaned_device_placements() {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2"); // p1 is incident to n1
-        g.set_device("d_pipe", "Valve", Some("p1"), None); // hosted on p1
-        g.set_device("d_node", "Pump", None, Some("n1")); // hosted on n1
-        g.set_device("d_keep", "Pump", None, Some("n2")); // hosted on the surviving node
+        g.set_device("d_pipe", "GateValve", true, Some("p1"), None); // hosted on p1
+        g.set_device("d_node", "Hydrant", false, None, Some("n1")); // hosted on n1
+        g.set_device("d_keep", "Hydrant", false, None, Some("n2")); // hosted on the surviving node
 
         g.remove_node("n1");
 
@@ -616,8 +623,8 @@ mod tests {
         g.add_pipe("p1", "n1", "n2");
         g.add_pipe("p2", "n2", "n3");
         g.add_pipe("p3", "n3", "n4");
-        g.set_device("v_far", "Valve", Some("p3"), None); // ~2 hops from n1
-        g.set_device("v_near", "Valve", Some("p1"), None); // 0 hops from n1
+        g.set_device("v_far", "GateValve", true, Some("p3"), None); // ~2 hops from n1
+        g.set_device("v_near", "GateValve", true, Some("p1"), None); // 0 hops from n1
         let valves = g.nearest_valves("n1", 5);
         let ids: Vec<&str> = valves.iter().map(|v| v.device_id.as_str()).collect();
         assert_eq!(ids, vec!["v_near", "v_far"]);
@@ -627,12 +634,35 @@ mod tests {
     }
 
     #[test]
+    fn isolation_closes_gate_and_butterfly_valves_but_never_check_valves_or_prvs() {
+        // n1 -p1(check valve)- n2 -p2(PRV)- n3 -p3(butterfly)- n4 ; n1 -p0(gate)- n0
+        let mut g = NetworkGraph::default();
+        g.add_pipe("p0", "n0", "n1");
+        g.add_pipe("p1", "n1", "n2");
+        g.add_pipe("p2", "n2", "n3");
+        g.add_pipe("p3", "n3", "n4");
+        g.set_device("gate", "GateValve", true, Some("p0"), None);
+        g.set_device("check", "CheckValve", false, Some("p1"), None);
+        g.set_device("prv", "PRV", false, Some("p2"), None);
+        g.set_device("bfv", "ButterflyValve", true, Some("p3"), None);
+        let zone = g.compute_isolation_zone("n2");
+        assert_eq!(
+            zone.valves_to_close,
+            vec!["bfv".to_string(), "gate".to_string()]
+        );
+        assert!(g
+            .nearest_valves("n2", 10)
+            .iter()
+            .all(|v| v.device_id != "check" && v.device_id != "prv"));
+    }
+
+    #[test]
     fn nearest_valves_respects_k() {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2");
         g.add_pipe("p2", "n2", "n3");
-        g.set_device("v1", "Valve", Some("p1"), None);
-        g.set_device("v2", "Valve", Some("p2"), None);
+        g.set_device("v1", "GateValve", true, Some("p1"), None);
+        g.set_device("v2", "GateValve", true, Some("p2"), None);
         assert_eq!(g.nearest_valves("n1", 1).len(), 1);
     }
 
@@ -641,7 +671,7 @@ mod tests {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2");
         g.add_pipe("p2", "n2", "n3"); // p2 connects nodes 1 and 2 hops from n1
-        g.set_device("v_mid", "Valve", Some("p2"), None);
+        g.set_device("v_mid", "GateValve", true, Some("p2"), None);
         let valves = g.nearest_valves("n1", 5);
         assert_eq!(valves.len(), 1);
         // p2's nearer endpoint (n2) is 1 hop from n1 → distance 1, not 2.
@@ -685,7 +715,7 @@ mod tests {
         for n in ["n1", "n2", "n3", "n4"] {
             g.register_node(n);
         }
-        g.set_device("v1", "Valve", Some("p2"), None);
+        g.set_device("v1", "GateValve", true, Some("p2"), None);
         let z = g.compute_isolation_zone("n1");
         assert_eq!(z.valves_to_close, vec!["v1"]);
         assert_eq!(z.isolated_nodes, vec!["n1", "n2"]);
@@ -698,7 +728,7 @@ mod tests {
         g.add_pipe("p1", "n1", "n2"); // valved right at n1's edge
         g.register_node("n1");
         g.register_node("n2");
-        g.set_device("v1", "Valve", Some("p1"), None);
+        g.set_device("v1", "GateValve", true, Some("p1"), None);
         let z = g.compute_isolation_zone("n1");
         assert_eq!(z.valves_to_close, vec!["v1"]);
         assert_eq!(z.isolated_nodes, vec!["n1"]);
@@ -742,8 +772,8 @@ mod tests {
         for n in ["n1", "n2", "n3", "n4"] {
             g.register_node(n);
         }
-        g.set_device("v1", "Valve", Some("p2"), None);
-        g.set_device("v2", "Valve", Some("p3"), None);
+        g.set_device("v1", "GateValve", true, Some("p2"), None);
+        g.set_device("v2", "GateValve", true, Some("p3"), None);
         let z = g.compute_isolation_zone("n1");
         assert_eq!(z.valves_to_close, vec!["v1", "v2"]);
         assert_eq!(z.isolated_nodes, vec!["n1", "n2"]);
@@ -761,7 +791,13 @@ mod tests {
         for i in 0..n {
             g.add_pipe(&format!("p{i}"), &format!("nd{i}"), &format!("nd{}", i + 1));
         }
-        g.set_device("vend", "Valve", Some(&format!("p{}", n - 1)), None);
+        g.set_device(
+            "vend",
+            "GateValve",
+            true,
+            Some(&format!("p{}", n - 1)),
+            None,
+        );
 
         let start = std::time::Instant::now();
         let z = g.compute_isolation_zone("nd0");

@@ -4,6 +4,7 @@ using WaterNetwork.Gis.Application.Common;
 using WaterNetwork.Gis.Application.Dtos;
 using WaterNetwork.Gis.Application.Ports;
 using WaterNetwork.Gis.Infrastructure.Persistence;
+using WaterPlatform.BuildingBlocks.Components;
 
 namespace WaterNetwork.Gis.Infrastructure.Repositories;
 
@@ -71,7 +72,8 @@ public sealed class ExportAssetReadDao(GisDbContext dbContext) : IExportAssetRea
             .Select(r => new AssetExportItemDto(
                 r.Kind, r.Id, r.AssetCode, r.ComponentCode, r.FromNodeId, r.ToNodeId,
                 r.DiameterMm, r.Material, r.LengthM, r.HostPipeId, r.HostNodeId,
-                PropertiesJson.Read(r.PropertiesJson)))
+                PropertiesJson.Read(r.PropertiesJson),
+                ComponentCatalog.Default.Find(r.ComponentCode)?.Functions ?? []))
             .ToList();
     }
 }

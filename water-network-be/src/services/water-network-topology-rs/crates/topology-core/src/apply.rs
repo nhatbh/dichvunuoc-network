@@ -45,13 +45,15 @@ impl TenantGraphs {
             }
             GraphEventKind::DeviceInstalled {
                 device_id,
-                device_type,
+                component_code,
+                isolates,
                 host_pipe_id,
                 host_node_id,
                 ..
             } => g.set_device(
                 device_id,
-                device_type,
+                component_code,
+                *isolates,
                 host_pipe_id.as_deref(),
                 host_node_id.as_deref(),
             ),
@@ -115,7 +117,7 @@ mod tests {
             "t1",
             GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
-                node_type: "Junction".into(),
+                component_code: "Junction".into(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -146,7 +148,7 @@ mod tests {
             "t1",
             GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
-                node_type: "J".into(),
+                component_code: "Junction".into(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -156,7 +158,7 @@ mod tests {
             "t2",
             GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
-                node_type: "J".into(),
+                component_code: "Junction".into(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -174,7 +176,7 @@ mod tests {
             "t1",
             GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
-                node_type: "J".into(),
+                component_code: "Junction".into(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -214,7 +216,7 @@ mod tests {
         let kind = match code {
             0 => GraphEventKind::NodeRegistered {
                 node_id: n(i),
-                node_type: "J".into(),
+                component_code: "Junction".into(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -235,7 +237,8 @@ mod tests {
             4 => GraphEventKind::PipeDeleted { pipe_id: p(i) },
             5 => GraphEventKind::DeviceInstalled {
                 device_id: d(i),
-                device_type: "Valve".into(),
+                component_code: "GateValve".into(),
+                isolates: true,
                 host_pipe_id: Some(p(i)),
                 host_node_id: None,
                 lat: 0.0,

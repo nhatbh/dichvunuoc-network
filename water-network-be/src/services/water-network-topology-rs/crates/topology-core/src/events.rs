@@ -22,7 +22,7 @@ struct InnerPayload {
 struct NodeRegisteredData {
     node_id: String,
     tenant_id: String,
-    node_type: String,
+    component_code: String,
     latitude: f64,
     longitude: f64,
 }
@@ -67,7 +67,10 @@ struct PipeDeletedData {
 struct DeviceInstalledData {
     device_id: String,
     tenant_id: String,
-    device_type: String,
+    component_code: String,
+    /// Catalog functional flags (decision 0028); `isolates` marks an isolation valve.
+    #[serde(default)]
+    functions: Vec<String>,
     host_pipe_id: Option<String>,
     host_node_id: Option<String>,
     latitude: f64,
@@ -93,7 +96,7 @@ pub struct GraphEvent {
 pub enum GraphEventKind {
     NodeRegistered {
         node_id: String,
-        node_type: String,
+        component_code: String,
         lat: f64,
         lng: f64,
     },
@@ -118,7 +121,10 @@ pub enum GraphEventKind {
     },
     DeviceInstalled {
         device_id: String,
-        device_type: String,
+        component_code: String,
+        /// Operable to close its pipe (gate, butterfly, ball, service valves) — never a
+        /// check valve or PRV.
+        isolates: bool,
         host_pipe_id: Option<String>,
         host_node_id: Option<String>,
         lat: f64,
@@ -194,7 +200,7 @@ fn parse_kind(
                 d.tenant_id,
                 GraphEventKind::NodeRegistered {
                     node_id: d.node_id,
-                    node_type: d.node_type,
+                    component_code: d.component_code,
                     lat: d.latitude,
                     lng: d.longitude,
                 },
@@ -245,7 +251,8 @@ fn parse_kind(
                 d.tenant_id,
                 GraphEventKind::DeviceInstalled {
                     device_id: d.device_id,
-                    device_type: d.device_type,
+                    isolates: d.functions.iter().any(|f| f == "isolates"),
+                    component_code: d.component_code,
                     host_pipe_id: d.host_pipe_id,
                     host_node_id: d.host_node_id,
                     lat: d.latitude,
@@ -273,10 +280,10 @@ mod tests {
     // Verbatim wire shape: envelope is PascalCase; Payload is a STRING whose
     // decoded form has a `Data` object with the typed fields (also PascalCase).
     fn node_registered_wire() -> String {
-        let data = r#"{"NodeId":"node-1","TenantId":"t-1","AssetCode":"ND-1","NodeType":"Junction","Latitude":10.5,"Longitude":106.7}"#;
+        let data = r#"{"NodeId":"node-1","TenantId":"t-1","AssetCode":"ND-1","ComponentCode":"Junction","Functions":["connects"],"Properties":{},"Latitude":10.5,"Longitude":106.7}"#;
         let payload = serde_json::json!({
             "EventType": "network.node.registered",
-            "EventVersion": 1,
+            "EventVersion": 2,
             "Data": serde_json::from_str::<serde_json::Value>(data).unwrap()
         });
         serde_json::json!({
@@ -366,7 +373,8 @@ mod tests {
         let raw = wire(
             "network.device.installed",
             serde_json::json!({
-                "DeviceId": "dev-1", "TenantId": "t-9", "AssetCode": "DV-1", "DeviceType": "Valve",
+                "DeviceId": "dev-1", "TenantId": "t-9", "AssetCode": "DV-1", "ComponentCode": "ButterflyValve",
+                "Functions": ["isolates"], "Properties": {"state": "open"},
                 "HostPipeId": "pipe-1", "HostNodeId": serde_json::Value::Null, "Latitude": 1.0, "Longitude": 2.0
             }),
         );
@@ -376,17 +384,43 @@ mod tests {
         match ev.kind {
             GraphEventKind::DeviceInstalled {
                 device_id,
-                device_type,
+                component_code,
+                isolates,
                 host_pipe_id,
                 host_node_id,
                 ..
             } => {
                 assert_eq!(device_id, "dev-1");
-                assert_eq!(device_type, "Valve");
+                assert_eq!(component_code, "ButterflyValve");
+                assert!(isolates);
                 assert_eq!(host_pipe_id.as_deref(), Some("pipe-1"));
                 assert_eq!(host_node_id, None);
             }
             other => panic!("wrong kind: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn check_valve_and_prv_do_not_isolate() {
+        for (code, functions) in [("CheckValve", vec!["controls"]), ("PRV", vec!["controls"])] {
+            let raw = wire(
+                "network.device.installed",
+                serde_json::json!({
+                    "DeviceId": "dev-2", "TenantId": "t-9", "AssetCode": "DV-2", "ComponentCode": code,
+                    "Functions": functions, "Properties": {},
+                    "HostPipeId": "pipe-1", "HostNodeId": serde_json::Value::Null, "Latitude": 1.0, "Longitude": 2.0
+                }),
+            );
+            match GraphEvent::from_envelope_bytes(raw.as_bytes())
+                .unwrap()
+                .unwrap()
+                .kind
+            {
+                GraphEventKind::DeviceInstalled { isolates, .. } => {
+                    assert!(!isolates, "{code} must not isolate")
+                }
+                other => panic!("wrong kind: {other:?}"),
+            }
         }
     }
 }

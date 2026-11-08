@@ -144,13 +144,13 @@ mod tests {
         };
         tg.apply(&ev(GraphEventKind::NodeRegistered {
             node_id: "n1".into(),
-            node_type: "J".into(),
+            component_code: "Junction".into(),
             lat: 0.0,
             lng: 0.0,
         }));
         tg.apply(&ev(GraphEventKind::NodeRegistered {
             node_id: "n2".into(),
-            node_type: "J".into(),
+            component_code: "Junction".into(),
             lat: 0.0,
             lng: 0.0,
         }));
@@ -164,7 +164,8 @@ mod tests {
         }));
         tg.apply(&ev(GraphEventKind::DeviceInstalled {
             device_id: "v1".into(),
-            device_type: "Valve".into(),
+            component_code: "GateValve".into(),
+            isolates: true,
             host_pipe_id: Some("p1".into()),
             host_node_id: None,
             lat: 0.0,
@@ -306,7 +307,7 @@ mod tests {
         for id in ["n1", "n2", "n3"] {
             tg.apply(&ev(GraphEventKind::NodeRegistered {
                 node_id: id.into(),
-                node_type: "J".into(),
+                component_code: "Junction".into(),
                 lat: 0.0,
                 lng: 0.0,
             }));
@@ -329,7 +330,8 @@ mod tests {
         }));
         tg.apply(&ev(GraphEventKind::DeviceInstalled {
             device_id: "v1".into(),
-            device_type: "Valve".into(),
+            component_code: "GateValve".into(),
+            isolates: true,
             host_pipe_id: Some("p2".into()),
             host_node_id: None,
             lat: 0.0,

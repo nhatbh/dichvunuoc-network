@@ -78,6 +78,7 @@ public class ExportAssetsApiTests(PostgisFixture postgis) : IClassFixture<Postgi
         var item = page.GetProperty("items")[0];
         item.GetProperty("kind").GetString().Should().Be("Node");
         item.GetProperty("componentCode").GetString().Should().Be("Junction");
+        item.GetProperty("functions").EnumerateArray().Select(f => f.GetString()).Should().Equal("connects");
         item.GetProperty("id").GetString().Should().NotBeNullOrEmpty();
     }
 

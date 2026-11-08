@@ -77,7 +77,7 @@ mod tests {
             tenant_id: "t1".into(),
             kind: GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
-                node_type: "J".into(),
+                component_code: "Junction".into(),
                 lat: 0.0,
                 lng: 0.0,
             },

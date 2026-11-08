@@ -17,4 +17,5 @@ public sealed record AssetExportItemDto(
     double? LengthM,        // Pipe
     string? HostPipeId,     // Device
     string? HostNodeId,     // Device
-    IReadOnlyDictionary<string, string> Properties);
+    IReadOnlyDictionary<string, string> Properties,
+    IReadOnlyList<string> Functions); // catalog flags, e.g. "isolates" for isolation valves

@@ -17,7 +17,7 @@ async fn publishes_node_registered_envelope() {
         .expect("set TOPOLOGY_EXCHANGE to the value discovered empirically");
 
     // Build the same envelope the .NET publisher emits.
-    let data = serde_json::json!({"NodeId":"itnode-1","TenantId":"itt-1","AssetCode":"ND-IT","NodeType":"Junction","Latitude":10.0,"Longitude":106.0});
+    let data = serde_json::json!({"NodeId":"itnode-1","TenantId":"itt-1","AssetCode":"ND-IT","ComponentCode":"Junction","Functions":["connects"],"Properties":{},"Latitude":10.0,"Longitude":106.0});
     let payload =
         serde_json::json!({"EventType":"network.node.registered","EventVersion":1,"Data":data})
             .to_string();
