@@ -9,7 +9,7 @@ import { importSessionScope } from '../import-workspace/api'
 import { gisLonLatToPixel, gisPixelToLonLat, type GisData } from '../lib/gis-data'
 import { createNetworkEditorApi, type EditorApi } from '../network-editor/api'
 import type { Draft, DraftKind, RuleIssue } from './model'
-import type { Issue, Revision } from '../network-editor/model'
+import type { Issue, Revision, State } from '../network-editor/model'
 
 export const WRITE_PERMISSION = 'network-design:write'
 const EDITABLE = ['Draft', 'Validated', 'Rejected']
@@ -77,7 +77,8 @@ export function createRevisionSync(opts: {
   const [savedSnapshot, setSavedSnapshot] = createSignal<string | null>(null)
   const canWrite = () => session.data()?.user.permissions?.includes(WRITE_PERMISSION) ?? false
   const proj = gisProjector(G)
-  let versions: Record<string, number> | null = null
+  /** The published network (versions, nodes to connect to); re-read after a conflict. */
+  let base: State | null = null
 
   const client = () => (opts.api ?? createNetworkEditorApi)(importSessionScope(session.data()), controller.signal)
 
@@ -109,12 +110,16 @@ export function createRevisionSync(opts: {
 
   async function persist(api: EditorApi, drafts: Draft[], name: string, id: string | undefined): Promise<Revision | null> {
     const rev = await ensureRevision(api, name, id)
-    if (!versions && drafts.some(d => d.op !== 'add'))
-      versions = Object.fromEntries(Object.entries(await api.assets()).map(([k, v]) => [k, v.version]))
-    const ops = draftsToOperations(drafts, proj, versions ?? {}, (k, i) => baseCode(G, k, i))
-    const saved = await api.save(rev, ops)
+    base ??= await api.assets()
+    const ops = draftsToOperations(drafts, proj, base, (k, i) => baseCode(G, k, i))
+    // a refused save (409: a base asset changed meanwhile) re-reads the network next time
+    const saved = await api.save(rev, ops).catch((e: unknown) => {
+      base = null
+      throw e
+    })
     setRevision(saved)
     setSavedSnapshot(JSON.stringify(drafts))
+    conflict(saved.errors)
     if (saved.errors?.length) {
       setIssues(serverIssues(saved.errors))
       return null
@@ -124,7 +129,7 @@ export function createRevisionSync(opts: {
 
   const conflict = (errors: Issue[] | undefined) => {
     // someone else changed a base asset: refresh versions so the next save re-reads them
-    if (errors?.some(e => e.code === 'target.conflict')) versions = null
+    if (errors?.some(e => e.code === 'TARGET_CONFLICT' || e.code === 'target.conflict')) base = null
   }
 
   return {

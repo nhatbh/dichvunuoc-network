@@ -78,7 +78,12 @@ describe('createRevisionSync', () => {
     expect(r?.id).toBe('REV-1')
     expect(linked).toEqual(['REV-1'])
     const ops = f.store.get('REV-1')!.operations!
-    expect(ops.map(o => [o.action, o.expectedVersion])).toEqual([['Add', null], ['Update', 7]])
+    // the two drafts, then a junction at each end of both pipes (the fake network has no nodes)
+    expect(ops.map(o => [o.action, o.kind, o.expectedVersion])).toEqual([
+      ['Add', 'Pipe', null],
+      ['Update', 'Pipe', 7],
+      ...Array.from({ length: 4 }, () => ['Add', 'Node', null]),
+    ])
     expect(ops[1]!.after!.assetCode).toBe('ONG-1')
     expect(sync.savedSnapshot()).toBe(JSON.stringify([add, mod]))
   })

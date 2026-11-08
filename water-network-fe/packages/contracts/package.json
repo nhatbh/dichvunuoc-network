@@ -39,6 +39,10 @@
     "./catalog": {
       "types": "./dist/catalog/index.d.ts",
       "import": "./dist/catalog/index.js"
+    },
+    "./network-edits": {
+      "types": "./dist/network-edits/index.d.ts",
+      "import": "./dist/network-edits/index.js"
     }
   },
   "files": [

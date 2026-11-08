@@ -2,8 +2,11 @@
 #
 #   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
 #
-# Adds a stand-in for the platform app-catalog so the BFF's tenant-to-app entitlement gate
-# (TenantAppEntitlementMiddleware) answers "allowed" locally. Never deploy this file.
+# - a stand-in for the platform app-catalog so the BFF's tenant-to-app entitlement gate
+#   (TenantAppEntitlementMiddleware) answers "allowed" locally;
+# - the BFF's editor routes pointed at design-be, and design-be's edit inspection at gis-be
+#   (the base file leaves both unset: /api/gis/editor/* answers 503 and edits are not checked).
+# Never deploy this file.
 services:
   dev-app-catalog:
     image: nginx:1.27-alpine
@@ -24,5 +27,12 @@ services:
   water-network-bff:
     environment:
       - AppEntitlement__BaseUrl=http://dev-app-catalog:8080/
+      - Downstream__Design__BaseUrl=http://water-network-design-be:8080
     depends_on:
       - dev-app-catalog
+      - water-network-design-be
+
+  water-network-design-be:
+    environment:
+      - GisLookup__Provider=Http
+      - GisLookup__BaseUrl=http://water-network-gis-be:8080

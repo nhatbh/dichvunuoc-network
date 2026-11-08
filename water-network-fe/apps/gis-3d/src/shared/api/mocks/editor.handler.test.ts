@@ -14,11 +14,17 @@ const newRevision = async () => {
   const r = await call(`/projects/${p.json.id}/revisions`, 'POST')
   return (await call(`/revisions/${r.json.id}`)).json
 }
-const pipe = (id: string, coords: [number, number][], attrs: Record<string, string> = {}) => ({
-  id, action: 'Add', kind: 'Pipe', targetId: null, expectedVersion: null, before: null,
-  after: { draftAssetId: id, clientRef: id, kind: 'Pipe', assetCode: 'ONG-' + id, geometry: { type: 'LineString', coordinates: coords }, attributes: { dn: '200', material: 'HDPE', dma: 'DMA-01', ...attrs }, fromRef: null, toRef: null, hostRef: null },
+const add = (id: string, kind: string, coordinates: [number, number][], attributes: Record<string, string>, refs: Json = {}) => ({
+  id, action: 'Add', kind, targetId: null, expectedVersion: null, before: null,
+  after: { draftAssetId: id, clientRef: id, kind, assetCode: 'X-' + id, geometry: { type: kind === 'Pipe' ? 'LineString' : 'Point', coordinates }, attributes, fromRef: null, toRef: null, hostRef: null, ...refs },
 })
 const LINE: [number, number][] = [[105.85, 21.03], [105.851, 21.03]]
+/** A new pipe between two new junctions, in the server's terms. */
+const segment = (id: string, coords = LINE, attrs: Record<string, string> = {}) => [
+  add(id + '-A', 'Node', [coords[0]!], { nodeType: 'Junction' }),
+  add(id + '-B', 'Node', [coords[coords.length - 1]!], { nodeType: 'Junction' }),
+  add(id, 'Pipe', coords, { diameterMm: '200', material: 'HDPE', dma: 'DMA-01', ...attrs }, { fromRef: id + '-A', toRef: id + '-B' }),
+]
 
 beforeEach(() => resetEditorStore())
 
@@ -26,7 +32,7 @@ describe('mock design-revision service', () => {
   it('runs save → validate → submit → approve and publishes onto /full', async () => {
     const rev = await newRevision()
     expect(rev.status).toBe('Draft')
-    const saved = await call(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: [pipe('DRF-1', LINE)] })
+    const saved = await call(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: segment('DRF-1') })
     expect(saved.status).toBe(200)
     expect(saved.json.version).toBe(rev.version + 1)
     expect((await call(`/revisions/${rev.id}/submit`, 'POST', {})).status).toBe(409) // not validated yet
@@ -52,16 +58,23 @@ describe('mock design-revision service', () => {
     const assets = (await call('/assets')).json
     const [pid, base] = Object.entries(assets).find(([, v]) => (v as Json).asset.kind === 'Pipe') as [string, Json]
     const stale = { id: 'DRF-2', action: 'Update', kind: 'Pipe', targetId: pid, expectedVersion: base.version + 5, before: null, after: base.asset }
-    const ops = [pipe('DRF-1', LINE, { dn: '9999', material: 'Gỗ' }), stale, pipe('DRF-3', [[0, 0], [1, 1]])]
-    await call(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: ops })
+    // a stale base version refuses the save, as design-be does
+    const refused = await call(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: [stale] })
+    expect(refused.status).toBe(409)
+    expect(refused.json.errors.map((e: Json) => e.code)).toEqual(['TARGET_CONFLICT'])
+    // the editor's old shapes: dn instead of diameterMm, a label instead of a material code, no end nodes
+    const old = add('DRF-3', 'Pipe', LINE, { dn: '200', material: 'Gang dẻo' })
+    const ops = [...segment('DRF-1', LINE, { diameterMm: '20.5' }), old]
+    const saved = await call(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: ops })
+    expect(saved.status).toBe(200)
     const v = (await call(`/revisions/${rev.id}/validate`, 'POST', {})).json
     expect(v.isValid).toBe(false)
-    expect(v.errors.map((e: { code: string }) => e.code).sort()).toEqual(['geometry.extent', 'pipe.dn', 'pipe.material', 'target.conflict'])
+    expect(v.errors.map((e: { code: string }) => e.code).sort()).toEqual(['DIAMETER', 'DIAMETER', 'INVALID_PROPERTIES'])
   })
 
   it('requires a reason to reject', async () => {
     const rev = await newRevision()
-    await call(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: [pipe('DRF-1', LINE)] })
+    await call(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: segment('DRF-1') })
     await call(`/revisions/${rev.id}/validate`, 'POST', {})
     await call(`/revisions/${rev.id}/submit`, 'POST', {})
     expect((await call(`/revisions/${rev.id}/reject`, 'POST', {})).status).toBe(400)

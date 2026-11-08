@@ -2,7 +2,12 @@
    Single-user, in memory. Mirrors the server contract: optimistic concurrency on the revision
    (`expectedVersion`) and on every base asset, server-side validation, and the
    Draft → Validated → Submitted → Published | Rejected workflow. Published operations are
-   replayed onto the `/full` payload so the map shows approved edits after a reload. */
+   replayed onto the `/full` payload so the map shows approved edits after a reload.
+   The network is held in the server's terms (diameterMm, material codes, node types, devices on
+   their hosts, pipes ending on nodes) and checked with the port of gis-be's validator, so what
+   passes here passes on the real service. */
+import { pipeMaterialCode, pipeMaterialLabel } from '@wn/contracts/catalog'
+import { inspectNetworkEdits, NODE_TYPES } from '@wn/contracts/network-edits'
 import { http, HttpResponse } from 'msw'
 import { buildLegacyFullSeed } from './legacy-full-seed'
 
@@ -56,9 +61,6 @@ interface Geo {
 }
 type Rec = Record<string, unknown>
 
-const DN_RANGE: [number, number] = [25, 1200]
-const MATERIALS = ['Gang dẻo', 'HDPE', 'uPVC', 'Thép', 'Gang xám']
-
 let seq = 0
 let projects: { id: string; name: string }[] = []
 let revisions = new Map<string, Revision>()
@@ -90,27 +92,57 @@ const clean = (o: Record<string, unknown>) => {
   return out
 }
 
-/** Official network as revision assets (built once from the seed, then kept current by publishing). */
+/** gis-be asset codes are [A-Za-z0-9_-]; the seed's dotted codes are mapped once. */
+const gisCode = (c: unknown) => String(c).replace(/[^A-Za-z0-9_-]+/g, '-')
+const asNodeType = (kind: unknown) => NODE_TYPES.find(t => t.toLowerCase() === String(kind ?? '').toLowerCase()) ?? 'Junction'
+
+/** Official network as revision assets, in the server's terms (built once from the seed, then
+ *  kept current by publishing). */
 function assets(): Record<string, { asset: Asset; version: number }> {
   if (state) return state
   const seed = buildLegacyFullSeed() as Rec
   geo = seed.geo as Geo
   const g = geo
   const out: Record<string, { asset: Asset; version: number }> = {}
-  const put = (id: string, kind: Kind, code: string, geometry: Asset['geometry'], attributes: Record<string, string>, hostRef: string | null = null) => {
-    out[id] = { version: 1, asset: { draftAssetId: id, kind, assetCode: code, clientRef: null, geometry, attributes, fromRef: null, toRef: null, hostRef } }
+  // gis-be codes are unique; the seed reuses type codes (ONG_HD_DN150 …), so repeats get the id
+  const codes = new Set<string>()
+  const unique = (c: string, id: string) => {
+    const v = codes.has(c) ? gisCode(`${c}-${id}`) : c
+    codes.add(v)
+    return v
   }
-  for (const p of seed.pipes as Rec[])
-    put(String(p.id), 'Pipe', String(p.code), { type: 'LineString', coordinates: (p.pts as Point[]).map(([x, y]) => toLonLat(g, x, y)) },
-      clean({ dn: p.dn, material: p.material, year: p.year, cond: p.cond, trunk: p.trunk, status: p.status, dma: p.dma }))
+  const put = (id: string, kind: Kind, code: string, geometry: Asset['geometry'], attributes: Record<string, string>, refs: Partial<Pick<Asset, 'fromRef' | 'toRef' | 'hostRef'>> = {}) => {
+    out[id] = { version: 1, asset: { draftAssetId: id, kind, assetCode: unique(gisCode(code), id), clientRef: null, geometry, attributes, fromRef: refs.fromRef ?? null, toRef: refs.toRef ?? null, hostRef: refs.hostRef ?? null } }
+  }
+  const nodes = (seed.nodes as Rec[]) ?? []
+  const nodeAt = new Map<string, Point>()
+  for (const n of nodes) {
+    const at = toLonLat(g, n.x as number, n.y as number)
+    nodeAt.set(String(n.id), at)
+    put(String(n.id), 'Node', String(n.code), { type: 'Point', coordinates: [at] }, clean({ nodeType: asNodeType(n.kind), fitting: n.kind, z: n.z }))
+  }
+  for (const p of seed.pipes as Rec[]) {
+    const coords = (p.pts as Point[]).map(([x, y]) => toLonLat(g, x, y))
+    // ends sit exactly on their nodes, as gis-be stores them
+    const from = nodeAt.get(String(p.from)), to = nodeAt.get(String(p.to))
+    if (from) coords[0] = from
+    if (to) coords[coords.length - 1] = to
+    put(String(p.id), 'Pipe', String(p.code), { type: 'LineString', coordinates: coords },
+      clean({ diameterMm: Math.round(Number(p.dn)), material: pipeMaterialCode(String(p.material)) ?? p.material, year: p.year, cond: p.cond, trunk: p.trunk, status: p.status, dma: p.dma }),
+      { fromRef: from ? String(p.from) : null, toRef: to ? String(p.to) : null })
+  }
   for (const v of seed.valves as Rec[])
     put(String(v.id), 'Device', String(v.code), { type: 'Point', coordinates: [toLonLat(g, v.x as number, v.y as number)] },
-      clean({ deviceType: 'valve', dn: v.dn, valveKind: v.kind, state: v.state, year: v.year, dma: v.dma }), s(v.pipe) ?? null)
-  for (const h of seed.hydrants as Rec[])
-    put(String(h.id), 'Device', String(h.code), { type: 'Point', coordinates: [toLonLat(g, h.x as number, h.y as number)] },
-      clean({ deviceType: 'hydrant', status: h.status, dma: h.dma }))
-  for (const n of (seed.nodes as Rec[]) ?? [])
-    put(String(n.id), 'Node', String(n.code), { type: 'Point', coordinates: [toLonLat(g, n.x as number, n.y as number)] }, clean({ nodeType: n.kind, z: n.z }))
+      clean({ deviceType: 'Valve', dn: v.dn, valveKind: v.kind, state: v.state, year: v.year, dma: v.dma }), { hostRef: s(v.pipe) ?? null })
+  for (const h of seed.hydrants as Rec[]) {
+    const at = toLonLat(g, h.x as number, h.y as number)
+    let host: string | null = null, best = Infinity
+    for (const [id, n] of nodeAt) {
+      const d = (n[0] - at[0]) ** 2 + (n[1] - at[1]) ** 2
+      if (d < best) [best, host] = [d, id]
+    }
+    put(String(h.id), 'Device', String(h.code), { type: 'Point', coordinates: [at] }, clean({ deviceType: 'Hydrant', status: h.status, dma: h.dma }), { hostRef: host })
+  }
   state = out
   return out
 }
@@ -125,51 +157,9 @@ function lengthM(coords: Point[]): number {
   return m
 }
 
-/** Server-side validation (the same rules apply whatever client sent the operations). */
+/** Server-side validation: the port of gis-be's NetworkEditValidator (same rules, same codes). */
 export function validateOperations(ops: Edit[]): Issue[] {
-  const official = assets()
-  const issues: Issue[] = []
-  const add = (op: Edit, code: string, field: string, message: string) => issues.push({ code, operationId: op.id, draftAssetId: op.targetId ?? op.id, field, message })
-  const deleted = new Set(ops.filter(o => o.action === 'Delete').map(o => o.targetId))
-  const pipesAfter = new Set([...Object.keys(official).filter(id => official[id]!.asset.kind === 'Pipe' && !deleted.has(id)), ...ops.filter(o => o.after?.kind === 'Pipe').map(o => o.after!.draftAssetId)])
-  const seen = new Set<string>()
-  for (const op of ops) {
-    if (seen.has(op.id)) add(op, 'operation.duplicate', 'id', 'Thao tác bị trùng mã.')
-    seen.add(op.id)
-    if (op.action !== 'Add') {
-      const base = op.targetId ? official[op.targetId] : undefined
-      if (!base) {
-        add(op, 'target.missing', 'targetId', `Đối tượng ${op.targetId} không còn trong mạng chính thức.`)
-        continue
-      }
-      if (op.expectedVersion !== null && op.expectedVersion !== base.version)
-        add(op, 'target.conflict', 'expectedVersion', `${base.asset.assetCode} đã được người khác cập nhật (v${base.version}). Mở lại để lấy bản mới.`)
-    }
-    if (op.action === 'Delete') {
-      if (op.kind === 'Pipe') {
-        const hosted = Object.values(official).filter(x => x.asset.hostRef === op.targetId && !deleted.has(x.asset.draftAssetId))
-        if (hosted.length) add(op, 'pipe.hosted', 'targetId', `Ống còn ${hosted.length} thiết bị gắn — xoá hoặc chuyển thiết bị trước.`)
-      }
-      continue
-    }
-    const a = op.after
-    if (!a) {
-      add(op, 'after.missing', 'after', 'Thiếu dữ liệu sau thay đổi.')
-      continue
-    }
-    const coords = a.geometry.coordinates
-    if (!coords.every(p => p.length === 2 && p[0] > 102 && p[0] < 110 && p[1] > 8 && p[1] < 24))
-      add(op, 'geometry.extent', 'geometry', 'Toạ độ nằm ngoài phạm vi Việt Nam.')
-    if (a.kind === 'Pipe') {
-      if (a.geometry.type !== 'LineString' || coords.length < 2) add(op, 'pipe.geometry', 'geometry', 'Ống cần ít nhất 2 điểm.')
-      else if (lengthM(coords) < 0.5) add(op, 'pipe.length', 'geometry', 'Ống quá ngắn (< 0,5 m).')
-      const dn = Number(a.attributes.dn)
-      if (!Number.isFinite(dn) || dn < DN_RANGE[0] || dn > DN_RANGE[1]) add(op, 'pipe.dn', 'dn', `DN ${a.attributes.dn ?? '—'} ngoài khoảng ${DN_RANGE[0]}–${DN_RANGE[1]}.`)
-      if (!MATERIALS.includes(a.attributes.material ?? '')) add(op, 'pipe.material', 'material', `Vật liệu "${a.attributes.material ?? ''}" không có trong danh mục.`)
-    } else if (a.geometry.type !== 'Point' || coords.length !== 1) add(op, 'point.geometry', 'geometry', 'Đối tượng điểm cần đúng một toạ độ.')
-    if (a.hostRef && !pipesAfter.has(a.hostRef)) add(op, 'device.host', 'hostRef', `Thiết bị gắn vào ống ${a.hostRef} không tồn tại.`)
-  }
-  return issues
+  return inspectNetworkEdits(assets(), ops).errors
 }
 
 /** Apply approved operations to the official assets (versions +1). */
@@ -196,7 +186,7 @@ export function applyPublishedEdits(seed: Record<string, unknown>): Record<strin
   const hydrants = seed.hydrants as Rec[]
   const nodes = seed.nodes as Rec[]
   const listFor = (a: Asset | null, id: string): Rec[] =>
-    a ? (a.kind === 'Pipe' ? pipes : a.kind === 'Node' ? nodes : a.attributes.deviceType === 'hydrant' ? hydrants : valves)
+    a ? (a.kind === 'Pipe' ? pipes : a.kind === 'Node' ? nodes : a.attributes.deviceType?.toLowerCase() === 'hydrant' ? hydrants : valves)
       : [pipes, valves, hydrants, nodes].find(l => l.some(x => x.id === id)) ?? []
   for (const op of published) {
     const id = op.targetId ?? op.after!.draftAssetId
@@ -210,13 +200,13 @@ export function applyPublishedEdits(seed: Record<string, unknown>): Record<strin
     const px = a.geometry.coordinates.map(p => toPixel(g, p))
     let rec: Rec
     if (a.kind === 'Pipe') {
-      rec = { id, code: a.assetCode, from: id + '-a', to: id + '-b', dn: Number(at.dn), trunk: at.trunk === 'true', material: at.material, year: Number(at.year) || 2026, cond: at.cond ?? 'good', status: at.status ?? 'active', lenM: Math.round(lengthM(a.geometry.coordinates)), pts: px, dma: at.dma ?? 'DMA-01' }
+      rec = { id, code: a.assetCode, from: a.fromRef ?? id + '-a', to: a.toRef ?? id + '-b', dn: Number(at.diameterMm ?? at.dn), trunk: at.trunk === 'true', material: pipeMaterialLabel(at.material ?? ''), year: Number(at.year) || 2026, cond: at.cond ?? 'good', status: at.status ?? 'active', lenM: Math.round(lengthM(a.geometry.coordinates)), pts: px, dma: at.dma ?? 'DMA-01' }
       pipeBy[id] = rec
     } else {
       const [x, y] = px[0]!
       rec = a.kind === 'Node'
-        ? { id, code: a.assetCode, x, y, i: 0, j: 0, z: Number(at.z) || 0, kind: at.nodeType ?? 'junction' }
-        : at.deviceType === 'hydrant'
+        ? { id, code: a.assetCode, x, y, i: 0, j: 0, z: Number(at.z) || 0, kind: at.fitting ?? at.nodeType ?? 'Junction' }
+        : at.deviceType?.toLowerCase() === 'hydrant'
           ? { id, code: a.assetCode, x, y, dma: at.dma ?? 'DMA-01', status: at.status ?? 'ok' }
           : { id, code: a.assetCode, x, y, pipe: a.hostRef ?? '', dn: Number(at.dn) || 0, kind: at.valveKind ?? 'isolation', state: at.state ?? 'open', dma: at.dma ?? 'DMA-01', year: Number(at.year) || 2026 }
     }
@@ -255,13 +245,16 @@ export const editorHandlers = [
     const body = (await request.json()) as { expectedVersion: number; operations: Edit[] }
     if (body.expectedVersion !== r.version) return problem(409, 'Bản nháp đã thay đổi ở nơi khác.')
     if (!['Draft', 'Validated', 'Rejected'].includes(r.status)) return problem(409, 'Bản nháp đã gửi duyệt — không thể sửa.')
-    r.operations = body.operations ?? []
+    if (!Array.isArray(body.operations) || body.operations.length > 2000) return problem(400, 'Tối đa 2000 thay đổi trong một bản nháp.')
+    // as design-be: the server's own before image; conflicts refuse the save, other issues come back with it
+    const inspection = inspectNetworkEdits(assets(), body.operations.map(o => ({ ...o, before: null })))
+    const conflicts = inspection.errors.filter(e => e.code === 'TARGET_CONFLICT' || e.code === 'INVALID_OPERATION')
+    if (conflicts.length) return HttpResponse.json({ errors: conflicts }, { status: 409 })
+    r.operations = inspection.operations
     r.version++
     r.status = 'Draft'
     r.updatedAt = now()
-    // structural problems are reported on save; full rules run on validate
-    const errors = validateOperations(r.operations).filter(i => i.code === 'operation.duplicate' || i.code === 'after.missing')
-    return HttpResponse.json({ ...r, errors })
+    return HttpResponse.json({ ...r, errors: inspection.errors })
   }),
   http.post('*/editor/revisions/:id/:action', async ({ params, request }) => {
     const r = find(String(params.id))
@@ -270,7 +263,6 @@ export const editorHandlers = [
     switch (params.action) {
       case 'validate': {
         const errors = validateOperations(r.operations)
-        if (!r.operations.length) errors.push({ code: 'revision.empty', field: 'operations', message: 'Bản nháp chưa có thay đổi.' })
         if (!['Draft', 'Validated'].includes(r.status)) return problem(409, 'Bản nháp không ở trạng thái nháp.')
         r.status = errors.length ? 'Draft' : 'Validated'
         r.updatedAt = now()
