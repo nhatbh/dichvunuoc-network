@@ -17,7 +17,13 @@ async function localStack(): Promise<PluginOption> {
   const { devToken } = (await import(pathToFileURL(path.resolve(__dirname, 'scripts/local-stack/dev-token.mjs')).href)) as {
     devToken: () => string
   }
-  const token = devToken()
+  // a fresh token every hour: the dev server may run for days
+  let token = devToken()
+  let issued = Date.now()
+  const current = () => {
+    if (Date.now() - issued > 3_600_000) [token, issued] = [devToken(), Date.now()]
+    return token
+  }
   const config = readFileSync(path.resolve(__dirname, 'deploy/local-stack/config.json'))
   return {
     name: 'wn-local-stack',
@@ -34,7 +40,7 @@ async function localStack(): Promise<PluginOption> {
           '/api/gis': {
             target: process.env.WN_BFF_URL ?? 'http://localhost:8083',
             changeOrigin: true,
-            configure: proxy => proxy.on('proxyReq', req => req.setHeader('Authorization', `Bearer ${token}`)),
+            configure: proxy => proxy.on('proxyReq', req => req.setHeader('Authorization', `Bearer ${current()}`)),
           },
         },
       },

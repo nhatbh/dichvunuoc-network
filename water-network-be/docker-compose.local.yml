@@ -1,13 +1,43 @@
 # Local full-stack override for running the SYSTEM 3D frontend against the real services.
 #
+#   node ../water-network-fe/apps/gis-3d/scripts/local-stack/dev-token.mjs init
 #   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+# (water-network-fe/run-gis-3d-local-stack.cmd does both.)
 #
-# - a stand-in for the platform app-catalog so the BFF's tenant-to-app entitlement gate
-#   (TenantAppEntitlementMiddleware) answers "allowed" locally;
-# - the BFF's editor routes pointed at design-be, and design-be's edit inspection at gis-be
-#   (the base file leaves both unset: /api/gis/editor/* answers 503 and edits are not checked).
+# - dev-oidc: an OIDC stand-in (discovery document + JWKS from .local-stack/oidc, created by
+#   dev-token.mjs init). Every service validates RS256 tokens against it as it would against
+#   Keycloak: the .NET services in Jwt:Mode=Authority, the CAD import service via its JWKS.
+# - dev-app-catalog: answers "allowed" to the BFF's tenant-to-app entitlement gate.
+# - the BFF's editor and import routes pointed at design-be and the import service, and
+#   design-be's edit inspection at gis-be (the base file leaves these unset).
+# - water-network-import: the CAD import service (DWG via LibreDWG, DXF), data in a volume.
 # Never deploy this file.
+x-local-auth: &local-auth
+  Jwt__Mode: Authority
+  Jwt__Authority: http://dev-oidc:8080/realms/local
+  Jwt__Audience: water-platform
+  Authentication__Schemes__Bearer__RequireHttpsMetadata: "false"
+
 services:
+  dev-oidc:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./.local-stack/oidc:/oidc:ro
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cat > /etc/nginx/conf.d/default.conf <<'CONF'
+        server {
+          listen 8080;
+          default_type application/json;
+          location /realms/local/ { alias /oidc/; }
+          location / { return 404; }
+        }
+        CONF
+        exec nginx -g 'daemon off;'
+    networks: [wn-network]
+
   dev-app-catalog:
     image: nginx:1.27-alpine
     command:
@@ -24,15 +54,49 @@ services:
         exec nginx -g 'daemon off;'
     networks: [wn-network]
 
-  water-network-bff:
-    environment:
-      - AppEntitlement__BaseUrl=http://dev-app-catalog:8080/
-      - Downstream__Design__BaseUrl=http://water-network-design-be:8080
-    depends_on:
-      - dev-app-catalog
-      - water-network-design-be
+  water-network-gis-be:
+    environment: *local-auth
+    depends_on: [dev-oidc]
+
+  water-network-asset-be:
+    environment: *local-auth
+    depends_on: [dev-oidc]
 
   water-network-design-be:
     environment:
-      - GisLookup__Provider=Http
-      - GisLookup__BaseUrl=http://water-network-gis-be:8080
+      <<: *local-auth
+      GisLookup__Provider: Http
+      GisLookup__BaseUrl: http://water-network-gis-be:8080
+    depends_on: [dev-oidc]
+
+  water-network-bff:
+    environment:
+      <<: *local-auth
+      AppEntitlement__BaseUrl: http://dev-app-catalog:8080/
+      Downstream__Design__BaseUrl: http://water-network-design-be:8080
+      Downstream__Import__BaseUrl: http://water-network-import:8090
+    depends_on:
+      - dev-oidc
+      - dev-app-catalog
+      - water-network-design-be
+      - water-network-import
+
+  water-network-import:
+    build:
+      context: ../water-network-import
+    ports: ["8090:8090"]
+    environment:
+      IMPORT_DATA_DIR: /data
+      IMPORT_JWT_ISSUER: http://dev-oidc:8080/realms/local
+      IMPORT_JWT_AUDIENCE: water-platform
+      IMPORT_ALLOWED_CLIENTS: water-network-gis-fe
+      # the local dev token carries a flat tenant_id (no Keycloak organization)
+      IMPORT_ALLOW_FLAT_TENANT: "true"
+      IMPORT_DESIGN_URL: http://water-network-design-be:8080
+    volumes:
+      - import-data:/data
+    depends_on: [dev-oidc, water-network-design-be]
+    networks: [wn-network]
+
+volumes:
+  import-data:

@@ -10,3 +10,6 @@ docs/sample/dotnet-skeleton-sample/
 
 # Repo-local NuGet packages (scripts/setup-backend.ps1)
 .nuget/
+
+# Local stack: dev OIDC key and documents (water-network-fe/apps/gis-3d/scripts/local-stack/dev-token.mjs)
+.local-stack/
