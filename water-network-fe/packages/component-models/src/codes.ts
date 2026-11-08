@@ -1,20 +1,41 @@
 /**
- * The component code list the platform validates against. This package is the authority for
- * component codes (integration plan, decision 7): `npm run codes` writes this list to
- * `packages/contracts/src/catalog/codes.json`, which gis-be and design-be validate against, and
- * `codes.test.ts` fails when the two drift apart.
+ * The component code list every service validates against (decision 0028: the component
+ * catalog is the network asset model). This package is the authority for component codes:
+ * `npm run codes` writes the list to @wn/contracts, the CAD import worker and the backend
+ * building block `WaterPlatform.BuildingBlocks.Components`, and `codes.test.ts` fails when a
+ * copy drifts.
+ *
+ * Per code: the GIS asset kind, where it attaches, what it does (functional flags consumers
+ * test instead of type names), and the properties it may carry.
  */
 import { CATALOG_ITEMS, type CatalogItem } from './catalog.js';
 
-/** Where a component sits in the GIS model. */
-export type CodeHost = 'line' | 'pipe' | 'node';
+/** GIS asset kind. */
+export type AssetKind = 'Node' | 'Pipe' | 'Device';
+/** Where it sits: a pipe is a line; devices attach to a pipe or a node; nodes stand alone. */
+export type CodeHost = 'line' | 'pipe' | 'node' | 'none';
+/** What a component does. Consumers ask this, never the code. */
+export type ComponentFunction =
+  | 'isolates' // operable to close a pipe (isolation planning)
+  | 'controls' // regulates pressure, flow or direction
+  | 'meters' // measures volume through it
+  | 'senses' // telemetry point
+  | 'pumps' // adds head
+  | 'fireFlow' // fire service outlet
+  | 'stores' // storage volume
+  | 'supplies' // water source into the network
+  | 'connects' // fitting joining pipes
+  | 'serves'; // customer service
 
-/** The five device types gis-be accepts today; codes without one are stored as nodes or pipes. */
-export type GisDeviceType = 'Valve' | 'FlowMeter' | 'PressureSensor' | 'Pump' | 'Hydrant';
-/** gis-be node types. */
-export type GisNodeType = 'Junction' | 'Reservoir' | 'Tank' | 'Hydrant' | 'Other';
-/** How gis-be stores a component until it accepts every code: as a pipe, a node or a device. */
-export type GisKind = 'Pipe' | 'Node' | 'Device';
+export type PropertyType = 'int' | 'number' | 'string' | 'enum';
+export interface PropertySpec {
+  key: string;
+  type: PropertyType;
+  min?: number;
+  max?: number;
+  values?: readonly string[];
+  unit?: string;
+}
 
 export interface CodeListEntry {
   code: string;
@@ -22,74 +43,95 @@ export interface CodeListEntry {
   vi: string;
   category: string;
   role: CatalogItem['role'];
+  kind: AssetKind;
   host: CodeHost;
-  /** How gis-be stores it today (the component code travels along as the `componentCode` attribute). */
-  gisKind: GisKind;
-  /** gis-be device type when stored as a device; null otherwise. */
-  gisDeviceType: GisDeviceType | null;
-  /** gis-be node type when stored as a node; null otherwise. */
-  gisNodeType: GisNodeType | null;
+  functions: ComponentFunction[];
   defaultDN: number;
   dnRange: readonly [number, number];
   hasStatus: boolean;
+  /** Properties an asset of this code may carry (validated by every service). */
+  properties: PropertySpec[];
 }
 
-const VALVES = new Set([
-  'GateValve',
-  'ButterflyValve',
-  'BallValve',
-  'CheckValve',
-  'PRV',
-  'PSV',
-  'FCV',
-  'AltitudeValve',
-  'BackflowPreventer',
-  'ServiceValve',
-]);
+export const PIPE_MATERIAL_CODES = ['HDPE', 'PVC', 'DuctileIron', 'Steel', 'CastIron', 'Concrete'] as const;
+export const CONDITIONS = ['good', 'fair', 'poor', 'critical'] as const;
+export const VALVE_STATES = ['open', 'closed', 'throttled'] as const;
 
-const gisDeviceType = (code: string): GisDeviceType | null => {
-  if (VALVES.has(code)) return 'Valve';
-  if (code === 'BulkMeter') return 'FlowMeter';
-  if (code === 'PressureSensor' || code === 'Pump' || code === 'Hydrant') return code;
-  return null;
+const ISOLATES = new Set(['GateValve', 'ButterflyValve', 'BallValve', 'ServiceValve']);
+const CONTROLS = new Set(['CheckValve', 'PRV', 'PSV', 'FCV', 'AltitudeValve', 'BackflowPreventer', 'PRVStation']);
+const SETPOINT = new Set(['PRV', 'PSV', 'FCV', 'AltitudeValve', 'PRVStation']);
+const FUNCTIONS: Record<string, ComponentFunction[]> = {
+  BulkMeter: ['meters', 'senses'],
+  CustomerMeter: ['meters', 'serves'],
+  ServiceConnection: ['serves'],
+  ServiceValve: ['serves'],
+  PressureSensor: ['senses'],
+  LevelSensor: ['senses'],
+  QualitySensor: ['senses'],
+  AcousticLogger: ['senses'],
+  RTU: ['senses'],
+  Pump: ['pumps'],
+  BoosterStation: ['pumps'],
+  PumpStation: ['pumps'],
+  Hydrant: ['fireFlow'],
+  Reservoir: ['stores'],
+  Tank: ['stores'],
+  Source: ['supplies'],
 };
 
-/** gis-be's host rule for its device types (DeviceHost): valves and meters on a pipe, pumps and hydrants on a node. */
-const DEVICE_HOST: Record<GisDeviceType, CodeHost> = {
-  Valve: 'pipe',
-  FlowMeter: 'pipe',
-  Pump: 'node',
-  Hydrant: 'node',
-  PressureSensor: 'node',
-};
+const kindOf = (c: CatalogItem): AssetKind =>
+  c.role === 'line' ? 'Pipe' : c.role === 'node' || c.role === 'facility' ? 'Node' : 'Device';
+const hostOf = (c: CatalogItem): CodeHost =>
+  c.role === 'line' ? 'line' : c.role === 'inline' ? 'pipe' : c.role === 'nodeDevice' ? 'node' : 'none';
 
-const gisNodeType = (c: CatalogItem): GisNodeType => {
-  if (c.code === 'Reservoir' || c.code === 'Source') return 'Reservoir';
-  if (c.code === 'Tank') return 'Tank';
-  if (c.role === 'node') return 'Junction'; // fittings
-  return 'Other'; // facilities and devices gis-be has no device type for yet
-};
+function functionsOf(c: CatalogItem): ComponentFunction[] {
+  const out = new Set<ComponentFunction>(FUNCTIONS[c.code] ?? []);
+  if (ISOLATES.has(c.code)) out.add('isolates');
+  if (CONTROLS.has(c.code)) out.add('controls');
+  if (c.role === 'node') out.add('connects');
+  return [...out];
+}
 
-const hostOf = (c: CatalogItem, device: GisDeviceType | null): CodeHost =>
-  c.role === 'line' ? 'line' : device ? DEVICE_HOST[device] : 'node';
+function propertiesOf(c: CatalogItem, kind: AssetKind, functions: ComponentFunction[]): PropertySpec[] {
+  const p: PropertySpec[] = [
+    { key: 'dma', type: 'string' },
+    { key: 'year', type: 'int', min: 1850, max: 2100 },
+    { key: 'condition', type: 'enum', values: CONDITIONS },
+    { key: 'manufacturer', type: 'string' },
+    { key: 'model', type: 'string' },
+    { key: 'serial', type: 'string' },
+  ];
+  // pipes keep diameter and material as their own fields (diameterMm, material)
+  if (kind !== 'Pipe') p.push({ key: 'dn', type: 'int', min: c.dnRange[0], max: c.dnRange[1], unit: 'mm' });
+  if (c.usesDN2) p.push({ key: 'dn2', type: 'int', min: c.dnRange[0], max: c.dnRange[1], unit: 'mm' });
+  if (c.usesMaterial && kind !== 'Pipe') p.push({ key: 'material', type: 'enum', values: PIPE_MATERIAL_CODES });
+  if (c.usesAngle) p.push({ key: 'angle', type: 'number', min: 0, max: 180, unit: '°' });
+  if (kind === 'Node') p.push({ key: 'elevationM', type: 'number', min: -500, max: 9000, unit: 'm' });
+  if (kind === 'Pipe') p.push({ key: 'depthM', type: 'number', min: 0, max: 50, unit: 'm' });
+  if (functions.includes('isolates') || functions.includes('controls')) p.push({ key: 'state', type: 'enum', values: VALVE_STATES });
+  if (SETPOINT.has(c.code)) p.push({ key: 'setpoint', type: 'number', min: 0, max: 200 });
+  if (functions.includes('stores')) p.push({ key: 'capacityM3', type: 'number', min: 0, max: 1e7, unit: 'm³' });
+  if (functions.includes('pumps')) p.push({ key: 'pumpCount', type: 'int', min: 1, max: 50 });
+  return p;
+}
 
 export function catalogCodeList(): CodeListEntry[] {
   return CATALOG_ITEMS.map((c) => {
-    const device = gisDeviceType(c.code);
-    const kind: GisKind = c.role === 'line' ? 'Pipe' : device ? 'Device' : 'Node';
+    const kind = kindOf(c);
+    const functions = functionsOf(c);
     return {
       code: c.code,
       name: c.name,
       vi: c.vi,
       category: c.category,
       role: c.role,
-      host: hostOf(c, device),
-      gisKind: kind,
-      gisDeviceType: device,
-      gisNodeType: kind === 'Node' ? gisNodeType(c) : null,
+      kind,
+      host: hostOf(c),
+      functions,
       defaultDN: c.defaultDN,
       dnRange: c.dnRange,
       hasStatus: c.hasStatus === true,
+      properties: propertiesOf(c, kind, functions),
     };
   });
 }

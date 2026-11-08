@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { codeEntry, COMPONENT_CODES, ComponentCode, pipeMaterialCode, pipeMaterialLabel } from './index.js';
+import { codeEntry, COMPONENT_CODES, ComponentCode, componentDoes, pipeMaterialCode, pipeMaterialLabel } from './index.js';
 
 describe('catalog contract', () => {
-  it('lists the component codes with their gis-be mapping', () => {
+  it('lists the component codes with kind, host and functions (decision 0028)', () => {
     expect(COMPONENT_CODES).toContain('PRV');
-    expect(codeEntry('PRV')).toMatchObject({ host: 'pipe', gisDeviceType: 'Valve' });
+    expect(codeEntry('PRV')).toMatchObject({ kind: 'Device', host: 'pipe', functions: ['controls'] });
+    expect(codeEntry('Tee')).toMatchObject({ kind: 'Node', host: 'none' });
+    expect(componentDoes('ButterflyValve', 'isolates')).toBe(true);
+    expect(componentDoes('CheckValve', 'isolates')).toBe(false);
     expect(ComponentCode.safeParse('PRV').success).toBe(true);
     expect(ComponentCode.safeParse('Valve').success).toBe(false);
   });

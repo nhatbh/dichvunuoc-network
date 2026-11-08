@@ -2,24 +2,41 @@ import { z } from 'zod';
 import list from './codes.json' with { type: 'json' };
 
 /**
- * Component codes, generated from `@wn/component-models` (the authority for codes). gis-be and
- * design-be validate asset types against this list; `CodeListEntry.gisDeviceType` maps a code to
- * the device type gis-be accepts until it takes every code.
+ * Component codes, generated from `@wn/component-models` (the authority for codes, decision 0028).
+ * Every GIS asset carries one: the code fixes its kind, where it attaches, what it does
+ * (functional flags) and which properties it may carry. gis-be, design-be and the CAD import
+ * worker validate against copies of this list.
  */
+export const ComponentFunction = z.enum([
+  'isolates', 'controls', 'meters', 'senses', 'pumps', 'fireFlow', 'stores', 'supplies', 'connects', 'serves',
+]);
+export type ComponentFunction = z.infer<typeof ComponentFunction>;
+
+export const PropertySpec = z.object({
+  key: z.string(),
+  type: z.enum(['int', 'number', 'string', 'enum']),
+  min: z.number().optional(),
+  max: z.number().optional(),
+  values: z.array(z.string()).optional(),
+  unit: z.string().optional(),
+});
+export type PropertySpec = z.infer<typeof PropertySpec>;
+
 export const CodeListEntry = z.object({
   code: z.string(),
   name: z.string(),
   vi: z.string(),
   category: z.string(),
   role: z.enum(['line', 'node', 'inline', 'nodeDevice', 'facility']),
-  host: z.enum(['line', 'pipe', 'node']),
-  /** How gis-be stores it until it accepts every code; the code travels as attribute `componentCode`. */
-  gisKind: z.enum(['Pipe', 'Node', 'Device']),
-  gisDeviceType: z.enum(['Valve', 'FlowMeter', 'PressureSensor', 'Pump', 'Hydrant']).nullable(),
-  gisNodeType: z.enum(['Junction', 'Reservoir', 'Tank', 'Hydrant', 'Other']).nullable(),
+  /** GIS asset kind. */
+  kind: z.enum(['Pipe', 'Node', 'Device']),
+  /** A pipe is a line; devices attach to a pipe or a node; nodes stand alone. */
+  host: z.enum(['line', 'pipe', 'node', 'none']),
+  functions: z.array(ComponentFunction),
   defaultDN: z.number(),
   dnRange: z.tuple([z.number(), z.number()]),
   hasStatus: z.boolean(),
+  properties: z.array(PropertySpec),
 });
 export type CodeListEntry = z.infer<typeof CodeListEntry>;
 
@@ -28,6 +45,10 @@ export const COMPONENT_CODES: readonly string[] = COMPONENT_CODE_LIST.map((c) =>
 
 const BY_CODE = new Map(COMPONENT_CODE_LIST.map((c) => [c.code, c]));
 export const codeEntry = (code: string): CodeListEntry | undefined => BY_CODE.get(code);
+
+/** Does this component do `fn` (e.g. `isolates` for isolation planning)? */
+export const componentDoes = (code: string, fn: ComponentFunction): boolean =>
+  BY_CODE.get(code)?.functions.includes(fn) ?? false;
 
 /** A schema accepting only known component codes. */
 export const ComponentCode = z.string().refine((c) => BY_CODE.has(c), { message: 'unknown component code' });

@@ -31,7 +31,7 @@ const deviceTypes = [
 /** Catalog components a CAD block can stand for (pipes come from layer rules), by category. */
 const componentGroups = (() => {
   const groups = new Map<string, typeof COMPONENT_CODE_LIST[number][]>()
-  for (const c of COMPONENT_CODE_LIST) if (c.gisKind !== 'Pipe') groups.set(c.category, [...(groups.get(c.category) ?? []), c])
+  for (const c of COMPONENT_CODE_LIST) if (c.kind !== 'Pipe') groups.set(c.category, [...(groups.get(c.category) ?? []), c])
   return [...groups]
 })()
 
@@ -42,8 +42,8 @@ export function ruleTarget(rule: BlockRule | undefined): { kind: 'node' } | { ki
   if (rule.action === 'device') return { kind: 'device', deviceType: rule.deviceType }
   if (rule.action === 'component') {
     const c = codeEntry(rule.componentCode ?? '')
-    if (c?.gisKind === 'Node') return { kind: 'node' }
-    if (c?.gisKind === 'Device') return { kind: 'device', deviceType: c.gisDeviceType ?? undefined }
+    if (c?.kind === 'Node') return { kind: 'node' }
+    if (c?.kind === 'Device') return { kind: 'device', deviceType: c.code }
   }
   return null
 }

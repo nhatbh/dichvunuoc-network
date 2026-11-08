@@ -7,16 +7,56 @@
       "vi": "Đoạn ống",
       "category": "Pipes",
       "role": "line",
+      "kind": "Pipe",
       "host": "line",
-      "gisKind": "Pipe",
-      "gisDeviceType": null,
-      "gisNodeType": null,
+      "functions": [],
       "defaultDN": 150,
       "dnRange": [
         20,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "depthM",
+          "type": "number",
+          "min": 0,
+          "max": 50,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "Junction",
@@ -24,16 +64,65 @@
       "vi": "Điểm nối",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 150,
       "dnRange": [
         20,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 20,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "Tee",
@@ -41,16 +130,77 @@
       "vi": "Tê đều",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "material",
+          "type": "enum",
+          "values": [
+            "HDPE",
+            "PVC",
+            "DuctileIron",
+            "Steel",
+            "CastIron",
+            "Concrete"
+          ]
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "ReducingTee",
@@ -58,16 +208,84 @@
       "vi": "Tê thu",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 200,
       "dnRange": [
         80,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 80,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "dn2",
+          "type": "int",
+          "min": 80,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "material",
+          "type": "enum",
+          "values": [
+            "HDPE",
+            "PVC",
+            "DuctileIron",
+            "Steel",
+            "CastIron",
+            "Concrete"
+          ]
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "Cross",
@@ -75,16 +293,77 @@
       "vi": "Thập",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         600
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "material",
+          "type": "enum",
+          "values": [
+            "HDPE",
+            "PVC",
+            "DuctileIron",
+            "Steel",
+            "CastIron",
+            "Concrete"
+          ]
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "Bend",
@@ -92,16 +371,84 @@
       "vi": "Cút",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "material",
+          "type": "enum",
+          "values": [
+            "HDPE",
+            "PVC",
+            "DuctileIron",
+            "Steel",
+            "CastIron",
+            "Concrete"
+          ]
+        },
+        {
+          "key": "angle",
+          "type": "number",
+          "min": 0,
+          "max": 180,
+          "unit": "°"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "Reducer",
@@ -109,16 +456,84 @@
       "vi": "Côn thu",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 200,
       "dnRange": [
         65,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 65,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "dn2",
+          "type": "int",
+          "min": 65,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "material",
+          "type": "enum",
+          "values": [
+            "HDPE",
+            "PVC",
+            "DuctileIron",
+            "Steel",
+            "CastIron",
+            "Concrete"
+          ]
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "Cap",
@@ -126,16 +541,77 @@
       "vi": "Bịt đầu / mặt bích đặc",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "material",
+          "type": "enum",
+          "values": [
+            "HDPE",
+            "PVC",
+            "DuctileIron",
+            "Steel",
+            "CastIron",
+            "Concrete"
+          ]
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "Coupling",
@@ -143,16 +619,77 @@
       "vi": "Măng sông",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "material",
+          "type": "enum",
+          "values": [
+            "HDPE",
+            "PVC",
+            "DuctileIron",
+            "Steel",
+            "CastIron",
+            "Concrete"
+          ]
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "Transition",
@@ -160,16 +697,65 @@
       "vi": "Khớp nối chuyển đổi",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         800
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 800,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "DismantlingJoint",
@@ -177,16 +763,65 @@
       "vi": "Khớp nối tháo lắp",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 300,
       "dnRange": [
         50,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "ExpansionJoint",
@@ -194,16 +829,65 @@
       "vi": "Khớp co giãn",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 200,
       "dnRange": [
         50,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "TappingSaddle",
@@ -211,16 +895,84 @@
       "vi": "Đai khởi thủy",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 150,
       "dnRange": [
         80,
         600
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 80,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "dn2",
+          "type": "int",
+          "min": 80,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "material",
+          "type": "enum",
+          "values": [
+            "HDPE",
+            "PVC",
+            "DuctileIron",
+            "Steel",
+            "CastIron",
+            "Concrete"
+          ]
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "RepairClamp",
@@ -228,16 +980,77 @@
       "vi": "Đai sửa chữa",
       "category": "Fittings",
       "role": "node",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Junction",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "connects"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         600
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "material",
+          "type": "enum",
+          "values": [
+            "HDPE",
+            "PVC",
+            "DuctileIron",
+            "Steel",
+            "CastIron",
+            "Concrete"
+          ]
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     },
     {
       "code": "GateValve",
@@ -245,16 +1058,67 @@
       "vi": "Van cửa",
       "category": "Valves",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "isolates"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         600
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        }
+      ]
     },
     {
       "code": "ButterflyValve",
@@ -262,16 +1126,67 @@
       "vi": "Van bướm",
       "category": "Valves",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "isolates"
+      ],
       "defaultDN": 300,
       "dnRange": [
         150,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 150,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        }
+      ]
     },
     {
       "code": "BallValve",
@@ -279,16 +1194,67 @@
       "vi": "Van bi",
       "category": "Valves",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "isolates"
+      ],
       "defaultDN": 50,
       "dnRange": [
         15,
         150
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 150,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        }
+      ]
     },
     {
       "code": "CheckValve",
@@ -296,16 +1262,67 @@
       "vi": "Van một chiều",
       "category": "Valves",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "controls"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         600
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        }
+      ]
     },
     {
       "code": "PRV",
@@ -313,16 +1330,73 @@
       "vi": "Van giảm áp",
       "category": "Valves",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "controls"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         600
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        },
+        {
+          "key": "setpoint",
+          "type": "number",
+          "min": 0,
+          "max": 200
+        }
+      ]
     },
     {
       "code": "PSV",
@@ -330,16 +1404,73 @@
       "vi": "Van duy trì áp",
       "category": "Valves",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "controls"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         600
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        },
+        {
+          "key": "setpoint",
+          "type": "number",
+          "min": 0,
+          "max": 200
+        }
+      ]
     },
     {
       "code": "FCV",
@@ -347,16 +1478,73 @@
       "vi": "Van điều tiết lưu lượng",
       "category": "Valves",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "controls"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         600
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        },
+        {
+          "key": "setpoint",
+          "type": "number",
+          "min": 0,
+          "max": 200
+        }
+      ]
     },
     {
       "code": "AltitudeValve",
@@ -364,16 +1552,73 @@
       "vi": "Van phao",
       "category": "Valves",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "controls"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         400
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 400,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        },
+        {
+          "key": "setpoint",
+          "type": "number",
+          "min": 0,
+          "max": 200
+        }
+      ]
     },
     {
       "code": "AirValve",
@@ -381,16 +1626,56 @@
       "vi": "Van xả khí",
       "category": "Valves",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [],
       "defaultDN": 80,
       "dnRange": [
         25,
         200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 25,
+          "max": 200,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "Washout",
@@ -398,16 +1683,56 @@
       "vi": "Van xả cặn",
       "category": "Valves",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [],
       "defaultDN": 80,
       "dnRange": [
         50,
         200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 200,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "BackflowPreventer",
@@ -415,16 +1740,67 @@
       "vi": "Thiết bị chống chảy ngược",
       "category": "Valves",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "controls"
+      ],
       "defaultDN": 100,
       "dnRange": [
         20,
         250
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 20,
+          "max": 250,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        }
+      ]
     },
     {
       "code": "Hydrant",
@@ -432,16 +1808,58 @@
       "vi": "Trụ cứu hỏa",
       "category": "Hydrants & services",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Device",
-      "gisDeviceType": "Hydrant",
-      "gisNodeType": null,
+      "functions": [
+        "fireFlow"
+      ],
       "defaultDN": 100,
       "dnRange": [
         80,
         150
       ],
-      "hasStatus": true
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 80,
+          "max": 150,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "ServiceConnection",
@@ -449,16 +1867,58 @@
       "vi": "Điểm đấu nối hộ dùng nước",
       "category": "Hydrants & services",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [
+        "serves"
+      ],
       "defaultDN": 150,
       "dnRange": [
         80,
         400
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 80,
+          "max": 400,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "ServiceValve",
@@ -466,16 +1926,68 @@
       "vi": "Van trước đồng hồ",
       "category": "Hydrants & services",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "Valve",
-      "gisNodeType": null,
+      "functions": [
+        "serves",
+        "isolates"
+      ],
       "defaultDN": 25,
       "dnRange": [
         15,
         50
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 50,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        }
+      ]
     },
     {
       "code": "CustomerMeter",
@@ -483,16 +1995,59 @@
       "vi": "Đồng hồ nước khách hàng",
       "category": "Hydrants & services",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [
+        "meters",
+        "serves"
+      ],
       "defaultDN": 20,
       "dnRange": [
         15,
         50
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 50,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "SamplingPoint",
@@ -500,16 +2055,56 @@
       "vi": "Điểm lấy mẫu",
       "category": "Hydrants & services",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [],
       "defaultDN": 20,
       "dnRange": [
         15,
         25
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 25,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "BulkMeter",
@@ -517,16 +2112,59 @@
       "vi": "Đồng hồ tổng / DMA",
       "category": "Metering & monitoring",
       "role": "inline",
+      "kind": "Device",
       "host": "pipe",
-      "gisKind": "Device",
-      "gisDeviceType": "FlowMeter",
-      "gisNodeType": null,
+      "functions": [
+        "meters",
+        "senses"
+      ],
       "defaultDN": 200,
       "dnRange": [
         50,
         1200
       ],
-      "hasStatus": true
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 1200,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "PressureSensor",
@@ -534,16 +2172,58 @@
       "vi": "Thiết bị đo áp lực",
       "category": "Metering & monitoring",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Device",
-      "gisDeviceType": "PressureSensor",
-      "gisNodeType": null,
+      "functions": [
+        "senses"
+      ],
       "defaultDN": 15,
       "dnRange": [
         15,
         15
       ],
-      "hasStatus": true
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "LevelSensor",
@@ -551,16 +2231,58 @@
       "vi": "Cảm biến mực nước",
       "category": "Metering & monitoring",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [
+        "senses"
+      ],
       "defaultDN": 15,
       "dnRange": [
         15,
         15
       ],
-      "hasStatus": true
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "QualitySensor",
@@ -568,16 +2290,58 @@
       "vi": "Thiết bị đo chất lượng nước",
       "category": "Metering & monitoring",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [
+        "senses"
+      ],
       "defaultDN": 15,
       "dnRange": [
         15,
         15
       ],
-      "hasStatus": true
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "AcousticLogger",
@@ -585,16 +2349,58 @@
       "vi": "Thiết bị nghe rò rỉ",
       "category": "Metering & monitoring",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [
+        "senses"
+      ],
       "defaultDN": 15,
       "dnRange": [
         15,
         15
       ],
-      "hasStatus": true
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "RTU",
@@ -602,16 +2408,58 @@
       "vi": "Thiết bị thu thập dữ liệu",
       "category": "Metering & monitoring",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [
+        "senses"
+      ],
       "defaultDN": 15,
       "dnRange": [
         15,
         15
       ],
-      "hasStatus": true
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "Pump",
@@ -619,16 +2467,64 @@
       "vi": "Máy bơm",
       "category": "Pumping & storage",
       "role": "inline",
-      "host": "node",
-      "gisKind": "Device",
-      "gisDeviceType": "Pump",
-      "gisNodeType": null,
+      "kind": "Device",
+      "host": "pipe",
+      "functions": [
+        "pumps"
+      ],
       "defaultDN": 150,
       "dnRange": [
         50,
         600
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "pumpCount",
+          "type": "int",
+          "min": 1,
+          "max": 50
+        }
+      ]
     },
     {
       "code": "BoosterStation",
@@ -636,16 +2532,71 @@
       "vi": "Trạm bơm tăng áp",
       "category": "Pumping & storage",
       "role": "facility",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "pumps"
+      ],
       "defaultDN": 150,
       "dnRange": [
         80,
         300
       ],
-      "hasStatus": true
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 80,
+          "max": 300,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        },
+        {
+          "key": "pumpCount",
+          "type": "int",
+          "min": 1,
+          "max": 50
+        }
+      ]
     },
     {
       "code": "PRVStation",
@@ -653,16 +2604,80 @@
       "vi": "Trạm giảm áp",
       "category": "Pumping & storage",
       "role": "facility",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "controls"
+      ],
       "defaultDN": 150,
       "dnRange": [
         80,
         400
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 80,
+          "max": 400,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        },
+        {
+          "key": "setpoint",
+          "type": "number",
+          "min": 0,
+          "max": 200
+        }
+      ]
     },
     {
       "code": "ChlorinationPoint",
@@ -670,16 +2685,56 @@
       "vi": "Trạm châm clo bổ sung",
       "category": "Pumping & storage",
       "role": "nodeDevice",
+      "kind": "Device",
       "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "functions": [],
       "defaultDN": 200,
       "dnRange": [
         100,
         600
       ],
-      "hasStatus": true
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 100,
+          "max": 600,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "Strainer",
@@ -687,16 +2742,56 @@
       "vi": "Lọc Y",
       "category": "Pumping & storage",
       "role": "inline",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "kind": "Device",
+      "host": "pipe",
+      "functions": [],
       "defaultDN": 150,
       "dnRange": [
         50,
         400
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 400,
+          "unit": "mm"
+        }
+      ]
     },
     {
       "code": "PumpStation",
@@ -704,16 +2799,71 @@
       "vi": "Trạm bơm",
       "category": "Pumping & storage",
       "role": "facility",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Other",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "pumps"
+      ],
       "defaultDN": 300,
       "dnRange": [
         150,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 150,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        },
+        {
+          "key": "pumpCount",
+          "type": "int",
+          "min": 1,
+          "max": 50
+        }
+      ]
     },
     {
       "code": "Reservoir",
@@ -721,16 +2871,72 @@
       "vi": "Bể chứa nước sạch",
       "category": "Pumping & storage",
       "role": "facility",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Reservoir",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "stores"
+      ],
       "defaultDN": 400,
       "dnRange": [
         200,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 200,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        },
+        {
+          "key": "capacityM3",
+          "type": "number",
+          "min": 0,
+          "max": 10000000,
+          "unit": "m³"
+        }
+      ]
     },
     {
       "code": "Tank",
@@ -738,16 +2944,72 @@
       "vi": "Đài nước",
       "category": "Pumping & storage",
       "role": "facility",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Tank",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "stores"
+      ],
       "defaultDN": 300,
       "dnRange": [
         150,
         800
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 150,
+          "max": 800,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        },
+        {
+          "key": "capacityM3",
+          "type": "number",
+          "min": 0,
+          "max": 10000000,
+          "unit": "m³"
+        }
+      ]
     },
     {
       "code": "Source",
@@ -755,16 +3017,65 @@
       "vi": "Nhà máy nước",
       "category": "Pumping & storage",
       "role": "facility",
-      "host": "node",
-      "gisKind": "Node",
-      "gisDeviceType": null,
-      "gisNodeType": "Reservoir",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "supplies"
+      ],
       "defaultDN": 600,
       "dnRange": [
         300,
         1200
       ],
-      "hasStatus": false
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 300,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
     }
   ]
 }

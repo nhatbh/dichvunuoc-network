@@ -2,34 +2,38 @@ import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { catalogCodeList } from './codes.js';
 
-const exported = JSON.parse(
-  readFileSync(new URL('../../contracts/src/catalog/codes.json', import.meta.url), 'utf8'),
-) as { codes: unknown[] };
+const current = JSON.parse(JSON.stringify(catalogCodeList()));
+const read = (rel: string) => (JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8')) as { codes: unknown[] }).codes;
+
+// every copy of the list (decision 0028); run `npm run codes` after changing the catalog
+const COPIES = [
+  '../../contracts/src/catalog/codes.json',
+  '../../../../water-network-import/src/wn_import/catalog_codes.json',
+  '../../../../water-network-be/src/building-blocks/src/WaterPlatform.BuildingBlocks.Components/component-codes.json',
+];
 
 describe('component code list', () => {
-  it('matches the list exported to @wn/contracts (run `npm run codes` after changing the catalog)', () => {
-    expect(exported.codes).toEqual(JSON.parse(JSON.stringify(catalogCodeList())));
-  });
+  for (const rel of COPIES)
+    it(`matches the copy at ${rel.replace(/^(\.\.\/)+/, '')}`, () => {
+      if (!existsSync(new URL(rel, import.meta.url))) return; // the package outside the monorepo
+      expect(read(rel)).toEqual(current);
+    });
 
-  it('matches the copy the CAD import service validates against (water-network-import)', () => {
-    const copy = new URL('../../../../water-network-import/src/wn_import/catalog_codes.json', import.meta.url);
-    if (!existsSync(copy)) return; // the package outside the monorepo
-    const codes = (JSON.parse(readFileSync(copy, 'utf8')) as { codes: unknown[] }).codes;
-    expect(codes).toEqual(JSON.parse(JSON.stringify(catalogCodeList())));
-  });
-
-  it('has unique codes and maps the gis-be device types', () => {
+  it('gives every code a kind, a host and its properties', () => {
     const list = catalogCodeList();
     expect(new Set(list.map((c) => c.code)).size).toBe(list.length);
     const by = new Map(list.map((c) => [c.code, c]));
-    expect(by.get('GateValve')).toMatchObject({ host: 'pipe', gisDeviceType: 'Valve' });
-    expect(by.get('BulkMeter')).toMatchObject({ host: 'pipe', gisDeviceType: 'FlowMeter' });
-    expect(by.get('Hydrant')).toMatchObject({ host: 'node', gisDeviceType: 'Hydrant' });
-    expect(by.get('Tee')).toMatchObject({ host: 'node', gisKind: 'Node', gisNodeType: 'Junction', gisDeviceType: null });
-    expect(by.get('Pipe')).toMatchObject({ host: 'line', gisKind: 'Pipe' });
-    // gis-be hosts pumps on nodes, whatever the catalog role
-    expect(by.get('Pump')).toMatchObject({ host: 'node', gisKind: 'Device', gisDeviceType: 'Pump' });
-    expect(by.get('Reservoir')).toMatchObject({ gisKind: 'Node', gisNodeType: 'Reservoir' });
-    expect(by.get('AirValve')).toMatchObject({ gisKind: 'Node', gisNodeType: 'Other' });
+    expect(by.get('Pipe')).toMatchObject({ kind: 'Pipe', host: 'line' });
+    expect(by.get('Tee')).toMatchObject({ kind: 'Node', host: 'none', functions: ['connects'] });
+    expect(by.get('Reservoir')).toMatchObject({ kind: 'Node', functions: ['stores'] });
+    expect(by.get('GateValve')).toMatchObject({ kind: 'Device', host: 'pipe', functions: ['isolates'] });
+    expect(by.get('CheckValve')!.functions).toEqual(['controls']);
+    expect(by.get('Pump')).toMatchObject({ kind: 'Device', host: 'pipe', functions: ['pumps'] });
+    expect(by.get('Hydrant')).toMatchObject({ kind: 'Device', host: 'node', functions: ['fireFlow'] });
+    expect(by.get('AirValve')).toMatchObject({ kind: 'Device', host: 'node' });
+    const keys = (code: string) => by.get(code)!.properties.map((p) => p.key);
+    expect(keys('Reducer')).toEqual(expect.arrayContaining(['dn', 'dn2', 'material', 'elevationM']));
+    expect(keys('PRV')).toEqual(expect.arrayContaining(['dn', 'state', 'setpoint']));
+    expect(keys('Pipe')).not.toContain('dn');
   });
 });

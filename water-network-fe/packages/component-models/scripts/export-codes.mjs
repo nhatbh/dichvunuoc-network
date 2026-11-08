@@ -11,9 +11,15 @@ const body = {
 writeFileSync(out, JSON.stringify(body, null, 2) + '\n');
 console.log(`wrote ${body.codes.length} codes to ${out.pathname}`);
 
-// the CAD import service (Python, same monorepo) validates block mappings against its own copy
-const importCopy = new URL('../../../../water-network-import/src/wn_import/catalog_codes.json', import.meta.url);
-if (existsSync(new URL('.', importCopy))) {
-  writeFileSync(importCopy, JSON.stringify(body, null, 2) + '\n');
-  console.log(`wrote ${body.codes.length} codes to ${importCopy.pathname}`);
+// the other copies in this monorepo (decision 0028): the CAD import worker and the backend
+// building block embed the list; codes.test.ts checks that every copy matches
+export const COPIES = [
+  '../../../../water-network-import/src/wn_import/catalog_codes.json',
+  '../../../../water-network-be/src/building-blocks/src/WaterPlatform.BuildingBlocks.Components/component-codes.json',
+];
+for (const rel of COPIES) {
+  const copy = new URL(rel, import.meta.url);
+  if (!existsSync(new URL('.', copy))) continue;
+  writeFileSync(copy, JSON.stringify(body, null, 2) + '\n');
+  console.log(`wrote ${body.codes.length} codes to ${copy.pathname}`);
 }
