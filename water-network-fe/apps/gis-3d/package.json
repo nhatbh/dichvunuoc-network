@@ -34,7 +34,7 @@
     "e2e:seed": "vite-node scripts/dump-e2e-seed.ts",
     "test:e2e:3d": "playwright test --config=playwright.3d.config.ts",
     "demo:hydraulics": "vite-node scripts/solve-demo-hydraulics.ts",
-    "dev:local-stack": "vite --port 4600 --mode local-stack",
+    "dev:local-stack": "vite --port 4610 --mode stack",
     "local-stack:seed": "node scripts/local-stack/seed.mjs",
     "local-stack:smoke": "node scripts/local-stack/smoke.mjs"
   },

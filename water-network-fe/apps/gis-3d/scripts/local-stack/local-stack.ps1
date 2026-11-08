@@ -8,7 +8,7 @@
      once before the services start.
   2. Seeds gis-be with the demo network when it is empty (scripts\local-stack\seed.mjs).
   3. Rebuilds the shared packages and starts the app with `pnpm run dev:local-stack`
-     (http://localhost:4600, canonical data source, /api/gis proxied to the BFF).
+     (http://localhost:4610, canonical data source, /api/gis proxied to the BFF).
   4. Gate check: signs in, opens the map, and checks /bootstrap and /map came from the BFF
      with data (scripts\local-stack\smoke.mjs). Report + screenshot: _sync_tmp\local-stack\.
 
@@ -76,8 +76,8 @@ foreach ($tool in 'docker', 'node', 'pnpm') {
 }
 
 if ($Down) {
-  Step 'Stopping the app dev server (port 4600)'
-  Get-NetTCPConnection -LocalPort 4600 -State Listen -ErrorAction SilentlyContinue |
+  Step 'Stopping the app dev server (port 4610)'
+  Get-NetTCPConnection -LocalPort 4610 -State Listen -ErrorAction SilentlyContinue |
     Select-Object -ExpandProperty OwningProcess -Unique |
     ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
   Step 'docker compose down'
@@ -128,45 +128,44 @@ Step 'Seeding gis-be with the demo network (skipped when it already has data)'
 if ((Run 'node' @('scripts/local-stack/seed.mjs', '--gis', 'http://localhost:8081') $AppDir) -ne 0) { Fail 'seeding failed - see local-stack.log' }
 
 # -- 3. app --------------------------------------------------------------------------------------
-Step 'Starting SYSTEM 3D on http://localhost:4600 (local-stack mode) in a new window'
+Step 'Starting SYSTEM 3D on http://localhost:4610 (local-stack mode) in a new window'
+# its own port (4610), so a mock or gis-dev dev server on 4600 can keep running
+$AppUrl = 'http://localhost:4610'
+$DevLog = Join-Path $OutDir 'dev-server.log'
 function Get-AppConfig {
-  try { return (Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri 'http://localhost:4600/config.json').Content } catch { return '' }
+  try { return (Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri "$AppUrl/config.json").Content } catch { return '' }
 }
-function Stop-Port4600 {
-  Get-NetTCPConnection -LocalPort 4600 -State Listen -ErrorAction SilentlyContinue |
-    Select-Object -ExpandProperty OwningProcess -Unique |
-    ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
-  for ($i = 0; $i -lt 20 -and (Get-NetTCPConnection -LocalPort 4600 -State Listen -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 500 }
+function Show-DevLog {
+  if (Test-Path $DevLog) {
+    Write-Host "--- last lines of $DevLog ---" -ForegroundColor Yellow
+    Get-Content $DevLog -Tail 25 | ForEach-Object { Write-Host $_ }
+  }
 }
-$listening = Get-NetTCPConnection -LocalPort 4600 -State Listen -ErrorAction SilentlyContinue
+$listening = Get-NetTCPConnection -LocalPort 4610 -State Listen -ErrorAction SilentlyContinue
 if ($listening -and (Get-AppConfig) -match '"canonical"') {
-  Write-Host '    the local-stack dev server is already running on :4600 - reusing it'
+  Write-Host "    the local-stack dev server is already running on $AppUrl - reusing it"
 } else {
   if ($listening) {
-    # another SYSTEM 3D dev server (mock / gis-dev) holds the port: stop it so this one can start
-    Write-Host '    stopping the other dev server on :4600' -ForegroundColor Yellow
-    Stop-Port4600
+    $procs = $listening | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue }
+    Fail ("port 4610 is used by another program (" + (($procs | ForEach-Object { "$($_.ProcessName) pid $($_.Id)" }) -join ', ') + "). Close it and run this again.")
   }
-  Start-Process -FilePath 'cmd.exe' -WorkingDirectory $AppDir -ArgumentList '/k', 'title SYSTEM 3D - local stack & pnpm run dev:local-stack'
+  Start-Process -FilePath 'powershell.exe' -WorkingDirectory $AppDir -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-NoExit', '-File', (Join-Path $PSScriptRoot 'dev-server.ps1')
 }
-if (-not (Wait-Http 'http://localhost:4600/' 90)) { Fail 'the app dev server did not come up on :4600 - see the SYSTEM 3D window' }
-# the page must come from the local-stack dev server (canonical data source), not another one on :4600
-if ((Get-AppConfig) -notmatch '"canonical"') {
-  Fail 'the dev server on :4600 is not in local-stack mode - see the SYSTEM 3D window for its error.'
-}
+if (-not (Wait-Http "$AppUrl/" 120)) { Show-DevLog; Fail "the app dev server did not come up on $AppUrl - see dev-server.log" }
+if ((Get-AppConfig) -notmatch '"canonical"') { Show-DevLog; Fail "the dev server on $AppUrl is not in local-stack mode - see dev-server.log" }
 
 # -- 4. gate check -------------------------------------------------------------------------------
 if (-not $SkipSmoke) {
   Step 'Phase 0 gate check (browser: sign in, open the map)'
   Run 'pnpm' @('exec', 'playwright', 'install', 'chromium') $AppDir | Out-Null
-  $code = Run 'node' @('scripts/local-stack/smoke.mjs', '--app', 'http://localhost:4600', '--out', $OutDir) $AppDir
+  $code = Run 'node' @('scripts/local-stack/smoke.mjs', '--app', $AppUrl, '--out', $OutDir) $AppDir
   if ($code -ne 0) { Write-Host "[!] Gate check did not pass - see $OutDir\report.json and map.png" -ForegroundColor Yellow }
   else { Write-Host "[OK] Gate check passed - report and screenshot in $OutDir" -ForegroundColor Green }
 }
 
 Write-Host ''
-Write-Host 'SYSTEM 3D (real backend): http://localhost:4600   sign in: demo@example.com / password123'
+Write-Host 'SYSTEM 3D (real backend): http://localhost:4610   sign in: demo@example.com / password123'
 Write-Host 'BFF: http://localhost:8083   gis-be: http://localhost:8081   Jaeger: http://localhost:16686'
 Write-Host 'Stop everything: run this again with -Down'
-Start-Process 'http://localhost:4600' | Out-Null
+Start-Process 'http://localhost:4610' | Out-Null
 exit 0

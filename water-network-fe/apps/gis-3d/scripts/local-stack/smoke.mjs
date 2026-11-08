@@ -2,7 +2,7 @@
 // from the real BFF. Signs in with the mock login, opens the map, and records every /api/gis
 // call, console errors and a screenshot.
 //
-//   node scripts/local-stack/smoke.mjs [--app http://localhost:4600] [--out <dir>]
+//   node scripts/local-stack/smoke.mjs [--app http://localhost:4610] [--out <dir>]
 //
 // Exit code 0 = gate passed: /bootstrap and /map answered 200 from the BFF with features,
 // the app shows the canonical map, and no page errors.
@@ -14,7 +14,7 @@ const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
   return i > 0 ? process.argv[i + 1] : fallback
 }
-const APP = arg('app', 'http://localhost:4600').replace(/\/$/, '')
+const APP = arg('app', 'http://localhost:4610').replace(/\/$/, '')
 const OUT = path.resolve(arg('out', 'local-stack-smoke'))
 mkdirSync(OUT, { recursive: true })
 
