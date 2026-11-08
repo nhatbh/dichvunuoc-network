@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from .catalog import component
+from .catalog import LEGACY_DEVICE_TYPES, LEGACY_NODE_TYPES, component
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -46,41 +46,42 @@ class LayerRule(StrictModel):
         return canonical
 
 
-NodeType = Literal["Junction", "Reservoir", "Tank", "Hydrant", "Other"]
-DeviceType = Literal["Valve", "FlowMeter", "PressureSensor", "Pump", "Hydrant"]
-
-
 class BlockRule(StrictModel):
+    """A CAD block that stands for a catalog component (decision 0028); the asset kind and host
+    follow from the catalog. Rules saved with the older node/device actions are translated."""
+
     fileId: str = Field(min_length=1, max_length=100)
     blockName: str = Field(min_length=1, max_length=512)
-    # "component": the block is a catalog component (componentCode); gis-be's node or device
-    # type follows from the catalog. "node"/"device" map to a gis-be type directly.
-    action: Literal["component", "node", "device", "reference", "exclude", "review"]
+    action: Literal["component", "reference", "exclude", "review"]
     componentCode: str | None = Field(default=None, max_length=64)
-    nodeType: NodeType | None = None
-    deviceType: DeviceType | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def translate_legacy(cls, data):
+        if not isinstance(data, dict) or data.get("action") not in {"node", "device"}:
+            return data
+        data = dict(data)
+        action = data.pop("action")
+        node_type, device_type = data.pop("nodeType", None), data.pop("deviceType", None)
+        legacy = LEGACY_NODE_TYPES if action == "node" else LEGACY_DEVICE_TYPES
+        code = legacy.get(node_type if action == "node" else device_type)
+        if code is None:
+            raise ValueError(f"Quy tắc block dạng {action} cần loại hợp lệ.")
+        data.update(action="component", componentCode=code)
+        return data
 
     @model_validator(mode="after")
-    def required_type(self):
+    def required_component(self):
         if self.action == "component":
             entry = component(self.componentCode or "")
             if entry is None:
                 raise ValueError("Mã thành phần không có trong danh mục.")
-            if entry["gisKind"] == "Pipe":
+            if entry["kind"] == "Pipe":
                 raise ValueError("Block không thể ánh xạ thành ống; dùng quy tắc layer.")
-            if self.nodeType is not None or self.deviceType is not None:
-                raise ValueError("Quy tắc block dạng component lấy loại từ danh mục.")
+            self.componentCode = entry["code"]
             return self
         if self.componentCode is not None:
             raise ValueError("componentCode chỉ áp dụng cho block dạng component.")
-        if self.action == "node" and self.nodeType is None:
-            raise ValueError("Quy tắc block dạng node cần nodeType.")
-        if self.action == "device" and self.deviceType is None:
-            raise ValueError("Quy tắc block dạng device cần deviceType.")
-        if self.action != "node" and self.nodeType is not None:
-            raise ValueError("nodeType chỉ áp dụng cho block dạng node.")
-        if self.action != "device" and self.deviceType is not None:
-            raise ValueError("deviceType chỉ áp dụng cho block dạng device.")
         return self
 
 

@@ -19,6 +19,18 @@ MAX_FEATURES = 100_000
 MAX_VERTICES = 2_000_000
 LINE_TYPES = {"LINE", "LWPOLYLINE", "POLYLINE", "ARC", "SPLINE", "ELLIPSE", "CIRCLE"}
 TEXT_TYPES = {"TEXT", "MTEXT", "ATTRIB", "ATTDEF"}
+
+
+def block_attributes(insert) -> dict[str, str]:
+    """ATTRIB tag → text of a block insert (e.g. DN=150), bounded; mapped to catalog
+    properties when the block is a component."""
+    tags = {}
+    for attr in list(getattr(insert, "attribs", []))[:40]:
+        tag = str(attr.dxf.get("tag", "")).strip()[:64]
+        text = str(attr.dxf.get("text", "")).strip()[:200]
+        if tag and text:
+            tags[tag] = text
+    return tags
 ANCILLARY = {
     "HATCH",
     "DIMENSION",
@@ -276,6 +288,9 @@ def read_document(file_info: dict, path: Path, directory: Path):
                         if is_xref
                         else "Cần ánh xạ block rõ ràng",
                     }
+                    tags = block_attributes(insert)
+                    if tags:
+                        properties["blockAttributes"] = tags
                     point = insert.dxf.insert
                     append_feature(
                         placement_origin,

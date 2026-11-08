@@ -118,3 +118,21 @@ def test_array_insert_is_rejected_before_multi_insert_iteration(tmp_path, monkey
     monkeypatch.setattr(ezdxf.entities.Insert, "multi_insert", unexpected_iteration)
     with pytest.raises(ValueError, match="giới hạn số đối tượng"):
         read_document({"id": "one", "name": path.name}, path, tmp_path / "out")
+
+
+def test_block_attribs_are_kept_as_block_attributes(tmp_path):
+    doc = ezdxf.new("R2018")
+    block = doc.blocks.new("Reducer")
+    block.add_line((0, 0), (1, 0))
+    block.add_attdef("DN", (0, 1))
+    block.add_attdef("DN2", (0, 2))
+    ref = doc.modelspace().add_blockref("Reducer", (500000, 2320000))
+    ref.add_auto_attribs({"DN": "200", "DN2": "150"})
+    path = tmp_path / "attribs.dxf"
+    doc.saveas(path)
+    r = read_document({"id": "one", "name": path.name}, path, tmp_path / "out")
+    insert = next(
+        x for x in r["features"]
+        if x["properties"]["entityType"] == "INSERT" and x["properties"]["parentId"] is None
+    )
+    assert insert["properties"]["blockAttributes"] == {"DN": "200", "DN2": "150"}

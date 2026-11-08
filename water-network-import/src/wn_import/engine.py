@@ -13,7 +13,7 @@ from shapely import LineString, Point, STRtree, normalize
 from shapely.ops import substring
 
 from .cad import feature_bounds
-from .catalog import component
+from .catalog import accepts_host, component, properties_from_block
 from .models import ReviewConfig, issue
 from .georeference import prepare_georeference
 
@@ -22,8 +22,6 @@ NEAR_OVERLAP_MIN_FRACTION = 0.5
 NEAR_OVERLAP_MIN_LENGTH_M = 5.0
 MAX_SPATIAL_PAIR_CHECKS = 250_000
 MAX_SPATIAL_FINDINGS = 1_000
-PIPE_HOSTED_DEVICES = {"Valve", "FlowMeter"}
-NODE_HOSTED_DEVICES = {"Pump", "Hydrant"}
 
 
 def identity(prefix, value):
@@ -133,16 +131,6 @@ def remove_exact_duplicates(features, reviewed_by_id, issues, config):
     return keep, aliases
 
 
-def device_accepts_host(device_type, host_kind):
-    if device_type in PIPE_HOSTED_DEVICES:
-        return host_kind == "Pipe"
-    if device_type in NODE_HOSTED_DEVICES:
-        return host_kind == "Node"
-    if device_type == "PressureSensor":
-        return host_kind in {"Pipe", "Node"}
-    return False
-
-
 def validate_device_host_selection(points, pipes, aliases, selections, issues):
     assets = {feature["id"]: feature for feature in pipes + points}
     invalid = set()
@@ -175,12 +163,12 @@ def validate_device_host_selection(points, pipes, aliases, selections, issues):
             invalid.add(feature_id)
             continue
         host_kind = host["properties"].get("kind")
-        if not device_accepts_host(device["properties"].get("deviceType"), host_kind):
+        if not accepts_host(device["properties"].get("componentCode"), host_kind):
             issues.append(
                 issue(
                     "INVALID_DEVICE_HOST",
                     "error",
-                    f"{device['properties'].get('deviceType')} không hỗ trợ host {host_kind or 'chưa phân loại'}.",
+                    f"{device['properties'].get('componentCode')} không hỗ trợ host {host_kind or 'chưa phân loại'}.",
                     feature_id,
                 )
             )
@@ -343,19 +331,19 @@ def _analyze(raw, inventory, config, registration):
                 p.update(disposition="reference", reason="Giữ block làm tham chiếu")
             elif action == "component" and f["geometry"]["type"] == "Point":
                 entry = component(br.componentCode)
-                if entry["gisKind"] == "Device":
-                    p.update(disposition="keep", kind="Device", deviceType=entry["gisDeviceType"])
-                else:
-                    p.update(disposition="keep", kind="Node", nodeType=entry["gisNodeType"])
-                p["componentCode"] = br.componentCode
-                p["sources"] = [source_record(f)]
-                point_candidates.append(f)
-            elif action == "node" and f["geometry"]["type"] == "Point":
-                p.update(disposition="keep", kind="Node", nodeType=br.nodeType)
-                p["sources"] = [source_record(f)]
-                point_candidates.append(f)
-            elif action == "device" and f["geometry"]["type"] == "Point":
-                p.update(disposition="keep", kind="Device", deviceType=br.deviceType)
+                p.update(disposition="keep", kind=entry["kind"], componentCode=entry["code"])
+                properties, rejected = properties_from_block(entry["code"], p.get("blockAttributes"))
+                if properties:
+                    p["componentProperties"] = properties
+                if rejected:
+                    issues.append(
+                        issue(
+                            "BLOCK_ATTRIBUTE_INVALID",
+                            "warning",
+                            f"Bỏ qua thuộc tính block không hợp lệ cho {entry['code']}: {', '.join(rejected)}.",
+                            f["id"],
+                        )
+                    )
                 p["sources"] = [source_record(f)]
                 point_candidates.append(f)
             else:
@@ -580,9 +568,8 @@ def _analyze(raw, inventory, config, registration):
         properties = f["properties"]
         properties.update(clientRef=ref)
         attributes = provenance_attributes(f, "explicit-block-node")
-        attributes["nodeType"] = properties["nodeType"]
-        if properties.get("componentCode"):
-            attributes["componentCode"] = properties["componentCode"]
+        attributes.update(properties.get("componentProperties") or {})
+        attributes["componentCode"] = properties["componentCode"]
         draft = {
             "kind": "Node",
             "assetCode": ref,
@@ -660,7 +647,7 @@ def _analyze(raw, inventory, config, registration):
             if node_ref not in nodes:
                 point = list(to_geo.transform(*xy))
                 attributes = provenance_attributes(f, f"pipe-endpoint-{endpoint_index}")
-                attributes["nodeType"] = "Junction"
+                attributes["componentCode"] = "Junction"
                 nodes[node_ref] = {
                     "kind": "Node",
                     "assetCode": node_ref,
@@ -713,8 +700,8 @@ def _analyze(raw, inventory, config, registration):
     pipe_hosts = defaultdict(list)
     for f, draft in pipe_draft_records:
         source_id = f["properties"].get("splitFrom", f["id"])
-        pipe_hosts[source_id].append((f["_line"], draft["clientRef"]))
-        pipe_hosts[f["id"]].append((f["_line"], draft["clientRef"]))
+        pipe_hosts[source_id].append((f["_line"], draft))
+        pipe_hosts[f["id"]].append((f["_line"], draft))
     for duplicate, canonical in duplicate_aliases.items():
         if canonical in pipe_hosts:
             pipe_hosts[duplicate] = pipe_hosts[canonical]
@@ -735,10 +722,18 @@ def _analyze(raw, inventory, config, registration):
             reviewed_by_id.get(canonical_host, {}).get("properties", {}).get("kind")
         )
         candidates = []
-        if host_kind == "Pipe":
+        on_node = (component(properties.get("componentCode")) or {}).get("host") == "node"
+        if host_kind == "Pipe" and on_node:
+            # a point device drawn at a pipe end attaches to that end's node
             candidates = [
-                (f["_point"].distance(line), ref)
-                for line, ref in pipe_hosts.get(canonical_host, [])
+                (f["_point"].distance(Point(line.coords[end])), draft[ref_field])
+                for line, draft in pipe_hosts.get(canonical_host, [])
+                for end, ref_field in ((0, "fromRef"), (-1, "toRef"))
+            ]
+        elif host_kind == "Pipe":
+            candidates = [
+                (f["_point"].distance(line), draft["clientRef"])
+                for line, draft in pipe_hosts.get(canonical_host, [])
             ]
         elif host_kind == "Node" and canonical_host in explicit_node_refs:
             candidates = [
@@ -799,9 +794,8 @@ def _analyze(raw, inventory, config, registration):
             clientRef=ref, hostRef=host_ref, hostStatus="valid", hostDistanceM=nearest
         )
         attributes = provenance_attributes(f, "explicit-block-device")
-        attributes["deviceType"] = properties["deviceType"]
-        if properties.get("componentCode"):
-            attributes["componentCode"] = properties["componentCode"]
+        attributes.update(properties.get("componentProperties") or {})
+        attributes["componentCode"] = properties["componentCode"]
         draft = {
             "kind": "Device",
             "assetCode": ref,

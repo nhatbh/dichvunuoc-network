@@ -182,13 +182,13 @@ def test_explicit_block_node_and_device_host_generate_provenanced_point_assets()
     node = next(
         x
         for x in r["drafts"]
-        if x["kind"] == "Node" and x["attributes"]["nodeType"] == "Reservoir"
+        if x["kind"] == "Node" and x["attributes"]["componentCode"] == "Reservoir"
     )
     device = next(x for x in r["drafts"] if x["kind"] == "Device")
     pipe = next(x for x in r["drafts"] if x["kind"] == "Pipe")
     assert pipe["fromRef"] == node["clientRef"]
     assert device["hostRef"] == pipe["clientRef"]
-    assert device["attributes"]["deviceType"] == "Valve"
+    assert device["attributes"]["componentCode"] == "GateValve"  # legacy "Valve" rule
     assert device["attributes"]["sourceBlockName"] == "ValveSymbol"
     assert {
         f["properties"]["kind"] for f in r["clean"] if f["geometry"]["type"] == "Point"
@@ -253,7 +253,7 @@ def test_device_host_kind_and_metric_distance_are_validated():
         fs,
         blockRules=block_rules,
         deviceHosts=[
-            {"featureId": "pump", "hostFeatureId": "pipe"},
+            {"featureId": "pump", "hostFeatureId": "node"},  # pumps sit on a pipe
             {"featureId": "far-valve", "hostFeatureId": "pipe"},
         ],
     )
