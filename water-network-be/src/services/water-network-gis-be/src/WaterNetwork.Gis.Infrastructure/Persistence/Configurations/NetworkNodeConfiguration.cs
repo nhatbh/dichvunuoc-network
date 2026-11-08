@@ -12,7 +12,8 @@ public sealed class NetworkNodeConfiguration : IEntityTypeConfiguration<NetworkN
         builder.Property(x => x.Id).HasColumnName("id").HasMaxLength(64);
         builder.Property(x => x.TenantId).HasColumnName("tenant_id").HasMaxLength(64).IsRequired();
         builder.Property(x => x.AssetCode).HasColumnName("asset_code").HasMaxLength(64).IsRequired();
-        builder.Property(x => x.NodeType).HasColumnName("node_type").HasMaxLength(32).IsRequired();
+        builder.Property(x => x.ComponentCode).HasColumnName("component_code").HasMaxLength(64).IsRequired();
+        builder.Property(x => x.Properties).HasColumnName("properties").HasColumnType("jsonb").HasDefaultValueSql("'{}'::jsonb").IsRequired();
         builder.Property(x => x.Location).HasColumnName("location").HasColumnType("geometry(Point,4326)").IsRequired();
         builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken();
         builder.Property(x => x.CreatedAt).HasColumnName("created_at");
@@ -21,6 +22,7 @@ public sealed class NetworkNodeConfiguration : IEntityTypeConfiguration<NetworkN
 
         builder.HasIndex(x => new { x.TenantId, x.AssetCode }).IsUnique().HasDatabaseName("ux_network_nodes_tenant_asset_code");
         builder.HasIndex(x => x.Location).HasMethod("gist").HasDatabaseName("ix_network_nodes_location_gist");
+        builder.HasIndex(x => new { x.TenantId, x.ComponentCode }).HasDatabaseName("ix_network_nodes_tenant_component");
         builder.HasQueryFilter(x => x.DeletedAt == null);
     }
 }

@@ -9,13 +9,13 @@ namespace WaterNetwork.Gis.ContractTests;
 public class NetworkNodeRegisteredContractTests
 {
     [Fact]
-    public void V1_Payload_Schema_Is_Stable()
+    public void V2_Payload_Schema_Is_Stable()
     {
-        var evt = new NetworkNodeRegisteredV1("node-1", "tenant-001", "ND-001", "Junction", 10.76, 106.66);
+        var evt = new NetworkNodeRegisteredV2("node-1", "tenant-001", "ND-001", "Junction", ["connects"], new Dictionary<string, string>(), 10.76, 106.66);
         var json = JsonSerializer.Serialize(evt);
         using var doc = JsonDocument.Parse(json);
         var props = doc.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
-        props.Should().BeEquivalentTo("NodeId", "TenantId", "AssetCode", "NodeType", "Latitude", "Longitude");
+        props.Should().BeEquivalentTo("NodeId", "TenantId", "AssetCode", "ComponentCode", "Functions", "Properties", "Latitude", "Longitude");
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class NetworkNodeRegisteredContractTests
     public void Mapper_Translates_NodeRegistered_To_Integration_Event()
     {
         var data = new WaterNetwork.Gis.Domain.DomainEvents.NodeRegisteredData(
-            "tenant-001", "ND-001", "Junction", 10.762622, 106.660172);
+            "tenant-001", "ND-001", "Junction", ["connects"], new Dictionary<string, string>(), 10.762622, 106.660172);
         var domainEvent = new WaterNetwork.Gis.Domain.DomainEvents.NodeRegistered("node-1", data);
 
         var mapper = new GisIntegrationEventMapper();
@@ -37,7 +37,7 @@ public class NetworkNodeRegisteredContractTests
         var integration = mapper.Map(domainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be("network.node.registered");
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("node-1");
 
         var typed = integration as NodeRegisteredIntegrationEvent;

@@ -36,7 +36,7 @@ public class CrossTenantMutationGuardApiTests(PostgisFixture postgis) : IClassFi
         var nodeResp = await tenantA.PostAsJsonAsync("/api/network/nodes", new
         {
             assetCode = $"ND-{Guid.NewGuid():N}"[..16],
-            nodeType = "Junction", latitude = 10.0, longitude = 106.0
+            componentCode = "Junction", latitude = 10.0, longitude = 106.0
         });
         nodeResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var nodeId = (await nodeResp.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["id"];
@@ -44,7 +44,7 @@ public class CrossTenantMutationGuardApiTests(PostgisFixture postgis) : IClassFi
         var deviceResp = await tenantA.PostAsJsonAsync("/api/network/devices", new
         {
             assetCode = $"DV-{Guid.NewGuid():N}"[..16],
-            deviceType = "Pump",
+            componentCode = "Hydrant",
             hostNodeId = nodeId,
             hostPipeId = (string?)null,
             latitude = 10.0,
@@ -85,7 +85,7 @@ public class CrossTenantMutationGuardApiTests(PostgisFixture postgis) : IClassFi
             var response = await tenantA.PostAsJsonAsync("/api/network/nodes", new
             {
                 assetCode = $"ND-{suffix}-{Guid.NewGuid():N}"[..16],
-                nodeType = "Junction",
+                componentCode = "Junction",
                 latitude,
                 longitude
             });
@@ -113,7 +113,7 @@ public class CrossTenantMutationGuardApiTests(PostgisFixture postgis) : IClassFi
         var deviceResponse = await tenantB.PostAsJsonAsync("/api/network/devices", new
         {
             assetCode = $"DV-{Guid.NewGuid():N}"[..16],
-            deviceType = "Pump",
+            componentCode = "Hydrant",
             hostNodeId = nodeA1,
             hostPipeId = (string?)null,
             latitude = 10.0,

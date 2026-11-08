@@ -9,4 +9,5 @@ public sealed record RegisterPipeRequest(
     IReadOnlyList<GeoPointRequest> Points,
     double DiameterMm,
     string Material,
-    double? LengthM);
+    double? LengthM,
+    IReadOnlyDictionary<string, string>? Properties = null);

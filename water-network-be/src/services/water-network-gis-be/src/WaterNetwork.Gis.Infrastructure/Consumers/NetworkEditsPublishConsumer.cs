@@ -9,6 +9,7 @@ using WaterNetwork.Gis.Domain.DomainEvents;
 using WaterNetwork.Gis.Domain.Entities;
 using WaterNetwork.Gis.Domain.Repositories;
 using WaterNetwork.Gis.Domain.ValueObjects;
+using WaterPlatform.BuildingBlocks.Components;
 using WaterNetwork.Gis.Infrastructure.NetworkEditing;
 using WaterNetwork.Gis.Infrastructure.Persistence;
 using WaterPlatform.BuildingBlocks.EventBus.Integration;
@@ -84,10 +85,11 @@ public sealed class NetworkEditsPublishConsumer(
                     var code=new AssetCode(asset.AssetCode);
                     if(op.Kind=="Node")
                     {
-                        var type=Enum.Parse<NodeType>(asset.Attributes["nodeType"]);
-                        var node=op.Action=="Add" ? NetworkNode.Register(batch.TenantId,code,type,points[0])
+                        var type=ComponentCode.Parse(asset.Attributes["componentCode"],ComponentKind.Node);
+                        var props=AssetProperties.FromAttributes(type, asset.Attributes);
+                        var node=op.Action=="Add" ? NetworkNode.Register(batch.TenantId,code,type,points[0],props)
                             : await nodes.GetByIdAsync(batch.TenantId,op.TargetId!,ct) ?? throw new InvalidDataException("Node vanished.");
-                        if(op.Action=="Update") node.Edit(code,type,points[0]);
+                        if(op.Action=="Update") node.Edit(code,type,points[0],props);
                         await nodes.SaveAsync(node,ct); id=node.Id;
                     }
                     else if(op.Kind=="Pipe")
@@ -97,19 +99,21 @@ public sealed class NetworkEditsPublishConsumer(
                         var material=PipeMaterial.Parse(asset.Attributes["material"]);
                         var geometry=new PipeGeometry(points);
                         var length=await lengths.CalculateMetersAsync(points.Select(p=>(p.Latitude,p.Longitude)).ToArray(),ct);
-                        var pipe=op.Action=="Add" ? NetworkPipe.Register(batch.TenantId,code,from,to,geometry,diameter,material,length,null)
+                        var props=AssetProperties.FromAttributes(ComponentCode.Pipe, asset.Attributes);
+                        var pipe=op.Action=="Add" ? NetworkPipe.Register(batch.TenantId,code,from,to,geometry,diameter,material,length,null,props)
                             : await pipes.GetByIdAsync(batch.TenantId,op.TargetId!,ct) ?? throw new InvalidDataException("Pipe vanished.");
-                        if(op.Action=="Update") pipe.Edit(code,from,to,geometry,diameter,material,length);
+                        if(op.Action=="Update") pipe.Edit(code,from,to,geometry,diameter,material,length,props);
                         await pipes.SaveAsync(pipe,ct); id=pipe.Id;
                     }
                     else
                     {
-                        var type=DeviceType.Parse(asset.Attributes["deviceType"]);var hostId=Resolve(asset.HostRef);
-                        var isPipe=await pipes.GetByIdAsync(batch.TenantId,hostId,ct)!=null;
+                        var type=ComponentCode.Parse(asset.Attributes["componentCode"],ComponentKind.Device);var hostId=Resolve(asset.HostRef);
+                        var props=AssetProperties.FromAttributes(type, asset.Attributes);
+                        var isPipe=type.Definition.Host==ComponentHosts.Pipe;
                         var host=DeviceHost.For(type,isPipe?hostId:null,isPipe?null:hostId);
-                        var device=op.Action=="Add" ? NetworkDevice.Install(batch.TenantId,code,type,host,points[0])
+                        var device=op.Action=="Add" ? NetworkDevice.Install(batch.TenantId,code,type,host,points[0],props)
                             : await devices.GetByIdAsync(batch.TenantId,op.TargetId!,ct) ?? throw new InvalidDataException("Device vanished.");
-                        if(op.Action=="Update") device.Edit(code,type,host,points[0]);
+                        if(op.Action=="Update") device.Edit(code,type,host,points[0],props);
                         await devices.SaveAsync(device,ct);id=device.Id;
                     }
                     refs[op.Id]=id;

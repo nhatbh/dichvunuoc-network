@@ -32,12 +32,12 @@ public sealed record AssetFeaturePropertiesDto(
     string AssetCode,
     string Status,
     string? LifecycleStatus,   // GIS-5: from network_asset_states; null here
-    string? NodeType,          // Node only
+    string ComponentCode,      // every kind (decision 0028)
     int? DiameterMm,           // Pipe only
     string? Material,          // Pipe only
     double? LengthM,           // Pipe only
     string? FromNodeId,        // Pipe only
     string? ToNodeId,          // Pipe only
-    string? DeviceType,        // Device only
     string? HostPipeId,        // Device only
-    string? HostNodeId);       // Device only
+    string? HostNodeId,        // Device only
+    IReadOnlyDictionary<string, string> AssetProperties);  // catalog-declared properties

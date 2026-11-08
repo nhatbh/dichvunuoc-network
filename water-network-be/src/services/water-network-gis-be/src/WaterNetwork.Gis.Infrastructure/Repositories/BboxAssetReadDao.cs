@@ -52,16 +52,16 @@ public sealed class BboxAssetReadDao(GisDbContext dbContext) : IBboxAssetReadDao
                n.asset_code            AS AssetCode,
                'Active'                AS Status,
                ST_AsGeoJSON(n.location) AS GeoJson,
-               n.node_type             AS NodeType,
+               n.component_code        AS ComponentCode,
                NULL::int               AS DiameterMm,
                NULL::text              AS Material,
                NULL::double precision  AS LengthM,
                NULL::text              AS FromNodeId,
                NULL::text              AS ToNodeId,
-               NULL::text              AS DeviceType,
                NULL::text              AS HostPipeId,
                NULL::text              AS HostNodeId,
-               s.lifecycle_status      AS LifecycleStatus
+               s.lifecycle_status      AS LifecycleStatus,
+               n.properties::text      AS PropertiesJson
         FROM network_nodes n
         LEFT JOIN network_asset_states s ON s.asset_id = n.id AND s.tenant_id = @tenantId
         WHERE n.tenant_id = @tenantId AND n.deleted_at IS NULL
@@ -74,16 +74,16 @@ public sealed class BboxAssetReadDao(GisDbContext dbContext) : IBboxAssetReadDao
                p.asset_code            AS AssetCode,
                p.status                AS Status,
                ST_AsGeoJSON(p.geometry) AS GeoJson,
-               NULL::text              AS NodeType,
+                              p.component_code        AS ComponentCode,
                p.diameter_mm           AS DiameterMm,
                p.material              AS Material,
                p.length_m              AS LengthM,
                p.from_node_id          AS FromNodeId,
                p.to_node_id            AS ToNodeId,
-               NULL::text              AS DeviceType,
                NULL::text              AS HostPipeId,
                NULL::text              AS HostNodeId,
-               s.lifecycle_status      AS LifecycleStatus
+               s.lifecycle_status      AS LifecycleStatus,
+               p.properties::text      AS PropertiesJson
         FROM network_pipes p
         LEFT JOIN network_asset_states s ON s.asset_id = p.id AND s.tenant_id = @tenantId
         WHERE p.tenant_id = @tenantId AND p.deleted_at IS NULL
@@ -96,16 +96,16 @@ public sealed class BboxAssetReadDao(GisDbContext dbContext) : IBboxAssetReadDao
                d.asset_code            AS AssetCode,
                d.status                AS Status,
                ST_AsGeoJSON(d.location) AS GeoJson,
-               NULL::text              AS NodeType,
-               NULL::int               AS DiameterMm,
+               d.component_code        AS ComponentCode,
+                              NULL::int               AS DiameterMm,
                NULL::text              AS Material,
                NULL::double precision  AS LengthM,
                NULL::text              AS FromNodeId,
                NULL::text              AS ToNodeId,
-               d.device_type           AS DeviceType,
                d.host_pipe_id          AS HostPipeId,
                d.host_node_id          AS HostNodeId,
-               s.lifecycle_status      AS LifecycleStatus
+               s.lifecycle_status      AS LifecycleStatus,
+               d.properties::text      AS PropertiesJson
         FROM network_devices d
         LEFT JOIN network_asset_states s ON s.asset_id = d.id AND s.tenant_id = @tenantId
         WHERE d.tenant_id = @tenantId AND d.deleted_at IS NULL

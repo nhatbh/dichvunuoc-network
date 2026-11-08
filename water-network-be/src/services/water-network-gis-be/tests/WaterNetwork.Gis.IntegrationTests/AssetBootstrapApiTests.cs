@@ -48,7 +48,7 @@ public sealed class AssetBootstrapApiTests(PostgisFixture postgis) : IClassFixtu
         var response = await client.PostAsJsonAsync("/api/network/nodes", new
         {
             assetCode = $"ND-{Guid.NewGuid():N}"[..16],
-            nodeType = "Junction",
+            componentCode = "Junction",
             latitude = lat,
             longitude = lon
         });
@@ -85,7 +85,7 @@ public sealed class AssetBootstrapApiTests(PostgisFixture postgis) : IClassFixtu
         var deviceResponse = await client.PostAsJsonAsync("/api/network/devices", new
         {
             assetCode = $"DV-{Guid.NewGuid():N}"[..16],
-            deviceType = "Pump",
+            componentCode = "Hydrant",
             hostPipeId = (string?)null,
             hostNodeId = fromNodeId,
             latitude = 19.5,

@@ -12,8 +12,8 @@ public sealed record NodeRegisteredIntegrationEvent(
     DateTime OccurredAt,
     string SourceAggregateId,
     string SourceAggregateType,
-    NetworkNodeRegisteredV1 Data)
-    : IIntegrationEvent<NetworkNodeRegisteredV1>;
+    NetworkNodeRegisteredV2 Data)
+    : IIntegrationEvent<NetworkNodeRegisteredV2>;
 
 public sealed record PipeRegisteredIntegrationEvent(
     string EventId,
@@ -22,8 +22,8 @@ public sealed record PipeRegisteredIntegrationEvent(
     DateTime OccurredAt,
     string SourceAggregateId,
     string SourceAggregateType,
-    NetworkPipeRegisteredV1 Data)
-    : IIntegrationEvent<NetworkPipeRegisteredV1>;
+    NetworkPipeRegisteredV2 Data)
+    : IIntegrationEvent<NetworkPipeRegisteredV2>;
 
 public sealed record DeviceInstalledIntegrationEvent(
     string EventId,
@@ -32,8 +32,8 @@ public sealed record DeviceInstalledIntegrationEvent(
     DateTime OccurredAt,
     string SourceAggregateId,
     string SourceAggregateType,
-    NetworkDeviceInstalledV1 Data)
-    : IIntegrationEvent<NetworkDeviceInstalledV1>;
+    NetworkDeviceInstalledV2 Data)
+    : IIntegrationEvent<NetworkDeviceInstalledV2>;
 
 public sealed record NodeDeletedIntegrationEvent(
     string EventId,
@@ -42,8 +42,8 @@ public sealed record NodeDeletedIntegrationEvent(
     DateTime OccurredAt,
     string SourceAggregateId,
     string SourceAggregateType,
-    NetworkNodeDeletedV1 Data)
-    : IIntegrationEvent<NetworkNodeDeletedV1>;
+    NetworkNodeDeletedV2 Data)
+    : IIntegrationEvent<NetworkNodeDeletedV2>;
 
 public sealed record PipeDeletedIntegrationEvent(
     string EventId,
@@ -62,8 +62,8 @@ public sealed record DeviceDeletedIntegrationEvent(
     DateTime OccurredAt,
     string SourceAggregateId,
     string SourceAggregateType,
-    NetworkDeviceDeletedV1 Data)
-    : IIntegrationEvent<NetworkDeviceDeletedV1>;
+    NetworkDeviceDeletedV2 Data)
+    : IIntegrationEvent<NetworkDeviceDeletedV2>;
 
 public sealed record NodeRelocatedIntegrationEvent(
     string EventId,
@@ -118,18 +118,20 @@ public sealed class GisIntegrationEventMapper : IIntegrationEventMapper
     private static NodeRegisteredIntegrationEvent MapNodeRegistered(NodeRegistered domainEvent)
     {
         var d = domainEvent.Data;
-        var data = new NetworkNodeRegisteredV1(
+        var data = new NetworkNodeRegisteredV2(
             domainEvent.AggregateId,
             d.TenantId,
             d.AssetCode,
-            d.NodeType,
+            d.ComponentCode,
+            d.Functions,
+            d.Properties,
             d.Latitude,
             d.Longitude);
 
         return new NodeRegisteredIntegrationEvent(
             EventId: domainEvent.EventId,
             EventType: GisEventTypes.NodeRegistered,
-            EventVersion: 1,
+            EventVersion: 2,
             OccurredAt: domainEvent.OccurredAt,
             SourceAggregateId: domainEvent.AggregateId,
             SourceAggregateType: domainEvent.AggregateType,
@@ -141,7 +143,7 @@ public sealed class GisIntegrationEventMapper : IIntegrationEventMapper
         var d = domainEvent.Data;
         // DiameterMm: domain is double (VO wraps double); contract is int (catalog reality).
         // Convert.ToInt32 mirrors the persistence layer conversion in NetworkPipeRepository.
-        var data = new NetworkPipeRegisteredV1(
+        var data = new NetworkPipeRegisteredV2(
             PipeId: domainEvent.AggregateId,
             TenantId: d.TenantId,
             AssetCode: d.AssetCode,
@@ -149,12 +151,14 @@ public sealed class GisIntegrationEventMapper : IIntegrationEventMapper
             ToNodeId: d.ToNodeId,
             LengthM: d.LengthM,
             DiameterMm: Convert.ToInt32(d.DiameterMm),
-            Material: d.Material);
+            Material: d.Material,
+            ComponentCode: d.ComponentCode,
+            Properties: d.Properties);
 
         return new PipeRegisteredIntegrationEvent(
             EventId: domainEvent.EventId,
             EventType: GisEventTypes.PipeRegistered,
-            EventVersion: 1,
+            EventVersion: 2,
             OccurredAt: domainEvent.OccurredAt,
             SourceAggregateId: domainEvent.AggregateId,
             SourceAggregateType: domainEvent.AggregateType,
@@ -164,11 +168,13 @@ public sealed class GisIntegrationEventMapper : IIntegrationEventMapper
     private static DeviceInstalledIntegrationEvent MapDeviceInstalled(DeviceInstalled domainEvent)
     {
         var d = domainEvent.Data;
-        var data = new NetworkDeviceInstalledV1(
+        var data = new NetworkDeviceInstalledV2(
             DeviceId: domainEvent.AggregateId,
             TenantId: d.TenantId,
             AssetCode: d.AssetCode,
-            DeviceType: d.DeviceType,
+            ComponentCode: d.ComponentCode,
+            Functions: d.Functions,
+            Properties: d.Properties,
             HostPipeId: d.HostPipeId,
             HostNodeId: d.HostNodeId,
             Latitude: d.Latitude,
@@ -177,7 +183,7 @@ public sealed class GisIntegrationEventMapper : IIntegrationEventMapper
         return new DeviceInstalledIntegrationEvent(
             EventId: domainEvent.EventId,
             EventType: GisEventTypes.DeviceInstalled,
-            EventVersion: 1,
+            EventVersion: 2,
             OccurredAt: domainEvent.OccurredAt,
             SourceAggregateId: domainEvent.AggregateId,
             SourceAggregateType: domainEvent.AggregateType,
@@ -187,16 +193,16 @@ public sealed class GisIntegrationEventMapper : IIntegrationEventMapper
     private static NodeDeletedIntegrationEvent MapNodeDeleted(NodeDeleted domainEvent)
     {
         var d = domainEvent.Data;
-        var data = new NetworkNodeDeletedV1(
+        var data = new NetworkNodeDeletedV2(
             NodeId: domainEvent.AggregateId,
             TenantId: d.TenantId,
             AssetCode: d.AssetCode,
-            NodeType: d.NodeType);
+            ComponentCode: d.ComponentCode);
 
         return new NodeDeletedIntegrationEvent(
             EventId: domainEvent.EventId,
             EventType: GisEventTypes.NodeDeleted,
-            EventVersion: 1,
+            EventVersion: 2,
             OccurredAt: domainEvent.OccurredAt,
             SourceAggregateId: domainEvent.AggregateId,
             SourceAggregateType: domainEvent.AggregateType,
@@ -224,16 +230,16 @@ public sealed class GisIntegrationEventMapper : IIntegrationEventMapper
     private static DeviceDeletedIntegrationEvent MapDeviceDeleted(DeviceDeleted domainEvent)
     {
         var d = domainEvent.Data;
-        var data = new NetworkDeviceDeletedV1(
+        var data = new NetworkDeviceDeletedV2(
             DeviceId: domainEvent.AggregateId,
             TenantId: d.TenantId,
             AssetCode: d.AssetCode,
-            DeviceType: d.DeviceType);
+            ComponentCode: d.ComponentCode);
 
         return new DeviceDeletedIntegrationEvent(
             EventId: domainEvent.EventId,
             EventType: GisEventTypes.DeviceDeleted,
-            EventVersion: 1,
+            EventVersion: 2,
             OccurredAt: domainEvent.OccurredAt,
             SourceAggregateId: domainEvent.AggregateId,
             SourceAggregateType: domainEvent.AggregateType,

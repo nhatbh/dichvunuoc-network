@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using WaterNetwork.Gis.Application.Dtos;
 using WaterNetwork.Gis.Application.Ports;
 using WaterNetwork.Gis.Application.Queries;
 using WaterPlatform.BuildingBlocks.Domain.Exceptions;
@@ -39,11 +40,12 @@ public sealed class GetAssetBootstrapQueryHandlerTests
             MaxLon: 106.3,
             MaxLat: 21.4,
             MaterialMix: [new AssetMaterialMixRow("HDPE", 1, 125.5)],
-            StatusMix: [new AssetStatusMixRow("Active", 1)]));
+            StatusMix: [new AssetStatusMixRow("Active", 1)],
+            ComponentMix: [new AssetComponentMixRow("Node", "Tee", 2), new AssetComponentMixRow("Device", "GateValve", 1)]));
 
         var result = await CreateHandler().HandleAsync(new GetAssetBootstrapQuery(), CancellationToken.None);
 
-        result.SchemaVersion.Should().Be(1);
+        result.SchemaVersion.Should().Be(2);
         result.HasData.Should().BeTrue();
         result.Counts.Total.Should().Be(4);
         result.HomeView!.Bbox.Should().Equal(105.1, 20.2, 106.3, 21.4);
@@ -52,6 +54,8 @@ public sealed class GetAssetBootstrapQueryHandlerTests
         result.HomeView.Source.Should().Be("data_extent");
         result.MaterialMix.Should().ContainSingle().Which.Material.Should().Be("HDPE");
         result.StatusMix.Should().ContainSingle().Which.Count.Should().Be(1);
+        result.ComponentMix.Should().HaveCount(2);
+        result.ComponentMix[0].Should().Be(new ComponentMixItemDto("Node", "Tee", 2));
         await _dao.Received(1).QueryAsync("tenant-a", Arg.Any<CancellationToken>());
     }
 
@@ -60,7 +64,7 @@ public sealed class GetAssetBootstrapQueryHandlerTests
     {
         _tenant.Current.Returns(new TenantContext("tenant-empty"));
         _dao.QueryAsync("tenant-empty", Arg.Any<CancellationToken>()).Returns(new AssetBootstrapSnapshot(
-            0, 0, 0, 0, null, null, null, null, [], []));
+            0, 0, 0, 0, null, null, null, null, [], [], []));
 
         var result = await CreateHandler().HandleAsync(new GetAssetBootstrapQuery(), CancellationToken.None);
 
@@ -70,5 +74,6 @@ public sealed class GetAssetBootstrapQueryHandlerTests
         result.PipeLengthM.Should().Be(0);
         result.MaterialMix.Should().BeEmpty();
         result.StatusMix.Should().BeEmpty();
+        result.ComponentMix.Should().BeEmpty();
     }
 }

@@ -4,6 +4,7 @@ using WaterNetwork.Gis.Domain.Aggregates;
 using WaterNetwork.Gis.Domain.Repositories;
 using WaterNetwork.Gis.Domain.ValueObjects;
 using WaterPlatform.BuildingBlocks.Application.Cqrs;
+using WaterPlatform.BuildingBlocks.Components;
 using WaterPlatform.BuildingBlocks.Domain.Exceptions;
 using WaterPlatform.BuildingBlocks.MultiTenancy;
 
@@ -24,8 +25,9 @@ public sealed class InstallDeviceCommandHandler(
             throw ConflictException.Duplicate("NetworkDevice", nameof(command.AssetCode), command.AssetCode);
 
         // Parse-first: host shape (400) is settled before any host-existence I/O (422).
-        var deviceType = DeviceType.Parse(command.DeviceType);
-        var host = DeviceHost.For(deviceType, command.HostPipeId, command.HostNodeId);
+        var component = ComponentCode.Parse(command.ComponentCode, ComponentKind.Device);
+        var host = DeviceHost.For(component, command.HostPipeId, command.HostNodeId);
+        var properties = AssetProperties.For(component, command.Properties);
 
         if (host.HostPipeId is not null)
         {
@@ -48,9 +50,10 @@ public sealed class InstallDeviceCommandHandler(
         var device = NetworkDevice.Install(
             tenantId: tenant.TenantId,
             assetCode: new AssetCode(command.AssetCode),
-            deviceType: deviceType,
+            component: component,
             host: host,
-            location: new GeoPoint(command.Latitude, command.Longitude));
+            location: new GeoPoint(command.Latitude, command.Longitude),
+            properties: properties);
 
         try
         {

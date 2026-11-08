@@ -66,7 +66,7 @@ public class AssetStateProjectionStoreTests(PostgisFixture postgis) : IClassFixt
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         var resp = await client.PostAsJsonAsync("/api/network/nodes", new
         {
-            assetCode = $"ND-{Guid.NewGuid():N}"[..16], nodeType = "Junction", latitude = 10.76, longitude = 106.66
+            assetCode = $"ND-{Guid.NewGuid():N}"[..16], componentCode = "Junction", latitude = 10.76, longitude = 106.66
         });
         resp.EnsureSuccessStatusCode();
         var nodeId = (await resp.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>())

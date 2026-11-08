@@ -5,7 +5,7 @@ namespace WaterNetwork.Gis.Domain.DomainEvents;
 public sealed record NodeDeletedData(
     string TenantId,
     string AssetCode,
-    string NodeType);
+    string ComponentCode);
 
 public sealed record NodeDeleted(
     string AggregateId,

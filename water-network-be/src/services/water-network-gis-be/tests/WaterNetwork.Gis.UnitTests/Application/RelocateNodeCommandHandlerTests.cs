@@ -22,7 +22,7 @@ public class RelocateNodeCommandHandlerTests
     private readonly IRequestContextProvider _requestContextProvider = Substitute.For<IRequestContextProvider>();
 
     private static NetworkNode MakeNode(double lat = 10.0, double lng = 106.0)
-        => NetworkNode.Register("tenant-001", new AssetCode("ND-001"), NodeType.Junction, new GeoPoint(lat, lng));
+        => NetworkNode.Register("tenant-001", new AssetCode("ND-001"), ComponentCode.Junction, new GeoPoint(lat, lng));
 
     private RelocateNodeCommandHandler CreateHandler()
     {

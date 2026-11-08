@@ -23,12 +23,12 @@ public class NetworkDeviceRepositoryTests(PostgisFixture postgis) : IClassFixtur
         double lng = 106.660172)
     {
         var code = assetCode ?? $"DV-{Guid.NewGuid():N}"[..16];
-        var deviceType = DeviceType.Parse("Valve");
+        var component = ComponentCode.Parse("GateValve");
         return NetworkDevice.Install(
             tenantId,
             new AssetCode(code),
-            deviceType,
-            DeviceHost.For(deviceType, hostPipeId, null),
+            component,
+            DeviceHost.For(component, hostPipeId, null),
             new GeoPoint(lat, lng));
     }
 
@@ -40,12 +40,12 @@ public class NetworkDeviceRepositoryTests(PostgisFixture postgis) : IClassFixtur
         double lng = 106.660172)
     {
         var code = assetCode ?? $"DV-{Guid.NewGuid():N}"[..16];
-        var deviceType = DeviceType.Parse("Pump");
+        var component = ComponentCode.Parse("Hydrant");
         return NetworkDevice.Install(
             tenantId,
             new AssetCode(code),
-            deviceType,
-            DeviceHost.For(deviceType, null, hostNodeId),
+            component,
+            DeviceHost.For(component, null, hostNodeId),
             new GeoPoint(lat, lng));
     }
 
@@ -78,7 +78,7 @@ public class NetworkDeviceRepositoryTests(PostgisFixture postgis) : IClassFixtur
         loaded.Should().NotBeNull();
         loaded!.TenantId.Should().Be(device.TenantId);
         loaded.AssetCode.Value.Should().Be(device.AssetCode.Value);
-        loaded.DeviceType.ToString().Should().Be("Valve");
+        loaded.Component.Value.Should().Be("GateValve");
         loaded.Host.HostPipeId.Should().Be("pipe-x");
         loaded.Host.HostNodeId.Should().BeNull();
         loaded.Location.Latitude.Should().BeApproximately(10.762622, 1e-9);
@@ -107,7 +107,7 @@ public class NetworkDeviceRepositoryTests(PostgisFixture postgis) : IClassFixtur
         loaded.Should().NotBeNull();
         loaded!.TenantId.Should().Be(device.TenantId);
         loaded.AssetCode.Value.Should().Be(device.AssetCode.Value);
-        loaded.DeviceType.ToString().Should().Be("Pump");
+        loaded.Component.Value.Should().Be("Hydrant");
         loaded.Host.HostPipeId.Should().BeNull();
         loaded.Host.HostNodeId.Should().Be("node-y");
         loaded.Location.Latitude.Should().BeApproximately(21.027764, 1e-9);
@@ -185,7 +185,7 @@ public class NetworkDeviceRepositoryTests(PostgisFixture postgis) : IClassFixtur
         // PersistAsync: existing.Version (0) != expectedVersion (1) → ConcurrencyException.
         var staleDevice = NetworkDevice.Reconstitute(
             device.Id, device.TenantId, device.AssetCode,
-            device.DeviceType, device.Host, device.Location,
+            device.Component, device.Host, device.Location,
             version: 1,            // higher than stored (0) → mismatch → ConcurrencyException
             createdAt: device.CreatedAt,
             updatedAt: device.UpdatedAt,

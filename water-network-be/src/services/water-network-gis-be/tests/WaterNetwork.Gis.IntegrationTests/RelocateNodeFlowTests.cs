@@ -55,7 +55,7 @@ public class RelocateNodeFlowTests(PostgisFixture postgis) : IClassFixture<Postg
             nodeId = await registerHandler.HandleAsync(
                 new RegisterNodeCommand(
                     AssetCode: $"ND-{Guid.NewGuid():N}"[..12],
-                    NodeType: "Junction",
+                    ComponentCode: "Junction",
                     Latitude: 10.0,
                     Longitude: 106.0),
                 CancellationToken.None);
@@ -130,7 +130,7 @@ public class RelocateNodeFlowTests(PostgisFixture postgis) : IClassFixture<Postg
         // Both are scoped; verify by object-reference equality on the db context they hold.
         // (We can verify indirectly: stage a node + geometry version and then SaveChanges once
         //  via the outbox path of nodeRepo.SaveAsync — both rows should appear.)
-        var node = NetworkNode.Register("tenant-scope-check", new AssetCode("ND-scope-01"), NodeType.Junction,
+        var node = NetworkNode.Register("tenant-scope-check", new AssetCode("ND-scope-01"), ComponentCode.Junction,
             new GeoPoint(10.0, 106.0));
 
         // Stage geometry version (no SaveChanges inside AppendAsync).

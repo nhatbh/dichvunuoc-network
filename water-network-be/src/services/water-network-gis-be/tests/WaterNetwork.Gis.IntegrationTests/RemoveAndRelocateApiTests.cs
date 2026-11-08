@@ -28,7 +28,7 @@ public class RemoveAndRelocateApiTests(PostgisFixture postgis) : IClassFixture<P
         var resp = await client.PostAsJsonAsync("/api/network/nodes", new
         {
             assetCode = $"ND-{Guid.NewGuid():N}"[..16],
-            nodeType = "Junction",
+            componentCode = "Junction",
             latitude = 10.762622,
             longitude = 106.660172
         });
@@ -60,7 +60,7 @@ public class RemoveAndRelocateApiTests(PostgisFixture postgis) : IClassFixture<P
         var resp = await client.PostAsJsonAsync("/api/network/devices", new
         {
             assetCode = $"DV-{Guid.NewGuid():N}"[..16],
-            deviceType = "Pump",
+            componentCode = "Hydrant",
             hostPipeId,
             hostNodeId,
             latitude = 10.762700,

@@ -9,7 +9,8 @@ public sealed class NetworkNode : AggregateRoot
 {
     public string TenantId { get; private set; }
     public AssetCode AssetCode { get; private set; }
-    public NodeType NodeType { get; private set; }
+    public ComponentCode Component { get; private set; }
+    public AssetProperties Properties { get; private set; }
     public GeoPoint Location { get; private set; }
     public DateTime? DeletedAt { get; private set; }
 
@@ -17,7 +18,8 @@ public sealed class NetworkNode : AggregateRoot
         string id,
         string tenantId,
         AssetCode assetCode,
-        NodeType nodeType,
+        ComponentCode component,
+        AssetProperties properties,
         GeoPoint location,
         int version = 0,
         DateTime? createdAt = null,
@@ -26,27 +28,33 @@ public sealed class NetworkNode : AggregateRoot
     {
         TenantId = tenantId;
         AssetCode = assetCode;
-        NodeType = nodeType;
+        Component = component;
+        Properties = properties;
         Location = location;
     }
 
     public static NetworkNode Register(
         string tenantId,
         AssetCode assetCode,
-        NodeType nodeType,
-        GeoPoint location)
+        ComponentCode component,
+        GeoPoint location,
+        AssetProperties? properties = null)
     {
+        EnsureNode(component);
         var node = new NetworkNode(
             id: $"node-{Guid.CreateVersion7():N}",
             tenantId: tenantId,
             assetCode: assetCode,
-            nodeType: nodeType,
+            component: component,
+            properties: properties ?? AssetProperties.Empty,
             location: location);
 
         var data = new NodeRegisteredData(
             TenantId: tenantId,
             AssetCode: assetCode.Value,
-            NodeType: nodeType.ToString(),
+            ComponentCode: component.Value,
+            Functions: component.Definition.Functions,
+            Properties: node.Properties.Values,
             Latitude: location.Latitude,
             Longitude: location.Longitude);
 
@@ -68,7 +76,7 @@ public sealed class NetworkNode : AggregateRoot
         var data = new NodeDeletedData(
             TenantId: TenantId,
             AssetCode: AssetCode.Value,
-            NodeType: NodeType.ToString());
+            ComponentCode: Component.Value);
 
         AddDomainEvent(new NodeDeleted(Id, data));
     }
@@ -100,24 +108,32 @@ public sealed class NetworkNode : AggregateRoot
             Reason: reason)));
     }
 
-    public void Edit(AssetCode code, NodeType type, GeoPoint location)
+    public void Edit(AssetCode code, ComponentCode component, GeoPoint location, AssetProperties? properties = null)
     {
-        if (DeletedAt != null || !Enum.IsDefined(type)) throw new DomainException("NetworkNode.InvalidEdit", "Cannot edit a deleted node or use invalid type.");
-        AssetCode=code; NodeType=type; Location=location;
+        if (DeletedAt != null) throw new DomainException("NetworkNode.InvalidEdit", "Cannot edit a deleted node.");
+        EnsureNode(component);
+        AssetCode=code; Component=component; Location=location; Properties=properties ?? AssetProperties.Empty;
         MarkAsModified(); AddDomainEvent(new NetworkAssetEdited(Id,new(TenantId,"Node",AssetCode.Value,Version)));
+    }
+
+    private static void EnsureNode(ComponentCode component)
+    {
+        if (component.Definition.Kind != WaterPlatform.BuildingBlocks.Components.ComponentKind.Node)
+            throw new DomainException("NetworkNode.NotANode", $"'{component}' is not a node component.");
     }
 
     public static NetworkNode Reconstitute(
         string id,
         string tenantId,
         AssetCode assetCode,
-        NodeType nodeType,
+        ComponentCode component,
         GeoPoint location,
         int version,
         DateTime createdAt,
         DateTime updatedAt,
-        DateTime? deletedAt = null)
-        => new(id, tenantId, assetCode, nodeType, location, version, createdAt, updatedAt)
+        DateTime? deletedAt = null,
+        AssetProperties? properties = null)
+        => new(id, tenantId, assetCode, component, properties ?? AssetProperties.Empty, location, version, createdAt, updatedAt)
         {
             DeletedAt = deletedAt
         };

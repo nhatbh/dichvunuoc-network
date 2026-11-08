@@ -25,7 +25,7 @@ public class NetworkNodeRepositoryTests(PostgisFixture postgis) : IClassFixture<
         var repository = scope.ServiceProvider.GetRequiredService<INetworkNodeRepository>();
 
         var node = NetworkNode.Register(
-            "tenant-001", new AssetCode($"ND-{Guid.NewGuid():N}"[..16]), NodeType.Junction,
+            "tenant-001", new AssetCode($"ND-{Guid.NewGuid():N}"[..16]), ComponentCode.Junction,
             new GeoPoint(10.762622, 106.660172));
 
         await repository.SaveAsync(node);
@@ -51,7 +51,7 @@ public class NetworkNodeRepositoryTests(PostgisFixture postgis) : IClassFixture<
         var repository = scope.ServiceProvider.GetRequiredService<INetworkNodeRepository>();
 
         var node = NetworkNode.Register(
-            "tenant-001", new AssetCode($"ND-{Guid.NewGuid():N}"[..16]), NodeType.Junction,
+            "tenant-001", new AssetCode($"ND-{Guid.NewGuid():N}"[..16]), ComponentCode.Junction,
             new GeoPoint(10.762622, 106.660172));
 
         await repository.SaveAsync(node);

@@ -9,12 +9,12 @@ public sealed record AssetExportItemDto(
     string Kind,            // Node | Pipe | Device
     string Id,
     string AssetCode,
-    string? NodeType,       // Node
+    string ComponentCode,   // every kind (decision 0028)
     string? FromNodeId,     // Pipe
     string? ToNodeId,       // Pipe
     int? DiameterMm,        // Pipe
     string? Material,       // Pipe
     double? LengthM,        // Pipe
-    string? DeviceType,     // Device
     string? HostPipeId,     // Device
-    string? HostNodeId);    // Device
+    string? HostNodeId,     // Device
+    IReadOnlyDictionary<string, string> Properties);

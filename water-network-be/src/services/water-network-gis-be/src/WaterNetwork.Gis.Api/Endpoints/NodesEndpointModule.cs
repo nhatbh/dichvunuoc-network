@@ -20,7 +20,8 @@ public sealed class NodesEndpointModule : IEndpointModule
         group.MapPost("/", async (RegisterNodeRequest request, ICommandBus commandBus, CancellationToken ct) =>
             {
                 var id = await commandBus.ExecuteAsync(
-                    new RegisterNodeCommand(request.AssetCode, request.NodeType, request.Latitude, request.Longitude), ct);
+                    new RegisterNodeCommand(
+                        request.AssetCode, request.ComponentCode, request.Latitude, request.Longitude, request.Properties), ct);
                 return Results.Created($"/api/network/nodes/{id}", new { id });
             })
             .WithValidation<RegisterNodeRequest>()

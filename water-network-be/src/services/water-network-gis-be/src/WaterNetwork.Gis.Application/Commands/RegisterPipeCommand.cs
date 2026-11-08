@@ -9,4 +9,5 @@ public sealed record RegisterPipeCommand(
     IReadOnlyList<(double Lat, double Lng)> Points,
     double DiameterMm,
     string Material,
-    double? LengthM) : ICommand<string>;
+    double? LengthM,
+    IReadOnlyDictionary<string, string>? Properties = null) : ICommand<string>;

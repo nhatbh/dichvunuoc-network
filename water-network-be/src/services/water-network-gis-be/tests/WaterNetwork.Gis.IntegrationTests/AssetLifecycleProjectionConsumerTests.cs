@@ -37,7 +37,7 @@ public class AssetLifecycleProjectionConsumerTests(PostgisFixture postgis) : ICl
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var resp = await client.PostAsJsonAsync("/api/network/nodes", new
         {
-            assetCode = $"ND-{Guid.NewGuid():N}"[..16], nodeType = "Junction", latitude = 10.765, longitude = 106.66
+            assetCode = $"ND-{Guid.NewGuid():N}"[..16], componentCode = "Junction", latitude = 10.765, longitude = 106.66
         });
         resp.EnsureSuccessStatusCode();
         var nodeId = (await resp.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetString()!;

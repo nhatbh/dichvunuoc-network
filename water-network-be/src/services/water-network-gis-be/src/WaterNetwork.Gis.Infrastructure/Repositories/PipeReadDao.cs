@@ -1,6 +1,7 @@
 using System.Globalization;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
+using WaterNetwork.Gis.Application.Common;
 using WaterNetwork.Gis.Application.Dtos;
 using WaterNetwork.Gis.Application.Ports;
 using WaterNetwork.Gis.Infrastructure.Persistence;
@@ -24,7 +25,9 @@ public sealed class PipeReadDao(GisDbContext dbContext) : IPipeReadDao
         string Status,
         int Version,
         DateTime CreatedAt,
-        DateTime UpdatedAt);
+        DateTime UpdatedAt,
+        string ComponentCode,
+        string PropertiesJson);
 
     public async Task<PipeDetailDto?> GetByIdAsync(string tenantId, string id, CancellationToken ct = default)
     {
@@ -41,7 +44,9 @@ public sealed class PipeReadDao(GisDbContext dbContext) : IPipeReadDao
                    status                     AS Status,
                    version                    AS Version,
                    created_at                 AS CreatedAt,
-                   updated_at                 AS UpdatedAt
+                   updated_at                 AS UpdatedAt,
+                   component_code             AS ComponentCode,
+                   properties::text           AS PropertiesJson
             FROM network_pipes
             WHERE id = @id AND tenant_id = @tenantId AND deleted_at IS NULL
             """;
@@ -68,7 +73,9 @@ public sealed class PipeReadDao(GisDbContext dbContext) : IPipeReadDao
             Status: row.Status,
             Version: row.Version,
             CreatedAt: row.CreatedAt,
-            UpdatedAt: row.UpdatedAt);
+            UpdatedAt: row.UpdatedAt,
+            ComponentCode: row.ComponentCode,
+            Properties: PropertiesJson.Read(row.PropertiesJson));
     }
 
     /// <summary>

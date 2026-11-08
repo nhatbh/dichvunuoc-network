@@ -1,6 +1,7 @@
 using System.Globalization;
 using WaterNetwork.Design.Contracts.Events;
 using WaterNetwork.Gis.Domain.ValueObjects;
+using WaterPlatform.BuildingBlocks.Components;
 using WaterPlatform.BuildingBlocks.Domain.Exceptions;
 
 namespace WaterNetwork.Gis.Infrastructure.NetworkEditing;
@@ -75,11 +76,13 @@ public static class NetworkEditValidator
                 if (coords.Any(p=>p is null || p.Count!=2 || p.Any(v=>!double.IsFinite(v)) || p[0] < -180 || p[0] > 180 || p[1] < -90 || p[1] > 90)
                     || (a.Kind=="Pipe" ? a.Geometry.Type!="LineString" || coords.Count<2 : a.Geometry.Type!="Point" || coords.Count!=1))
                 { Error("GEOMETRY",opId,"geometry",$"{a.AssetCode}: hình học hoặc tọa độ chưa hợp lệ."); continue; }
-                if (a.Kind=="Node")
-                {
-                    if (!Enum.TryParse<NodeType>(a.Attributes.GetValueOrDefault("nodeType"),out var nodeType) || !Enum.IsDefined(nodeType))
-                        Error("NODE_TYPE",opId,"nodeType",$"{a.AssetCode}: chọn loại nút.");
-                }
+                // Every asset is a catalog component (decision 0028); pipes default to "Pipe".
+                var componentRaw = a.Attributes.GetValueOrDefault("componentCode") ?? (a.Kind=="Pipe" ? "Pipe" : null);
+                var definition = ComponentCatalog.Default.Find(componentRaw);
+                if (definition is null || definition.Kind.ToString() != a.Kind)
+                { Error("COMPONENT",opId,"componentCode",$"{a.AssetCode}: chọn loại cấu kiện hợp lệ cho {a.Kind}."); continue; }
+                var component = ComponentCode.Parse(componentRaw);
+                _ = AssetProperties.FromAttributes(component, a.Attributes);
                 if (a.Kind=="Pipe")
                 {
                     if (!int.TryParse(a.Attributes.GetValueOrDefault("diameterMm"), NumberStyles.Integer,CultureInfo.InvariantCulture,out var dn) || dn<=0)
@@ -95,9 +98,8 @@ public static class NetworkEditValidator
                 }
                 if (a.Kind=="Device")
                 {
-                    var type = DeviceType.Parse(a.Attributes.GetValueOrDefault("deviceType") ?? "");
                     if (!Exists(host,"Pipe") && !Exists(host,"Node")) Error("DEPENDENCY",opId,"hostRef",$"Thiết bị {a.AssetCode} cần ống hoặc nút gắn còn tồn tại. Chuyển thiết bị hoặc xóa cùng bản nháp.");
-                    else _ = DeviceHost.For(type, Exists(host,"Pipe")?host:null, Exists(host,"Node")?host:null);
+                    else _ = DeviceHost.For(component, Exists(host,"Pipe")?host:null, Exists(host,"Node")?host:null);
                 }
                 if (touched && final.Any(x=>x.Key!=pair.Key && x.Value.AssetCode==a.AssetCode))
                     Error("DUPLICATE_CODE",opId,"assetCode",$"Mã {a.AssetCode} đã được sử dụng.");

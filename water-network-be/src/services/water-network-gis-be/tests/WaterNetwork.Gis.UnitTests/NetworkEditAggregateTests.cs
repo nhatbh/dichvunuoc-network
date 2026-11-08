@@ -14,8 +14,8 @@ public sealed class NetworkEditAggregateTests
     }
     [Fact] public void Node_Edit_Changes_Location_And_Type_Without_Recreating()
     {
-        var n=NetworkNode.Register("shw",new("N1"),NodeType.Junction,new(21,105));var id=n.Id;
-        n.ClearDomainEvents(); n.Edit(new("N1"),NodeType.Reservoir,new(21,106));
+        var n=NetworkNode.Register("shw",new("N1"),ComponentCode.Junction,new(21,105));var id=n.Id;
+        n.ClearDomainEvents(); n.Edit(new("N1"),ComponentCode.Parse("Reservoir"),new(21,106));
         n.Id.Should().Be(id);n.Location.Longitude.Should().Be(106);n.GetDomainEvents().Should().ContainSingle();
     }
 }

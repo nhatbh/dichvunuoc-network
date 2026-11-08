@@ -15,4 +15,6 @@ public sealed record PipeDetailDto(
     string Status,
     int Version,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    string ComponentCode,
+    IReadOnlyDictionary<string, string> Properties);

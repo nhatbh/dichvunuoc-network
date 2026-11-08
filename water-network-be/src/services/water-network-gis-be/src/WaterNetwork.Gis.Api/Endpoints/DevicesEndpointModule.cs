@@ -22,11 +22,12 @@ public sealed class DevicesEndpointModule : IEndpointModule
                 var id = await commandBus.ExecuteAsync(
                     new InstallDeviceCommand(
                         request.AssetCode,
-                        request.DeviceType,
+                        request.ComponentCode,
                         request.HostPipeId,
                         request.HostNodeId,
                         request.Latitude,
-                        request.Longitude), ct);
+                        request.Longitude,
+                        request.Properties), ct);
 
                 return Results.Created($"/api/network/devices/{id}", new { id });
             })

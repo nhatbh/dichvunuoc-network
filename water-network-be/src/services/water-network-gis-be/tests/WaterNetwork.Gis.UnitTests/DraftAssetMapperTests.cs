@@ -14,23 +14,23 @@ public sealed class DraftAssetMapperTests
     private static ReadyForGisAssetV1 Node() => new(
         "d1", "Node", "N-1", "cr-node",
         new ReadyForGisGeometryV1("Point", NodeCoords),
-        new Dictionary<string, string> { ["nodeType"] = "Junction" }, null, null, null);
+        new Dictionary<string, string> { ["componentCode"] = "Junction" }, null, null, null);
 
     [Fact]
     public void Maps_node_with_correct_coordinate_order()
     {
-        var (geoPoint, nodeType) = DraftAssetMapper.MapNode(Node());
-        geoPoint.Latitude.Should().Be(10.8);
-        geoPoint.Longitude.Should().Be(106.7);
-        nodeType.Should().Be(NodeType.Junction);
+        var m = DraftAssetMapper.MapNode(Node());
+        m.Point.Latitude.Should().Be(10.8);
+        m.Point.Longitude.Should().Be(106.7);
+        m.Component.Should().Be(ComponentCode.Junction);
     }
 
     [Fact]
-    public void Node_missing_nodeType_throws_DraftMappingException()
+    public void Node_missing_componentCode_throws_DraftMappingException()
     {
         var bad = Node() with { Attributes = new Dictionary<string, string>() };
         var act = () => DraftAssetMapper.MapNode(bad);
-        act.Should().Throw<DraftMappingException>().WithMessage("*nodeType*");
+        act.Should().Throw<DraftMappingException>().WithMessage("*componentCode*");
     }
 
     [Fact]
@@ -54,6 +54,7 @@ public sealed class DraftAssetMapperTests
         m.DiameterMm.Should().Be(110);
         m.Material.Should().Be("PVC");
         m.LengthM.Should().BeNull();
+        m.Component.Should().Be(ComponentCode.Pipe);
     }
 
     [Fact]
@@ -77,12 +78,38 @@ public sealed class DraftAssetMapperTests
     {
         var device = new ReadyForGisAssetV1("d4", "Device", "V-1", "cr-dev",
             new ReadyForGisGeometryV1("Point", NodeCoords),
-            new Dictionary<string, string> { ["deviceType"] = "Valve" },
+            new Dictionary<string, string> { ["componentCode"] = "GateValve", ["state"] = "closed", ["source"] = "cad" },
             null, null, HostRef: "cr-pipe");
         var map = new Dictionary<string, string> { ["cr-pipe"] = "pipe-1" };
         var m = DraftAssetMapper.MapDevice(device, map);
-        m.DeviceType.Should().Be("Valve");
+        m.Component.Value.Should().Be("GateValve");
+        m.Properties.Values.Should().BeEquivalentTo(new Dictionary<string, string> { ["state"] = "closed" });
         m.HostPipeOrNodeId.Should().Be("pipe-1");
         m.Location.Latitude.Should().Be(10.8);
+    }
+
+    [Theory]
+    [InlineData("Tee")]
+    [InlineData("Reducer")]
+    [InlineData("BoosterStation")]
+    public void Maps_any_catalog_node_component(string code)
+    {
+        var m = DraftAssetMapper.MapNode(Node() with { Attributes = new Dictionary<string, string> { ["componentCode"] = code } });
+        m.Component.Value.Should().Be(code);
+    }
+
+    [Fact]
+    public void Node_with_a_device_code_throws()
+    {
+        var act = () => DraftAssetMapper.MapNode(Node() with { Attributes = new Dictionary<string, string> { ["componentCode"] = "GateValve" } });
+        act.Should().Throw<DraftMappingException>();
+    }
+
+    [Fact]
+    public void Invalid_declared_property_throws()
+    {
+        var bad = Node() with { Attributes = new Dictionary<string, string> { ["componentCode"] = "Tee", ["dn"] = "huge" } };
+        var act = () => DraftAssetMapper.MapNode(bad);
+        act.Should().Throw<DraftMappingException>().WithMessage("*N-1*");
     }
 }

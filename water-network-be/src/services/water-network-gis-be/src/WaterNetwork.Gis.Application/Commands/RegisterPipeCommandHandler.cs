@@ -78,7 +78,8 @@ public sealed class RegisterPipeCommandHandler(
             diameterMm: new Diameter(command.DiameterMm),
             material: PipeMaterial.Parse(command.Material),
             lengthM: storedLength,
-            lengthValidationWarning: warning);
+            lengthValidationWarning: warning,
+            properties: AssetProperties.For(ComponentCode.Pipe, command.Properties));
 
         try
         {

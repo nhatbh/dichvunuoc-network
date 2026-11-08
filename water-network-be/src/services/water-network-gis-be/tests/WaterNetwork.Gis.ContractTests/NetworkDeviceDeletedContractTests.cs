@@ -15,20 +15,20 @@ public class NetworkDeviceDeletedContractTests
     // ── Schema ─────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void V1_Payload_Schema_Is_Stable()
+    public void V2_Payload_Schema_Is_Stable()
     {
-        // Exactly 4 fields — DeviceId, TenantId, AssetCode, DeviceType.
-        var evt = new NetworkDeviceDeletedV1(
+        // Exactly 4 fields — DeviceId, TenantId, AssetCode, ComponentCode.
+        var evt = new NetworkDeviceDeletedV2(
             DeviceId: "device-001",
             TenantId: "tenant-001",
             AssetCode: "DV-001",
-            DeviceType: "Valve");
+            ComponentCode: "GateValve");
 
         var json = JsonSerializer.Serialize(evt);
         using var doc = JsonDocument.Parse(json);
         var props = doc.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
 
-        props.Should().BeEquivalentTo("DeviceId", "TenantId", "AssetCode", "DeviceType");
+        props.Should().BeEquivalentTo("DeviceId", "TenantId", "AssetCode", "ComponentCode");
     }
 
     // ── Event type / version ───────────────────────────────────────────────────
@@ -47,7 +47,7 @@ public class NetworkDeviceDeletedContractTests
         var data = new DeviceDeletedData(
             TenantId: "tenant-001",
             AssetCode: "DV-001",
-            DeviceType: "Valve");
+            ComponentCode: "GateValve");
 
         var domainEvent = new DeviceDeleted("device-42", data);
 
@@ -58,7 +58,7 @@ public class NetworkDeviceDeletedContractTests
         var integration = mapper.Map(domainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be(GisEventTypes.DeviceDeleted);
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("device-42");
         integration.SourceAggregateType.Should().Be("NetworkDevice");
 
@@ -68,7 +68,7 @@ public class NetworkDeviceDeletedContractTests
         typed.Data.DeviceId.Should().Be("device-42");
         typed.Data.TenantId.Should().Be("tenant-001");
         typed.Data.AssetCode.Should().Be("DV-001");
-        typed.Data.DeviceType.Should().Be("Valve");
+        typed.Data.ComponentCode.Should().Be("GateValve");
     }
 
     // ── Mapper: regression — existing 3 events still work ─────────────────────
@@ -79,7 +79,9 @@ public class NetworkDeviceDeletedContractTests
         var data = new DeviceInstalledData(
             TenantId: "tenant-001",
             AssetCode: "DV-001",
-            DeviceType: "Valve",
+            ComponentCode: "GateValve",
+            Functions: ["isolates"],
+            Properties: new Dictionary<string, string> { ["state"] = "open" },
             HostPipeId: "pipe-1",
             HostNodeId: null,
             Latitude: 10.0,
@@ -93,7 +95,7 @@ public class NetworkDeviceDeletedContractTests
         var integration = mapper.Map(domainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be(GisEventTypes.DeviceInstalled);
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("device-1");
 
         var typed = integration as DeviceInstalledIntegrationEvent;

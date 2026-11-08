@@ -11,7 +11,8 @@ public sealed record AssetBootstrapDto(
     AssetCountsDto Counts,
     double PipeLengthM,
     IReadOnlyList<MaterialMixItemDto> MaterialMix,
-    IReadOnlyList<StatusMixItemDto> StatusMix);
+    IReadOnlyList<StatusMixItemDto> StatusMix,
+    IReadOnlyList<ComponentMixItemDto> ComponentMix);
 
 public sealed record AssetHomeViewDto(
     IReadOnlyList<double> Bbox,
@@ -25,3 +26,6 @@ public sealed record AssetCountsDto(long Nodes, long Pipes, long Devices, long T
 public sealed record MaterialMixItemDto(string Material, long Count, double LengthM);
 
 public sealed record StatusMixItemDto(string Status, long Count);
+
+/// <summary>Live assets per component code (decision 0028).</summary>
+public sealed record ComponentMixItemDto(string Kind, string ComponentCode, long Count);

@@ -18,7 +18,8 @@ public sealed record AssetBootstrapSnapshot(
     double? MaxLon,
     double? MaxLat,
     IReadOnlyList<AssetMaterialMixRow> MaterialMix,
-    IReadOnlyList<AssetStatusMixRow> StatusMix)
+    IReadOnlyList<AssetStatusMixRow> StatusMix,
+    IReadOnlyList<AssetComponentMixRow> ComponentMix)
 {
     public long Total => Nodes + Pipes + Devices;
 }
@@ -26,3 +27,5 @@ public sealed record AssetBootstrapSnapshot(
 public sealed record AssetMaterialMixRow(string Material, long Count, double LengthM);
 
 public sealed record AssetStatusMixRow(string Status, long Count);
+
+public sealed record AssetComponentMixRow(string Kind, string ComponentCode, long Count);

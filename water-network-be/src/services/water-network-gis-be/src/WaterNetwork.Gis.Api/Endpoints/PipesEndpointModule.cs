@@ -31,7 +31,8 @@ public sealed class PipesEndpointModule : IEndpointModule
                         points,
                         request.DiameterMm,
                         request.Material,
-                        request.LengthM), ct);
+                        request.LengthM,
+                        request.Properties), ct);
 
                 return Results.Created($"/api/network/pipes/{id}", new { id });
             })

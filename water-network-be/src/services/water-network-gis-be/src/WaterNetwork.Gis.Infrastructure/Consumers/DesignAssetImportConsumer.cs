@@ -129,9 +129,10 @@ public sealed class DesignAssetImportConsumer(
         if (await nodeRepository.ExistsByAssetCodeAsync(tenantId, asset.AssetCode, ct))
             throw ConflictException.Duplicate("NetworkNode", "AssetCode", asset.AssetCode);
 
-        var (point, nodeType) = DraftAssetMapper.MapNode(asset);
+        var m = DraftAssetMapper.MapNode(asset);
+        var point = m.Point;
 
-        var node = NetworkNode.Register(tenantId, new AssetCode(asset.AssetCode), nodeType, point);
+        var node = NetworkNode.Register(tenantId, new AssetCode(asset.AssetCode), m.Component, point, m.Properties);
 
         // Append geometry version — mirrors RegisterNodeCommandHandler exactly.
         var version = await geometryVersionStore.GetNextVersionAsync(node.Id, ct);
@@ -188,7 +189,9 @@ public sealed class DesignAssetImportConsumer(
             diameterMm: new Diameter(m.DiameterMm),
             material: PipeMaterial.Parse(m.Material),
             lengthM: lengthM,
-            lengthValidationWarning: null);
+            lengthValidationWarning: null,
+            properties: m.Properties,
+            component: m.Component);
 
         try
         {
@@ -220,18 +223,18 @@ public sealed class DesignAssetImportConsumer(
         // so by this point asset.HostRef is non-null and present in refMap.
         refMap.TryGetValue(asset.HostRef!, out var hostEntry);
 
-        var deviceType = DeviceType.Parse(m.DeviceType);
-
+        // The catalog decides where the component attaches; a draft hosted on the wrong kind fails.
         var host = hostEntry.Kind == "Pipe"
-            ? DeviceHost.For(deviceType, hostPipeId: m.HostPipeOrNodeId, hostNodeId: null)
-            : DeviceHost.For(deviceType, hostPipeId: null, hostNodeId: m.HostPipeOrNodeId);
+            ? DeviceHost.For(m.Component, hostPipeId: m.HostPipeOrNodeId, hostNodeId: null)
+            : DeviceHost.For(m.Component, hostPipeId: null, hostNodeId: m.HostPipeOrNodeId);
 
         var device = NetworkDevice.Install(
             tenantId: tenantId,
             assetCode: new AssetCode(asset.AssetCode),
-            deviceType: deviceType,
+            component: m.Component,
             host: host,
-            location: m.Location);
+            location: m.Location,
+            properties: m.Properties);
 
         try
         {

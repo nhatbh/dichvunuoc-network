@@ -25,7 +25,7 @@ public class ExportAssetsApiTests(PostgisFixture postgis) : IClassFixture<Postgi
     {
         var resp = await c.PostAsJsonAsync("/api/network/nodes", new
         {
-            assetCode = $"ND-{Guid.NewGuid():N}"[..16], nodeType = "Junction", latitude = lat, longitude = lng
+            assetCode = $"ND-{Guid.NewGuid():N}"[..16], componentCode = "Junction", latitude = lat, longitude = lng
         });
         resp.StatusCode.Should().Be(HttpStatusCode.Created);
     }
@@ -77,7 +77,7 @@ public class ExportAssetsApiTests(PostgisFixture postgis) : IClassFixture<Postgi
         page.GetProperty("items").GetArrayLength().Should().BeGreaterThan(0);
         var item = page.GetProperty("items")[0];
         item.GetProperty("kind").GetString().Should().Be("Node");
-        item.GetProperty("nodeType").GetString().Should().Be("Junction");
+        item.GetProperty("componentCode").GetString().Should().Be("Junction");
         item.GetProperty("id").GetString().Should().NotBeNullOrEmpty();
     }
 

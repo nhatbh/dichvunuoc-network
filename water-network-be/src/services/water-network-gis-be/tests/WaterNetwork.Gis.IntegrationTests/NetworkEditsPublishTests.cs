@@ -11,7 +11,7 @@ using WaterPlatform.BuildingBlocks.Testing;
 namespace WaterNetwork.Gis.IntegrationTests;
 public class NetworkEditsPublishTests(PostgisFixture postgis) : IClassFixture<PostgisFixture>
 {
-    private static ReadyForGisAssetV1 Node(string id,string code,double x)=>new(id,"Node",code,id,new("Point",[[x,21]]),new Dictionary<string,string>{{"nodeType","Junction"}},null,null,null);
+    private static ReadyForGisAssetV1 Node(string id,string code,double x)=>new(id,"Node",code,id,new("Point",[[x,21]]),new Dictionary<string,string>{{"componentCode","Junction"}},null,null,null);
     private static IntegrationEventEnvelope Envelope(string tenant,string revision,IReadOnlyList<NetworkEditOperationV1> ops)=>new(
         Guid.NewGuid().ToString(),"design.network-edits.ready",1,DateTime.UtcNow,tenant,null,null,null,null,"water-network-design-be",
         JsonSerializer.Serialize(new {Data=new DesignNetworkEditsReadyV1(revision,tenant,"reviewer",ops)}));

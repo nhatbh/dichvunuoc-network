@@ -22,6 +22,8 @@ public class RegisterNodeCommandValidatorTests
     [InlineData("ND-001", "Junction", 95, 106)]
     [InlineData("ND-001", "Junction", 10, 200)]
     [InlineData("ND-001", "5", 10, 106)]
+    [InlineData("ND-001", "GateValve", 10, 106)] // a device, not a node
+    [InlineData("ND-001", "Pipe", 10, 106)]
     public void Invalid_Command_Fails(string assetCode, string nodeType, double lat, double lng)
     {
         var result = _validator.Validate(new RegisterNodeCommand(assetCode, nodeType, lat, lng));
@@ -29,10 +31,11 @@ public class RegisterNodeCommandValidatorTests
     }
 
     [Theory]
-    [InlineData("ND-001", "junction", 10, 106)] // lowercase accepted
-    [InlineData("ND-001", "Other", 10, 106)]   // "Other" accepted
-    [InlineData("ND-001", "TANK", 10, 106)]    // uppercase accepted
-    public void Valid_NodeType_Cases_Pass(string assetCode, string nodeType, double lat, double lng)
+    [InlineData("ND-001", "junction", 10, 106)]       // lowercase accepted
+    [InlineData("ND-001", "Tee", 10, 106)]            // any catalog fitting
+    [InlineData("ND-001", "BoosterStation", 10, 106)] // facilities are nodes
+    [InlineData("ND-001", "TANK", 10, 106)]           // uppercase accepted
+    public void Valid_Node_Components_Pass(string assetCode, string nodeType, double lat, double lng)
     {
         var result = _validator.Validate(new RegisterNodeCommand(assetCode, nodeType, lat, lng));
         result.IsValid.Should().BeTrue();

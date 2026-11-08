@@ -5,102 +5,90 @@ using Xunit;
 
 namespace WaterNetwork.Gis.UnitTests.Domain;
 
+/// <summary>The host rule comes from the component catalog (decision 0028).</summary>
 public class DeviceHostTests
 {
-    private static DeviceType T(string name) => DeviceType.Parse(name);
+    private static ComponentCode T(string code) => ComponentCode.Parse(code);
 
     [Theory]
-    [InlineData("Valve")]
-    [InlineData("FlowMeter")]
-    public void PipeHosted_WithPipeOnly_Succeeds(string type)
+    [InlineData("GateValve")]
+    [InlineData("ButterflyValve")]
+    [InlineData("PRV")]
+    [InlineData("BulkMeter")]
+    [InlineData("Pump")]
+    public void PipeHosted_WithPipeOnly_Succeeds(string code)
     {
-        var host = DeviceHost.For(T(type), "pipe-1", null);
+        var host = DeviceHost.For(T(code), "pipe-1", null);
         host.HostPipeId.Should().Be("pipe-1");
         host.HostNodeId.Should().BeNull();
     }
 
     [Theory]
-    [InlineData("Valve")]
-    [InlineData("FlowMeter")]
-    public void PipeHosted_MissingPipe_Throws_HostRequired(string type)
+    [InlineData("GateValve")]
+    [InlineData("BulkMeter")]
+    public void PipeHosted_MissingPipe_Throws_HostRequired(string code)
     {
-        var act = () => DeviceHost.For(T(type), null, null);
+        var act = () => DeviceHost.For(T(code), null, null);
         act.Should().Throw<DomainException>().Which.Code.Should().Be("DeviceHost.HostRequired");
     }
 
     [Theory]
-    [InlineData("Valve", "pipe-1", "node-1")]
-    [InlineData("Valve", null, "node-1")]
-    [InlineData("FlowMeter", "pipe-1", "node-1")]
-    public void PipeHosted_WithNode_Throws_HostNotAllowed(string type, string? pipeId, string? nodeId)
+    [InlineData("GateValve", "pipe-1", "node-1")]
+    [InlineData("GateValve", null, "node-1")]
+    [InlineData("Pump", null, "node-1")]
+    public void PipeHosted_WithNode_Throws_HostNotAllowed(string code, string? pipeId, string? nodeId)
     {
-        var act = () => DeviceHost.For(T(type), pipeId, nodeId);
+        var act = () => DeviceHost.For(T(code), pipeId, nodeId);
         act.Should().Throw<DomainException>().Which.Code.Should().Be("DeviceHost.HostNotAllowed");
     }
 
     [Theory]
-    [InlineData("Pump")]
     [InlineData("Hydrant")]
-    public void NodeHosted_WithNodeOnly_Succeeds(string type)
+    [InlineData("AirValve")]
+    [InlineData("Washout")]
+    [InlineData("PressureSensor")]
+    [InlineData("CustomerMeter")]
+    public void NodeHosted_WithNodeOnly_Succeeds(string code)
     {
-        var host = DeviceHost.For(T(type), null, "node-1");
+        var host = DeviceHost.For(T(code), null, "node-1");
         host.HostNodeId.Should().Be("node-1");
         host.HostPipeId.Should().BeNull();
     }
 
     [Theory]
-    [InlineData("Pump")]
     [InlineData("Hydrant")]
-    public void NodeHosted_MissingNode_Throws_HostRequired(string type)
+    [InlineData("AirValve")]
+    public void NodeHosted_MissingNode_Throws_HostRequired(string code)
     {
-        var act = () => DeviceHost.For(T(type), null, null);
+        var act = () => DeviceHost.For(T(code), null, null);
         act.Should().Throw<DomainException>().Which.Code.Should().Be("DeviceHost.HostRequired");
     }
 
     [Theory]
-    [InlineData("Pump", "pipe-1", "node-1")]
+    [InlineData("Hydrant", "pipe-1", "node-1")]
     [InlineData("Hydrant", "pipe-1", null)]
-    public void NodeHosted_WithPipe_Throws_HostNotAllowed(string type, string? pipeId, string? nodeId)
+    public void NodeHosted_WithPipe_Throws_HostNotAllowed(string code, string? pipeId, string? nodeId)
     {
-        var act = () => DeviceHost.For(T(type), pipeId, nodeId);
+        var act = () => DeviceHost.For(T(code), pipeId, nodeId);
         act.Should().Throw<DomainException>().Which.Code.Should().Be("DeviceHost.HostNotAllowed");
     }
 
-    [Fact]
-    public void PressureSensor_WithPipeOnly_Succeeds()
-        => DeviceHost.For(T("PressureSensor"), "pipe-1", null).HostPipeId.Should().Be("pipe-1");
-
-    [Fact]
-    public void PressureSensor_WithNodeOnly_Succeeds()
-        => DeviceHost.For(T("PressureSensor"), null, "node-1").HostNodeId.Should().Be("node-1");
-
-    [Fact]
-    public void PressureSensor_WithBoth_Throws_AmbiguousHost()
+    [Theory]
+    [InlineData("Tee")]
+    [InlineData("Reservoir")]
+    [InlineData("Pipe")]
+    public void Non_Devices_Have_No_Host(string code)
     {
-        var act = () => DeviceHost.For(T("PressureSensor"), "pipe-1", "node-1");
-        act.Should().Throw<DomainException>().Which.Code.Should().Be("DeviceHost.AmbiguousHost");
-    }
-
-    [Fact]
-    public void PressureSensor_WithNeither_Throws_HostRequired()
-    {
-        var act = () => DeviceHost.For(T("PressureSensor"), null, null);
-        act.Should().Throw<DomainException>().Which.Code.Should().Be("DeviceHost.HostRequired");
-    }
-
-    [Fact]
-    public void Whitespace_Host_Is_Treated_As_Null()
-    {
-        var act = () => DeviceHost.For(T("Valve"), "   ", null);
-        act.Should().Throw<DomainException>().Which.Code.Should().Be("DeviceHost.HostRequired");
+        var act = () => DeviceHost.For(T(code), "pipe-1", null);
+        act.Should().Throw<DomainException>().Which.Code.Should().Be("DeviceHost.NotADevice");
     }
 
     [Fact]
     public void Host_Ids_Are_Trimmed()
-        => DeviceHost.For(T("Valve"), "  pipe-1  ", null).HostPipeId.Should().Be("pipe-1");
+        => DeviceHost.For(T("GateValve"), "  pipe-1  ", null).HostPipeId.Should().Be("pipe-1");
 
     [Fact]
-    public void Equality_Ignores_DeviceType_Compares_Host_Refs_Only()
-        => DeviceHost.For(T("Valve"), "pipe-1", null)
-            .Should().Be(DeviceHost.For(T("FlowMeter"), "pipe-1", null));
+    public void Equality_Ignores_Component_Compares_Host_Refs_Only()
+        => DeviceHost.For(T("GateValve"), "pipe-1", null)
+            .Should().Be(DeviceHost.For(T("BulkMeter"), "pipe-1", null));
 }

@@ -17,8 +17,8 @@ public class RemoveDeviceCommandHandlerTests
 
     private static NetworkDevice MakeDevice() =>
         NetworkDevice.Install("tenant-001", new AssetCode("DV-001"),
-            DeviceType.Parse("Valve"),
-            DeviceHost.For(DeviceType.Parse("Valve"), "pipe-x", null),
+            ComponentCode.Parse("GateValve"),
+            DeviceHost.For(ComponentCode.Parse("GateValve"), "pipe-x", null),
             new GeoPoint(10.0, 106.0));
 
     private RemoveDeviceCommandHandler CreateHandler()

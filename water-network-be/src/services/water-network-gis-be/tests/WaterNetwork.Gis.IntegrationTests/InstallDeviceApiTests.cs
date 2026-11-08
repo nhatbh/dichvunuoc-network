@@ -28,7 +28,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         var resp = await client.PostAsJsonAsync("/api/network/nodes", new
         {
             assetCode = $"ND-{Guid.NewGuid():N}"[..16],
-            nodeType = "Junction",
+            componentCode = "Junction",
             latitude = 10.762622,
             longitude = 106.660172
         });
@@ -57,11 +57,11 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         return (await resp.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["id"];
     }
 
-    private static object DeviceBody(string assetCode, string deviceType,
+    private static object DeviceBody(string assetCode, string componentCode,
         string? hostPipeId = null, string? hostNodeId = null) => new
     {
         assetCode,
-        deviceType,
+        componentCode,
         hostPipeId,
         hostNodeId,
         latitude = 10.762700,
@@ -78,7 +78,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         var code = $"DV-{Guid.NewGuid():N}"[..16];
 
         var response = await client.PostAsJsonAsync("/api/network/devices",
-            DeviceBody(code, "Valve", hostPipeId: pipeId));
+            DeviceBody(code, "GateValve", hostPipeId: pipeId));
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var id = (await response.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["id"];
@@ -90,7 +90,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         var body = await detail.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         body!["id"].ToString().Should().Be(id);
         body["assetCode"].ToString().Should().Be(code);
-        body["deviceType"].ToString().Should().Be("Valve");
+        body["componentCode"].ToString().Should().Be("GateValve");
         body["hostPipeId"].ToString().Should().Be(pipeId);
         var lat = double.Parse(body["latitude"].ToString()!, CultureInfo.InvariantCulture);
         lat.Should().BeApproximately(10.762700, 1e-5, "latitude must round-trip through PostGIS");
@@ -106,7 +106,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
 
         var nodeId = await SeedNodeAsync(client);
         var response = await client.PostAsJsonAsync("/api/network/devices",
-            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "Pump", hostNodeId: nodeId));
+            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "Hydrant", hostNodeId: nodeId));
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var id = (await response.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["id"];
@@ -144,7 +144,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         using var client = CreateAuthenticatedClient(factory, "network-gis:write");
 
         var response = await client.PostAsJsonAsync("/api/network/devices",
-            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "Valve"));
+            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "GateValve"));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         (await response.Content.ReadAsStringAsync()).Should().Contain("DOMAIN_RULE");
@@ -160,7 +160,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         var nodeId = await SeedNodeAsync(client);
 
         var response = await client.PostAsJsonAsync("/api/network/devices",
-            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "Valve", pipeId, nodeId));
+            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "GateValve", pipeId, nodeId));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         (await response.Content.ReadAsStringAsync()).Should().Contain("DOMAIN_RULE");
@@ -189,7 +189,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         using var client = CreateAuthenticatedClient(factory, "network-gis:write");
 
         var response = await client.PostAsJsonAsync("/api/network/devices",
-            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "Valve", hostPipeId: "pipe-does-not-exist"));
+            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "GateValve", hostPipeId: "pipe-does-not-exist"));
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         var body = await response.Content.ReadAsStringAsync();
@@ -198,7 +198,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
     }
 
     [Fact]
-    public async Task Unknown_DeviceType_Returns_400_ValidationFailed()
+    public async Task Unknown_Component_Returns_400_ValidationFailed()
     {
         await using var factory = new GisApiFactory(postgis);
         using var client = CreateAuthenticatedClient(factory, "network-gis:write");
@@ -220,7 +220,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         var response = await client.PostAsJsonAsync("/api/network/devices", new
         {
             assetCode = $"DV-{Guid.NewGuid():N}"[..16],
-            deviceType = "Valve",
+            componentCode = "GateValve",
             hostPipeId = pipeId,
             hostNodeId = (string?)null,
             latitude = 99.0,
@@ -240,9 +240,9 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         var pipeId = await SeedPipeAsync(client);
         var code = $"DV-{Guid.NewGuid():N}"[..16];
 
-        (await client.PostAsJsonAsync("/api/network/devices", DeviceBody(code, "Valve", pipeId)))
+        (await client.PostAsJsonAsync("/api/network/devices", DeviceBody(code, "GateValve", pipeId)))
             .StatusCode.Should().Be(HttpStatusCode.Created);
-        var conflict = await client.PostAsJsonAsync("/api/network/devices", DeviceBody(code, "Valve", pipeId));
+        var conflict = await client.PostAsJsonAsync("/api/network/devices", DeviceBody(code, "GateValve", pipeId));
         conflict.StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await conflict.Content.ReadAsStringAsync()).Should().Contain("CONFLICT");
     }
@@ -287,7 +287,7 @@ public class InstallDeviceApiTests(PostgisFixture postgis) : IClassFixture<Postg
         using var client = CreateAuthenticatedClient(factory, "network-gis:read"); // missing write
 
         var response = await client.PostAsJsonAsync("/api/network/devices",
-            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "Valve", hostPipeId: "pipe-x"));
+            DeviceBody($"DV-{Guid.NewGuid():N}"[..16], "GateValve", hostPipeId: "pipe-x"));
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }

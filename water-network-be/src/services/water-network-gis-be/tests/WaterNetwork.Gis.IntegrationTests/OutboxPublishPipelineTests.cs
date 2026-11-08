@@ -78,7 +78,7 @@ public class OutboxPublishPipelineTests(PostgisFixture postgis) : IClassFixture<
             var node = NetworkNode.Register(
                 "tenant-outbox-test",
                 new AssetCode($"ND-{Guid.NewGuid():N}"[..16]),
-                NodeType.Junction,
+                ComponentCode.Junction,
                 new GeoPoint(10.762622, 106.660172));
 
             await repository.SaveAsync(node);

@@ -1,6 +1,6 @@
 using FluentValidation;
 using WaterNetwork.Gis.Application.Commands;
-using WaterNetwork.Gis.Domain.ValueObjects;
+using WaterPlatform.BuildingBlocks.Components;
 
 namespace WaterNetwork.Gis.Application.Validators;
 
@@ -9,9 +9,9 @@ public sealed class RegisterNodeCommandValidator : AbstractValidator<RegisterNod
     public RegisterNodeCommandValidator()
     {
         RuleFor(x => x.AssetCode).NotEmpty().MaximumLength(64).Matches("^[A-Za-z0-9_-]+$");
-        RuleFor(x => x.NodeType).NotEmpty()
-            .Must(v => Enum.TryParse<NodeType>(v, ignoreCase: true, out var parsed) && Enum.IsDefined(parsed))
-            .WithMessage("NodeType must be one of: Junction, Reservoir, Tank, Hydrant, Other (case-insensitive).");
+        RuleFor(x => x.ComponentCode).NotEmpty()
+            .Must(v => ComponentCatalog.Default.Find(v)?.Kind == ComponentKind.Node)
+            .WithMessage("ComponentCode must be a catalog node component (a fitting or a facility).");
         RuleFor(x => x.Latitude).InclusiveBetween(-90, 90);
         RuleFor(x => x.Longitude).InclusiveBetween(-180, 180);
     }

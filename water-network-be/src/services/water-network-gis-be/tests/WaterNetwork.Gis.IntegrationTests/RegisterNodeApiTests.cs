@@ -22,7 +22,7 @@ public class RegisterNodeApiTests(PostgisFixture postgis) : IClassFixture<Postgi
 
     private static object ValidBody(string assetCode) => new
     {
-        assetCode, nodeType = "Junction", latitude = 10.762622, longitude = 106.660172
+        assetCode, componentCode = "Junction", latitude = 10.762622, longitude = 106.660172
     };
 
     [Fact]
@@ -62,7 +62,7 @@ public class RegisterNodeApiTests(PostgisFixture postgis) : IClassFixture<Postgi
         using var client = CreateAuthenticatedClient(factory, "network-gis:write");
 
         var response = await client.PostAsJsonAsync("/api/network/nodes",
-            new { assetCode = "ND-INVALID", nodeType = "Junction", latitude = 95.0, longitude = 106.0 });
+            new { assetCode = "ND-INVALID", componentCode = "Junction", latitude = 95.0, longitude = 106.0 });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }

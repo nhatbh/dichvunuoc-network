@@ -22,15 +22,17 @@ public class NetworkDeviceInstalledContractTests
     // ── Schema ─────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void V1_Payload_Schema_Is_Stable()
+    public void V2_Payload_Schema_Is_Stable()
     {
         // Exactly 8 fields — wire property names pinned via JSON serialization,
         // none may be added/removed silently.
-        var evt = new NetworkDeviceInstalledV1(
+        var evt = new NetworkDeviceInstalledV2(
             DeviceId: "device-001",
             TenantId: "tenant-001",
             AssetCode: "DV-001",
-            DeviceType: "Valve",
+            ComponentCode: "GateValve",
+            Functions: ["isolates"],
+            Properties: new Dictionary<string, string> { ["state"] = "open" },
             HostPipeId: "pipe-1",
             HostNodeId: null,
             Latitude: 10.0,
@@ -41,7 +43,7 @@ public class NetworkDeviceInstalledContractTests
         var props = doc.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
 
         props.Should().BeEquivalentTo(
-            "DeviceId", "TenantId", "AssetCode", "DeviceType",
+            "DeviceId", "TenantId", "AssetCode", "ComponentCode", "Functions", "Properties",
             "HostPipeId", "HostNodeId", "Latitude", "Longitude");
     }
 
@@ -61,7 +63,9 @@ public class NetworkDeviceInstalledContractTests
         var data = new DeviceInstalledData(
             TenantId: "tenant-001",
             AssetCode: "DV-001",
-            DeviceType: "Valve",
+            ComponentCode: "GateValve",
+            Functions: ["isolates"],
+            Properties: new Dictionary<string, string> { ["state"] = "open" },
             HostPipeId: "pipe-1",
             HostNodeId: null,
             Latitude: 10.0,
@@ -76,7 +80,7 @@ public class NetworkDeviceInstalledContractTests
         var integration = mapper.Map(domainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be(GisEventTypes.DeviceInstalled);
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("device-1");
         integration.SourceAggregateType.Should().Be("NetworkDevice");
 
@@ -86,7 +90,9 @@ public class NetworkDeviceInstalledContractTests
         typed.Data.DeviceId.Should().Be("device-1");
         typed.Data.TenantId.Should().Be("tenant-001");
         typed.Data.AssetCode.Should().Be("DV-001");
-        typed.Data.DeviceType.Should().Be("Valve");
+        typed.Data.ComponentCode.Should().Be("GateValve");
+        typed.Data.Functions.Should().Equal("isolates");
+        typed.Data.Properties.Should().Contain("state", "open");
         typed.Data.HostPipeId.Should().Be("pipe-1");
         typed.Data.HostNodeId.Should().BeNull();
         typed.Data.Latitude.Should().BeApproximately(10.0, 0.0001);
@@ -99,7 +105,7 @@ public class NetworkDeviceInstalledContractTests
     public void Mapper_Still_Translates_NodeRegistered_After_Device_Support_Added()
     {
         var nodeData = new NodeRegisteredData(
-            "tenant-001", "ND-001", "Junction", 10.762622, 106.660172);
+            "tenant-001", "ND-001", "Junction", ["connects"], new Dictionary<string, string>(), 10.762622, 106.660172);
         var nodeDomainEvent = new NodeRegistered("node-1", nodeData);
 
         var mapper = new GisIntegrationEventMapper();
@@ -108,7 +114,7 @@ public class NetworkDeviceInstalledContractTests
         var integration = mapper.Map(nodeDomainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be(GisEventTypes.NodeRegistered);
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("node-1");
 
         var typed = integration as NodeRegisteredIntegrationEvent;
@@ -131,7 +137,9 @@ public class NetworkDeviceInstalledContractTests
             },
             DiameterMm: 150.0,
             Material: "HDPE",
-            LengthM: 120.5);
+            LengthM: 120.5,
+            ComponentCode: "Pipe",
+            Properties: new Dictionary<string, string>());
 
         var pipeDomainEvent = new PipeRegistered("pipe-001", pipeData);
 
@@ -141,7 +149,7 @@ public class NetworkDeviceInstalledContractTests
         var integration = mapper.Map(pipeDomainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be(GisEventTypes.PipeRegistered);
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("pipe-001");
 
         var typed = integration as PipeRegisteredIntegrationEvent;

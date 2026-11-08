@@ -8,7 +8,8 @@ public sealed class NetworkDevice : AggregateRoot
 {
     public string TenantId { get; private set; }
     public AssetCode AssetCode { get; private set; }
-    public DeviceType DeviceType { get; private set; }
+    public ComponentCode Component { get; private set; }
+    public AssetProperties Properties { get; private set; }
     public DeviceHost Host { get; private set; }
     public GeoPoint Location { get; private set; }
     public DateTime? DeletedAt { get; private set; }
@@ -17,7 +18,8 @@ public sealed class NetworkDevice : AggregateRoot
         string id,
         string tenantId,
         AssetCode assetCode,
-        DeviceType deviceType,
+        ComponentCode component,
+        AssetProperties properties,
         DeviceHost host,
         GeoPoint location,
         int version = 0,
@@ -27,7 +29,8 @@ public sealed class NetworkDevice : AggregateRoot
     {
         TenantId = tenantId;
         AssetCode = assetCode;
-        DeviceType = deviceType;
+        Component = component;
+        Properties = properties;
         Host = host;
         Location = location;
     }
@@ -35,22 +38,26 @@ public sealed class NetworkDevice : AggregateRoot
     public static NetworkDevice Install(
         string tenantId,
         AssetCode assetCode,
-        DeviceType deviceType,
+        ComponentCode component,
         DeviceHost host,
-        GeoPoint location)
+        GeoPoint location,
+        AssetProperties? properties = null)
     {
         var device = new NetworkDevice(
             id: $"device-{Guid.CreateVersion7():N}",
             tenantId: tenantId,
             assetCode: assetCode,
-            deviceType: deviceType,
-            host: host,
+            component: component,
+            properties: properties ?? AssetProperties.Empty,
+            host: DeviceHost.For(component, host.HostPipeId, host.HostNodeId),
             location: location);
 
         var data = new DeviceInstalledData(
             TenantId: tenantId,
             AssetCode: assetCode.Value,
-            DeviceType: deviceType.ToString(),
+            ComponentCode: component.Value,
+            Functions: component.Definition.Functions,
+            Properties: device.Properties.Values,
             HostPipeId: host.HostPipeId,
             HostNodeId: host.HostNodeId,
             Latitude: location.Latitude,
@@ -73,15 +80,15 @@ public sealed class NetworkDevice : AggregateRoot
         var data = new DeviceDeletedData(
             TenantId: TenantId,
             AssetCode: AssetCode.Value,
-            DeviceType: DeviceType.ToString());
+            ComponentCode: Component.Value);
 
         AddDomainEvent(new DeviceDeleted(Id, data));
     }
 
-    public void Edit(AssetCode code, DeviceType type, DeviceHost host, GeoPoint location)
+    public void Edit(AssetCode code, ComponentCode component, DeviceHost host, GeoPoint location, AssetProperties? properties = null)
     {
         if (DeletedAt != null) throw new WaterPlatform.BuildingBlocks.Domain.Exceptions.DomainException("NetworkDevice.InvalidEdit", "Cannot edit a deleted device.");
-        AssetCode=code; DeviceType=type; Host=DeviceHost.For(type,host.HostPipeId,host.HostNodeId); Location=location;
+        AssetCode=code; Component=component; Host=DeviceHost.For(component,host.HostPipeId,host.HostNodeId); Location=location; Properties=properties ?? AssetProperties.Empty;
         MarkAsModified(); AddDomainEvent(new NetworkAssetEdited(Id,new(TenantId,"Device",AssetCode.Value,Version)));
     }
 
@@ -89,14 +96,15 @@ public sealed class NetworkDevice : AggregateRoot
         string id,
         string tenantId,
         AssetCode assetCode,
-        DeviceType deviceType,
+        ComponentCode component,
         DeviceHost host,
         GeoPoint location,
         int version,
         DateTime createdAt,
         DateTime updatedAt,
-        DateTime? deletedAt = null)
-        => new(id, tenantId, assetCode, deviceType, host, location, version, createdAt, updatedAt)
+        DateTime? deletedAt = null,
+        AssetProperties? properties = null)
+        => new(id, tenantId, assetCode, component, properties ?? AssetProperties.Empty, host, location, version, createdAt, updatedAt)
         {
             DeletedAt = deletedAt
         };

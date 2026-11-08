@@ -1,7 +1,9 @@
 namespace WaterNetwork.Gis.Contracts.Events;
 
 /// <summary>
-/// v1 payload for the <c>network.pipe.registered</c> integration event.
+/// v2 (decision 0028): the component code, its functional flags and catalog properties replace
+/// NodeType/DeviceType.
+/// v2 payload for the <c>network.pipe.registered</c> integration event.
 ///
 /// <para>
 /// <strong>Geometry is intentionally absent.</strong> Consumers that need the pipe's spatial
@@ -18,7 +20,7 @@ namespace WaterNetwork.Gis.Contracts.Events;
 /// <c>Convert.ToInt32</c> when translating from domain to integration event.
 /// </para>
 /// </summary>
-public sealed record NetworkPipeRegisteredV1(
+public sealed record NetworkPipeRegisteredV2(
     string PipeId,
     string TenantId,
     string AssetCode,
@@ -26,4 +28,6 @@ public sealed record NetworkPipeRegisteredV1(
     string ToNodeId,
     double LengthM,
     int DiameterMm,
-    string Material);
+    string Material,
+    string ComponentCode,
+    IReadOnlyDictionary<string, string> Properties);

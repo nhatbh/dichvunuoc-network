@@ -2,8 +2,9 @@ namespace WaterNetwork.Gis.Contracts.Requests;
 
 public sealed record InstallDeviceRequest(
     string AssetCode,
-    string DeviceType,
+    string ComponentCode,
     string? HostPipeId,
     string? HostNodeId,
     double Latitude,
-    double Longitude);
+    double Longitude,
+    IReadOnlyDictionary<string, string>? Properties = null);

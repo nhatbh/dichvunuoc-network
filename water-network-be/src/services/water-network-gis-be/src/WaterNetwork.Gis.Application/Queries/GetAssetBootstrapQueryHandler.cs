@@ -10,7 +10,7 @@ public sealed class GetAssetBootstrapQueryHandler(
     IAssetBootstrapReadDao readDao,
     ITenantContextAccessor tenantAccessor) : IQueryHandler<GetAssetBootstrapQuery, AssetBootstrapDto>
 {
-    private const int SchemaVersion = 1;
+    private const int SchemaVersion = 2; // 2: componentMix (decision 0028)
     private const string DataExtentSource = "data_extent";
 
     public async Task<AssetBootstrapDto> HandleAsync(GetAssetBootstrapQuery query, CancellationToken ct)
@@ -32,6 +32,9 @@ public sealed class GetAssetBootstrapQueryHandler(
                 .ToList(),
             StatusMix: snapshot.StatusMix
                 .Select(x => new StatusMixItemDto(x.Status, x.Count))
+                .ToList(),
+            ComponentMix: snapshot.ComponentMix
+                .Select(x => new ComponentMixItemDto(x.Kind, x.ComponentCode, x.Count))
                 .ToList());
     }
 

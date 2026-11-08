@@ -28,7 +28,7 @@ public class GetAssetsInBboxApiTests(PostgisFixture postgis) : IClassFixture<Pos
     {
         var resp = await c.PostAsJsonAsync("/api/network/nodes", new
         {
-            assetCode = $"ND-{Guid.NewGuid():N}"[..16], nodeType = "Junction", latitude = lat, longitude = lng
+            assetCode = $"ND-{Guid.NewGuid():N}"[..16], componentCode = "Junction", latitude = lat, longitude = lng
         });
         resp.StatusCode.Should().Be(HttpStatusCode.Created);
     }
@@ -63,7 +63,7 @@ public class GetAssetsInBboxApiTests(PostgisFixture postgis) : IClassFixture<Pos
 
         var resp = await writer.PostAsJsonAsync("/api/network/nodes", new
         {
-            assetCode = $"ND-{Guid.NewGuid():N}"[..16], nodeType = "Junction", latitude = 10.765, longitude = 106.66
+            assetCode = $"ND-{Guid.NewGuid():N}"[..16], componentCode = "Junction", latitude = 10.765, longitude = 106.66
         });
         resp.StatusCode.Should().Be(HttpStatusCode.Created);
         var nodeId = (await resp.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetString()!;

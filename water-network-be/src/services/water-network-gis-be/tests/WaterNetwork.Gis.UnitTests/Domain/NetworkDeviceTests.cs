@@ -11,8 +11,8 @@ public class NetworkDeviceTests
     private static NetworkDevice InstallValve() => NetworkDevice.Install(
         tenantId: "tenant-001",
         assetCode: new AssetCode("DV-001"),
-        deviceType: DeviceType.Parse("Valve"),
-        host: DeviceHost.For(DeviceType.Parse("Valve"), "pipe-1", null),
+        component: ComponentCode.Parse("GateValve"),
+        host: DeviceHost.For(ComponentCode.Parse("GateValve"), "pipe-1", null),
         location: new GeoPoint(10.762622, 106.660172));
 
     [Fact]
@@ -30,7 +30,8 @@ public class NetworkDeviceTests
         evt.AggregateId.Should().Be(device.Id);
         evt.Data.TenantId.Should().Be("tenant-001");
         evt.Data.AssetCode.Should().Be("DV-001");
-        evt.Data.DeviceType.Should().Be("Valve");
+        evt.Data.ComponentCode.Should().Be("GateValve");
+        evt.Data.Functions.Should().Equal("isolates");
         evt.Data.HostPipeId.Should().Be("pipe-1");
         evt.Data.HostNodeId.Should().BeNull();
         evt.Data.Latitude.Should().Be(10.762622);
@@ -44,8 +45,8 @@ public class NetworkDeviceTests
             id: "device-abc",
             tenantId: "tenant-001",
             assetCode: new AssetCode("DV-001"),
-            deviceType: DeviceType.Parse("Pump"),
-            host: DeviceHost.For(DeviceType.Parse("Pump"), null, "node-1"),
+            component: ComponentCode.Parse("Hydrant"),
+            host: DeviceHost.For(ComponentCode.Parse("Hydrant"), null, "node-1"),
             location: new GeoPoint(10.0, 106.0),
             version: 3,
             createdAt: DateTime.UtcNow.AddDays(-1),
@@ -57,7 +58,7 @@ public class NetworkDeviceTests
         device.TenantId.Should().Be("tenant-001");
         device.AssetCode.Value.Should().Be("DV-001");
         device.Version.Should().Be(3);
-        device.DeviceType.ToString().Should().Be("Pump");
+        device.Component.Value.Should().Be("Hydrant");
         device.Host.HostNodeId.Should().Be("node-1");
     }
 
@@ -76,6 +77,28 @@ public class NetworkDeviceTests
         evt.AggregateId.Should().Be(device.Id);
         evt.Data.TenantId.Should().Be("tenant-001");
         evt.Data.AssetCode.Should().Be("DV-001");
-        evt.Data.DeviceType.Should().Be("Valve");
+        evt.Data.ComponentCode.Should().Be("GateValve");
+    }
+
+    [Fact]
+    public void Install_Keeps_Validated_Properties_On_The_Event()
+    {
+        var component = ComponentCode.Parse("PRV");
+        var device = NetworkDevice.Install("tenant-001", new AssetCode("DV-PRV"), component,
+            DeviceHost.For(component, "pipe-1", null), new GeoPoint(10.0, 106.0),
+            AssetProperties.For(component, new Dictionary<string, string> { ["setpoint"] = "35", ["state"] = "open" }));
+
+        device.Properties.Values.Should().Contain("setpoint", "35");
+        var evt = device.GetDomainEvents().Single().Should().BeOfType<DeviceInstalled>().Subject;
+        evt.Data.Properties.Should().Contain("state", "open");
+        evt.Data.Functions.Should().Equal("controls");
+    }
+
+    [Fact]
+    public void Install_Rejects_A_Host_The_Catalog_Does_Not_Allow()
+    {
+        var hydrant = ComponentCode.Parse("Hydrant");
+        var act = () => DeviceHost.For(hydrant, "pipe-1", null);
+        act.Should().Throw<WaterPlatform.BuildingBlocks.Domain.Exceptions.DomainException>();
     }
 }

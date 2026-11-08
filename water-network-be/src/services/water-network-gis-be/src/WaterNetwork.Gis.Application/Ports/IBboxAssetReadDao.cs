@@ -20,13 +20,13 @@ public sealed record BboxAssetRow(
     string AssetCode,
     string Status,
     string GeoJson,     // ST_AsGeoJSON(geometry|location) — raw GeoJSON geometry object
-    string? NodeType,
+    string ComponentCode,
     int? DiameterMm,
     string? Material,
     double? LengthM,
     string? FromNodeId,
     string? ToNodeId,
-    string? DeviceType,
     string? HostPipeId,
     string? HostNodeId,
-    string? LifecycleStatus);
+    string? LifecycleStatus,
+    string? PropertiesJson); // jsonb text of the properties column

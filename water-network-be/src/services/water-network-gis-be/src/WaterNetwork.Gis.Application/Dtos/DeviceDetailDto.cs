@@ -3,7 +3,7 @@ namespace WaterNetwork.Gis.Application.Dtos;
 public sealed record DeviceDetailDto(
     string Id,
     string AssetCode,
-    string DeviceType,
+    string ComponentCode,
     string? HostPipeId,
     string? HostNodeId,
     double Latitude,
@@ -11,4 +11,5 @@ public sealed record DeviceDetailDto(
     string Status,
     int Version,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    IReadOnlyDictionary<string, string> Properties);

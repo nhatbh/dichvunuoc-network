@@ -5,7 +5,9 @@ namespace WaterNetwork.Gis.Domain.DomainEvents;
 public sealed record NodeRegisteredData(
     string TenantId,
     string AssetCode,
-    string NodeType,
+    string ComponentCode,
+    IReadOnlyList<string> Functions,
+    IReadOnlyDictionary<string, string> Properties,
     double Latitude,
     double Longitude);
 

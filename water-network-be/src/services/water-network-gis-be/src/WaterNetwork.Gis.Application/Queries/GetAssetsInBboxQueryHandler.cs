@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using WaterNetwork.Gis.Application.Common;
 using WaterNetwork.Gis.Application.Dtos;
 using WaterNetwork.Gis.Application.Ports;
 using WaterPlatform.BuildingBlocks.Application.Cqrs;
@@ -34,13 +35,13 @@ public sealed class GetAssetsInBboxQueryHandler(
                 AssetCode: row.AssetCode,
                 Status: row.Status,
                 LifecycleStatus: row.LifecycleStatus,
-                NodeType: row.NodeType,
+                ComponentCode: row.ComponentCode,
                 DiameterMm: row.DiameterMm,
                 Material: row.Material,
                 LengthM: row.LengthM,
                 FromNodeId: row.FromNodeId,
                 ToNodeId: row.ToNodeId,
-                DeviceType: row.DeviceType,
                 HostPipeId: row.HostPipeId,
-                HostNodeId: row.HostNodeId));
+                HostNodeId: row.HostNodeId,
+                AssetProperties: PropertiesJson.Read(row.PropertiesJson)));
 }

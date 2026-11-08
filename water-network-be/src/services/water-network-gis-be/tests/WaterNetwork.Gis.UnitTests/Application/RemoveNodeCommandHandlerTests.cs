@@ -18,7 +18,7 @@ public class RemoveNodeCommandHandlerTests
     private readonly ITenantContextAccessor _tenant = Substitute.For<ITenantContextAccessor>();
 
     private static NetworkNode MakeNode() =>
-        NetworkNode.Register("tenant-001", new AssetCode("ND-001"), NodeType.Junction, new GeoPoint(10.0, 106.0));
+        NetworkNode.Register("tenant-001", new AssetCode("ND-001"), ComponentCode.Junction, new GeoPoint(10.0, 106.0));
 
     private RemoveNodeCommandHandler CreateHandler()
     {

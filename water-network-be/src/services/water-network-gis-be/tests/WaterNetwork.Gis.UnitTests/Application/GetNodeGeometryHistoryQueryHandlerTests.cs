@@ -27,7 +27,7 @@ public class GetNodeGeometryHistoryQueryHandlerTests
     {
         var nodeId = "node-abc";
         var nodeDto = new NodeDetailDto(nodeId, "ND-001", "Junction", 10.0, 106.0, 1,
-            DateTime.UtcNow, DateTime.UtcNow);
+            DateTime.UtcNow, DateTime.UtcNow, new Dictionary<string, string>());
         _nodeReadDao.GetByIdAsync("tenant-001", nodeId, Arg.Any<CancellationToken>())
             .Returns(nodeDto);
 

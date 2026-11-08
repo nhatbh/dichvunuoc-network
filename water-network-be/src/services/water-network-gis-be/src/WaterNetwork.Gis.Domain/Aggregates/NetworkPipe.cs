@@ -16,6 +16,9 @@ public sealed class NetworkPipe : AggregateRoot
     public PipeMaterial Material { get; private set; }
     public double LengthM { get; private set; }
     public string? LengthValidationWarning { get; private set; }
+    /// <summary>The pipe's component (decision 0028); Pipe unless the catalog grows pipe kinds.</summary>
+    public ComponentCode Component { get; private set; } = ComponentCode.Pipe;
+    public AssetProperties Properties { get; private set; } = AssetProperties.Empty;
     public DateTime? DeletedAt { get; private set; }
 
     private NetworkPipe(
@@ -54,8 +57,12 @@ public sealed class NetworkPipe : AggregateRoot
         Diameter diameterMm,
         PipeMaterial material,
         double lengthM,
-        string? lengthValidationWarning)
+        string? lengthValidationWarning,
+        AssetProperties? properties = null,
+        ComponentCode? component = null)
     {
+        if (component is not null && component.Definition.Kind != WaterPlatform.BuildingBlocks.Components.ComponentKind.Pipe)
+            throw new DomainException("NetworkPipe.NotAPipe", $"'{component}' is not a pipe component.");
         if (fromNodeId == toNodeId)
             throw new DomainException(
                 "NetworkPipe.SelfLoop",
@@ -71,7 +78,11 @@ public sealed class NetworkPipe : AggregateRoot
             diameterMm: diameterMm,
             material: material,
             lengthM: lengthM,
-            lengthValidationWarning: lengthValidationWarning);
+            lengthValidationWarning: lengthValidationWarning)
+        {
+            Component = component ?? ComponentCode.Pipe,
+            Properties = properties ?? AssetProperties.Empty,
+        };
 
         var data = new PipeRegisteredData(
             TenantId: tenantId,
@@ -81,7 +92,9 @@ public sealed class NetworkPipe : AggregateRoot
             Points: geometry.Points,
             DiameterMm: diameterMm.Value,
             Material: material.ToString(),
-            LengthM: lengthM);
+            LengthM: lengthM,
+            ComponentCode: pipe.Component.Value,
+            Properties: pipe.Properties.Values);
 
         pipe.AddDomainEvent(new PipeRegistered(pipe.Id, data));
         return pipe;
@@ -104,12 +117,13 @@ public sealed class NetworkPipe : AggregateRoot
         AddDomainEvent(new PipeDeleted(Id, data));
     }
 
-    public void Edit(AssetCode code, string from, string to, PipeGeometry geometry, Diameter diameter, PipeMaterial material, double length)
+    public void Edit(AssetCode code, string from, string to, PipeGeometry geometry, Diameter diameter, PipeMaterial material, double length, AssetProperties? properties = null)
     {
         if (DeletedAt != null || from == to || !double.IsFinite(length) || length <= 0)
             throw new DomainException("NetworkPipe.InvalidEdit", "Cannot edit a deleted pipe or use invalid endpoints/length.");
         AssetCode = code; FromNodeId = from; ToNodeId = to; Geometry = geometry;
         DiameterMm = diameter; Material = material; LengthM = length; LengthValidationWarning = null;
+        Properties = properties ?? AssetProperties.Empty;
         MarkAsModified(); AddDomainEvent(new NetworkAssetEdited(Id, new(TenantId,"Pipe",AssetCode.Value,Version)));
     }
 
@@ -127,10 +141,14 @@ public sealed class NetworkPipe : AggregateRoot
         int version,
         DateTime createdAt,
         DateTime updatedAt,
-        DateTime? deletedAt = null)
+        DateTime? deletedAt = null,
+        ComponentCode? component = null,
+        AssetProperties? properties = null)
         => new(id, tenantId, assetCode, fromNodeId, toNodeId, geometry, diameterMm, material,
                lengthM, lengthValidationWarning, version, createdAt, updatedAt)
         {
-            DeletedAt = deletedAt
+            DeletedAt = deletedAt,
+            Component = component ?? ComponentCode.Pipe,
+            Properties = properties ?? AssetProperties.Empty,
         };
 }

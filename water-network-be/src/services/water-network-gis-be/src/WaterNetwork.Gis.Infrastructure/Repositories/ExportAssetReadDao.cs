@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.EntityFrameworkCore;
+using WaterNetwork.Gis.Application.Common;
 using WaterNetwork.Gis.Application.Dtos;
 using WaterNetwork.Gis.Application.Ports;
 using WaterNetwork.Gis.Infrastructure.Persistence;
@@ -11,36 +12,45 @@ namespace WaterNetwork.Gis.Infrastructure.Repositories;
 /// the same flat row shape (NULL-filling type-specific columns), UNION ALL'd,
 /// with a single global ORDER BY id + LIMIT. Keyset by <c>id &gt; @afterId</c>
 /// (afterId defaults to empty string so the first page matches all). Returns the
-/// minimal fields topology-rs needs to rebuild the network graph.
+/// fields topology-rs needs to rebuild the network graph, including the component
+/// code and properties (decision 0028).
 /// </summary>
 public sealed class ExportAssetReadDao(GisDbContext dbContext) : IExportAssetReadDao
 {
+    private sealed record ExportRow(
+        string Kind, string Id, string AssetCode, string ComponentCode,
+        string? FromNodeId, string? ToNodeId, int? DiameterMm, string? Material, double? LengthM,
+        string? HostPipeId, string? HostNodeId, string PropertiesJson);
+
     private const string NodeSelect = """
         SELECT 'Node' AS Kind, n.id AS Id, n.asset_code AS AssetCode,
-               n.node_type AS NodeType,
+               n.component_code AS ComponentCode,
                NULL::text AS FromNodeId, NULL::text AS ToNodeId,
                NULL::int AS DiameterMm, NULL::text AS Material, NULL::double precision AS LengthM,
-               NULL::text AS DeviceType, NULL::text AS HostPipeId, NULL::text AS HostNodeId
+               NULL::text AS HostPipeId, NULL::text AS HostNodeId,
+               n.properties::text AS PropertiesJson
         FROM network_nodes n
         WHERE n.tenant_id = @tenantId AND n.deleted_at IS NULL AND n.id > @afterId
         """;
 
     private const string PipeSelect = """
         SELECT 'Pipe' AS Kind, p.id AS Id, p.asset_code AS AssetCode,
-               NULL::text AS NodeType,
+               p.component_code AS ComponentCode,
                p.from_node_id AS FromNodeId, p.to_node_id AS ToNodeId,
                p.diameter_mm AS DiameterMm, p.material AS Material, p.length_m AS LengthM,
-               NULL::text AS DeviceType, NULL::text AS HostPipeId, NULL::text AS HostNodeId
+               NULL::text AS HostPipeId, NULL::text AS HostNodeId,
+               p.properties::text AS PropertiesJson
         FROM network_pipes p
         WHERE p.tenant_id = @tenantId AND p.deleted_at IS NULL AND p.id > @afterId
         """;
 
     private const string DeviceSelect = """
         SELECT 'Device' AS Kind, d.id AS Id, d.asset_code AS AssetCode,
-               NULL::text AS NodeType,
+               d.component_code AS ComponentCode,
                NULL::text AS FromNodeId, NULL::text AS ToNodeId,
                NULL::int AS DiameterMm, NULL::text AS Material, NULL::double precision AS LengthM,
-               d.device_type AS DeviceType, d.host_pipe_id AS HostPipeId, d.host_node_id AS HostNodeId
+               d.host_pipe_id AS HostPipeId, d.host_node_id AS HostNodeId,
+               d.properties::text AS PropertiesJson
         FROM network_devices d
         WHERE d.tenant_id = @tenantId AND d.deleted_at IS NULL AND d.id > @afterId
         """;
@@ -55,8 +65,13 @@ public sealed class ExportAssetReadDao(GisDbContext dbContext) : IExportAssetRea
 
         var parameters = new { tenantId, afterId = afterId ?? string.Empty, fetchLimit };
         var connection = dbContext.Database.GetDbConnection();
-        var rows = await connection.QueryAsync<AssetExportItemDto>(
+        var rows = await connection.QueryAsync<ExportRow>(
             new CommandDefinition(sql, parameters, cancellationToken: ct));
-        return rows.AsList();
+        return rows
+            .Select(r => new AssetExportItemDto(
+                r.Kind, r.Id, r.AssetCode, r.ComponentCode, r.FromNodeId, r.ToNodeId,
+                r.DiameterMm, r.Material, r.LengthM, r.HostPipeId, r.HostNodeId,
+                PropertiesJson.Read(r.PropertiesJson)))
+            .ToList();
     }
 }

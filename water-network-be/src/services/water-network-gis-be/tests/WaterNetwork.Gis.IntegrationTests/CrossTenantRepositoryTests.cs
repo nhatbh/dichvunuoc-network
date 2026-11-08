@@ -19,7 +19,7 @@ public class CrossTenantRepositoryTests(PostgisFixture postgis) : IClassFixture<
 
         // Unique asset code per run: the shared PostGIS container is not truncated between
         // runs, so a literal code would hit the unique constraint on repeated local execution.
-        var node = NetworkNode.Register("tenant-A", new AssetCode($"ND-{Guid.NewGuid():N}"[..16]), NodeType.Junction, new GeoPoint(10.0, 106.0));
+        var node = NetworkNode.Register("tenant-A", new AssetCode($"ND-{Guid.NewGuid():N}"[..16]), ComponentCode.Junction, new GeoPoint(10.0, 106.0));
         await repo.SaveAsync(node);
 
         (await repo.GetByIdAsync("tenant-A", node.Id)).Should().NotBeNull("owning tenant can load");
@@ -54,7 +54,7 @@ public class CrossTenantRepositoryTests(PostgisFixture postgis) : IClassFixture<
 
         // GUID-sliced asset code per run (shared PostGIS container is not truncated between runs).
         var device = NetworkDevice.Install("tenant-A", new AssetCode($"DV-{Guid.NewGuid():N}"[..16]),
-            DeviceType.Parse("Valve"), DeviceHost.For(DeviceType.Parse("Valve"), "pipe-x", null),
+            ComponentCode.Parse("GateValve"), DeviceHost.For(ComponentCode.Parse("GateValve"), "pipe-x", null),
             new GeoPoint(10.0, 106.0));
         await repo.SaveAsync(device);
 

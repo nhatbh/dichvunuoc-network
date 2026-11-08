@@ -30,7 +30,7 @@ public class BboxAssetReadDaoTests(PostgisFixture postgis) : IClassFixture<Postg
     {
         var resp = await c.PostAsJsonAsync("/api/network/nodes", new
         {
-            assetCode = $"ND-{Guid.NewGuid():N}"[..16], nodeType = "Junction", latitude = lat, longitude = lng
+            assetCode = $"ND-{Guid.NewGuid():N}"[..16], componentCode = "Junction", latitude = lat, longitude = lng
         });
         resp.StatusCode.Should().Be(HttpStatusCode.Created);
         return (await resp.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["id"];
@@ -60,7 +60,7 @@ public class BboxAssetReadDaoTests(PostgisFixture postgis) : IClassFixture<Postg
         var resp = await c.PostAsJsonAsync("/api/network/devices", new
         {
             assetCode = $"DV-{Guid.NewGuid():N}"[..16],
-            deviceType = "Pump",
+            componentCode = "Hydrant",
             hostNodeId,
             latitude = 10.762700,
             longitude = 106.660500
@@ -138,7 +138,7 @@ public class BboxAssetReadDaoTests(PostgisFixture postgis) : IClassFixture<Postg
         row.Kind.Should().Be("Node");
         row.Status.Should().Be("Active");
         row.GeoJson.Should().Contain("\"type\":\"Point\"");
-        row.NodeType.Should().Be("Junction");
+        row.ComponentCode.Should().Be("Junction");
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class BboxAssetReadDaoTests(PostgisFixture postgis) : IClassFixture<Postg
         device.Kind.Should().Be("Device");
         device.Status.Should().Be("Active");
         device.GeoJson.Should().Contain("Point");
-        device.DeviceType.Should().Be("Pump");
+        device.ComponentCode.Should().Be("Hydrant");
         device.HostNodeId.Should().Be(nodeA);
     }
 }

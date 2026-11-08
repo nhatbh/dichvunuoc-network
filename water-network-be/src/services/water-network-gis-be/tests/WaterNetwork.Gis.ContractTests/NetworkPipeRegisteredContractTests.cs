@@ -25,11 +25,11 @@ public class NetworkPipeRegisteredContractTests
     // ── Schema ─────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void V1_Payload_Schema_Is_Stable()
+    public void V2_Payload_Schema_Is_Stable()
     {
         // Exactly 8 fields — geometry/Points deliberately NOT included
         // (consumers needing geometry must query the read snapshot).
-        var evt = new NetworkPipeRegisteredV1(
+        var evt = new NetworkPipeRegisteredV2(
             PipeId: "pipe-001",
             TenantId: "tenant-001",
             AssetCode: "PP-001",
@@ -37,7 +37,9 @@ public class NetworkPipeRegisteredContractTests
             ToNodeId: "node-def",
             LengthM: 120.5,
             DiameterMm: 150,
-            Material: "HDPE");
+            Material: "HDPE",
+            ComponentCode: "Pipe",
+            Properties: new Dictionary<string, string>());
 
         var json = JsonSerializer.Serialize(evt);
         using var doc = JsonDocument.Parse(json);
@@ -45,13 +47,13 @@ public class NetworkPipeRegisteredContractTests
 
         props.Should().BeEquivalentTo(
             "PipeId", "TenantId", "AssetCode", "FromNodeId", "ToNodeId",
-            "LengthM", "DiameterMm", "Material");
+            "LengthM", "DiameterMm", "Material", "ComponentCode", "Properties");
     }
 
     [Fact]
     public void V1_Payload_Contains_No_Geometry()
     {
-        var evt = new NetworkPipeRegisteredV1(
+        var evt = new NetworkPipeRegisteredV2(
             PipeId: "pipe-001",
             TenantId: "tenant-001",
             AssetCode: "PP-001",
@@ -59,7 +61,9 @@ public class NetworkPipeRegisteredContractTests
             ToNodeId: "node-def",
             LengthM: 120.5,
             DiameterMm: 150,
-            Material: "HDPE");
+            Material: "HDPE",
+            ComponentCode: "Pipe",
+            Properties: new Dictionary<string, string>());
 
         var json = JsonSerializer.Serialize(evt);
 
@@ -94,7 +98,9 @@ public class NetworkPipeRegisteredContractTests
             },
             DiameterMm: 150.0,   // domain is double
             Material: "HDPE",
-            LengthM: 120.5);
+            LengthM: 120.5,
+            ComponentCode: "Pipe",
+            Properties: new Dictionary<string, string>());
 
         var domainEvent = new WaterNetwork.Gis.Domain.DomainEvents.PipeRegistered("pipe-001", data);
 
@@ -105,7 +111,7 @@ public class NetworkPipeRegisteredContractTests
         var integration = mapper.Map(domainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be("network.pipe.registered");
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("pipe-001");
         integration.SourceAggregateType.Should().Be("NetworkPipe");
 
@@ -125,7 +131,7 @@ public class NetworkPipeRegisteredContractTests
     public void Mapper_Still_Translates_NodeRegistered_After_Pipe_Support_Added()
     {
         var nodeData = new WaterNetwork.Gis.Domain.DomainEvents.NodeRegisteredData(
-            "tenant-001", "ND-001", "Junction", 10.762622, 106.660172);
+            "tenant-001", "ND-001", "Junction", ["connects"], new Dictionary<string, string>(), 10.762622, 106.660172);
         var nodeDomainEvent = new WaterNetwork.Gis.Domain.DomainEvents.NodeRegistered("node-1", nodeData);
 
         var mapper = new GisIntegrationEventMapper();
@@ -134,7 +140,7 @@ public class NetworkPipeRegisteredContractTests
         var integration = mapper.Map(nodeDomainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be("network.node.registered");
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("node-1");
 
         var typed = integration as NodeRegisteredIntegrationEvent;

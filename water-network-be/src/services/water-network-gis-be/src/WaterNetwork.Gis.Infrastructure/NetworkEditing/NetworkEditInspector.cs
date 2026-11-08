@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WaterNetwork.Design.Contracts.Events;
+using WaterNetwork.Gis.Application.Common;
 using WaterNetwork.Gis.Infrastructure.Persistence;
 namespace WaterNetwork.Gis.Infrastructure.NetworkEditing;
 public sealed class NetworkEditInspector(GisDbContext db)
@@ -21,11 +22,20 @@ public sealed class NetworkEditInspector(GisDbContext db)
     {
         var state=new Dictionary<string,NetworkEditAsset>(StringComparer.Ordinal);
         foreach(var n in await db.NetworkNodes.AsNoTracking().Where(x=>x.TenantId==tenantId).ToListAsync(ct))
-            state[n.Id]=new(new(n.Id,"Node",n.AssetCode,n.Id,new("Point",[[n.Location.X,n.Location.Y]]),new Dictionary<string,string>{{"nodeType",n.NodeType}},null,null,null),n.Version);
+            state[n.Id]=new(new(n.Id,"Node",n.AssetCode,n.Id,new("Point",[[n.Location.X,n.Location.Y]]),Attributes(n.ComponentCode,n.Properties),null,null,null),n.Version);
         foreach(var p in await db.NetworkPipes.AsNoTracking().Where(x=>x.TenantId==tenantId).ToListAsync(ct))
-            state[p.Id]=new(new(p.Id,"Pipe",p.AssetCode,p.Id,new("LineString",p.Geometry.Coordinates.Select(c=>(IReadOnlyList<double>)new[]{c.X,c.Y}).ToArray()),new Dictionary<string,string>{{"diameterMm",p.DiameterMm.ToString(System.Globalization.CultureInfo.InvariantCulture)},{"material",p.Material}},p.FromNodeId,p.ToNodeId,null),p.Version);
+            state[p.Id]=new(new(p.Id,"Pipe",p.AssetCode,p.Id,new("LineString",p.Geometry.Coordinates.Select(c=>(IReadOnlyList<double>)new[]{c.X,c.Y}).ToArray()),Attributes(p.ComponentCode,p.Properties,("diameterMm",p.DiameterMm.ToString(System.Globalization.CultureInfo.InvariantCulture)),("material",p.Material)),p.FromNodeId,p.ToNodeId,null),p.Version);
         foreach(var d in await db.NetworkDevices.AsNoTracking().Where(x=>x.TenantId==tenantId).ToListAsync(ct))
-            state[d.Id]=new(new(d.Id,"Device",d.AssetCode,d.Id,new("Point",[[d.Location.X,d.Location.Y]]),new Dictionary<string,string>{{"deviceType",d.DeviceType}},null,null,d.HostPipeId??d.HostNodeId),d.Version);
+            state[d.Id]=new(new(d.Id,"Device",d.AssetCode,d.Id,new("Point",[[d.Location.X,d.Location.Y]]),Attributes(d.ComponentCode,d.Properties),null,null,d.HostPipeId??d.HostNodeId),d.Version);
         return state;
+    }
+
+    // Stored state in the same attribute shape the editor sends: componentCode, the catalog
+    // properties, and the pipe's own columns (decision 0028).
+    private static Dictionary<string,string> Attributes(string componentCode,string propertiesJson,params (string Key,string Value)[] extra)
+    {
+        var attributes=new Dictionary<string,string>(PropertiesJson.Read(propertiesJson),StringComparer.Ordinal){["componentCode"]=componentCode};
+        foreach(var (key,value) in extra) attributes[key]=value;
+        return attributes;
     }
 }

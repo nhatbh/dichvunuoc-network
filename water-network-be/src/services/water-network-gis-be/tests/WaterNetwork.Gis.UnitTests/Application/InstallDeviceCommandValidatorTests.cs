@@ -11,7 +11,7 @@ public class InstallDeviceCommandValidatorTests
 
     private static InstallDeviceCommand Valid() => new(
         AssetCode: "DV-001",
-        DeviceType: "Valve",
+        ComponentCode: "GateValve",
         HostPipeId: "pipe-1",
         HostNodeId: null,
         Latitude: 10.762622,
@@ -32,8 +32,14 @@ public class InstallDeviceCommandValidatorTests
         => _validator.Validate(Valid() with { AssetCode = new string('a', 65) }).IsValid.Should().BeFalse();
 
     [Fact]
-    public void Empty_DeviceType_Fails()
-        => _validator.Validate(Valid() with { DeviceType = "" }).IsValid.Should().BeFalse();
+    public void Empty_ComponentCode_Fails()
+        => _validator.Validate(Valid() with { ComponentCode = "" }).IsValid.Should().BeFalse();
+
+    [Theory]
+    [InlineData("Tee")]
+    [InlineData("Valve")]
+    public void Non_Device_Component_Fails(string code)
+        => _validator.Validate(Valid() with { ComponentCode = code }).IsValid.Should().BeFalse();
 
     [Theory]
     [InlineData(-91)]

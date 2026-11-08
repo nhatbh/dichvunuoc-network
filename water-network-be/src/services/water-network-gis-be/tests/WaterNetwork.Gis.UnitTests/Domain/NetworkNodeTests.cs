@@ -15,13 +15,14 @@ public class NetworkNodeTests
         var node = NetworkNode.Register(
             tenantId: "tenant-001",
             assetCode: new AssetCode("ND-001"),
-            nodeType: NodeType.Junction,
+            component: ComponentCode.Junction,
             location: new GeoPoint(10.762622, 106.660172));
 
         node.Id.Should().StartWith("node-");
         node.TenantId.Should().Be("tenant-001");
         node.AssetCode.Value.Should().Be("ND-001");
-        node.NodeType.Should().Be(NodeType.Junction);
+        node.Component.Should().Be(ComponentCode.Junction);
+        node.Properties.Values.Should().BeEmpty();
         node.Location.Should().Be(new GeoPoint(10.762622, 106.660172));
 
         var evt = node.GetDomainEvents().OfType<NodeRegistered>().Single();
@@ -29,6 +30,8 @@ public class NetworkNodeTests
         evt.EventType.Should().Be("NodeRegistered");
         evt.Data.AssetCode.Should().Be("ND-001");
         evt.Data.TenantId.Should().Be("tenant-001");
+        evt.Data.ComponentCode.Should().Be("Junction");
+        evt.Data.Functions.Should().Equal("connects");
         evt.Data.Latitude.Should().Be(10.762622);
         evt.Data.Longitude.Should().Be(106.660172);
     }
@@ -39,13 +42,13 @@ public class NetworkNodeTests
         var first = NetworkNode.Register(
             tenantId: "tenant-001",
             assetCode: new AssetCode("ND-001"),
-            nodeType: NodeType.Junction,
+            component: ComponentCode.Junction,
             location: new GeoPoint(10.762622, 106.660172));
         Thread.Sleep(2);
         var second = NetworkNode.Register(
             tenantId: "tenant-001",
             assetCode: new AssetCode("ND-002"),
-            nodeType: NodeType.Junction,
+            component: ComponentCode.Junction,
             location: new GeoPoint(10.762622, 106.660172));
 
         Guid.ParseExact(first.Id["node-".Length..], "N").Version.Should().Be(7);
@@ -57,7 +60,7 @@ public class NetworkNodeTests
     public void Reconstitute_Does_Not_Emit_Events()
     {
         var node = NetworkNode.Reconstitute(
-            "node-x", "tenant-001", new AssetCode("ND-001"), NodeType.Junction,
+            "node-x", "tenant-001", new AssetCode("ND-001"), ComponentCode.Junction,
             new GeoPoint(10, 106), version: 3, createdAt: DateTime.UtcNow, updatedAt: DateTime.UtcNow);
 
         node.GetDomainEvents().Should().BeEmpty();
@@ -67,7 +70,7 @@ public class NetworkNodeTests
     [Fact]
     public void Relocate_Changes_Location_And_Bumps_Version()
     {
-        var node = NetworkNode.Register("t1", new AssetCode("ND-1"), NodeType.Junction, new GeoPoint(10.0, 106.0));
+        var node = NetworkNode.Register("t1", new AssetCode("ND-1"), ComponentCode.Junction, new GeoPoint(10.0, 106.0));
         node.ClearDomainEvents();
         var before = node.Version;
 
@@ -81,7 +84,7 @@ public class NetworkNodeTests
     [Fact]
     public void Relocate_Raises_Exactly_One_NodeRelocated_With_Old_And_New()
     {
-        var node = NetworkNode.Register("t1", new AssetCode("ND-1"), NodeType.Junction, new GeoPoint(10.0, 106.0));
+        var node = NetworkNode.Register("t1", new AssetCode("ND-1"), ComponentCode.Junction, new GeoPoint(10.0, 106.0));
         node.ClearDomainEvents();
 
         node.Relocate(new GeoPoint(10.5, 106.5), "survey fix");
@@ -100,11 +103,30 @@ public class NetworkNodeTests
     [Fact]
     public void Relocate_To_Same_Location_Throws_NoLocationChange()
     {
-        var node = NetworkNode.Register("t1", new AssetCode("ND-1"), NodeType.Junction, new GeoPoint(10.0, 106.0));
+        var node = NetworkNode.Register("t1", new AssetCode("ND-1"), ComponentCode.Junction, new GeoPoint(10.0, 106.0));
         var versionBeforeAttempt = node.Version;
         var act = () => node.Relocate(new GeoPoint(10.0, 106.0), null);
         act.Should().Throw<DomainException>().Which.Code.Should().Contain("NetworkNode.NoLocationChange");
         node.Version.Should().Be(versionBeforeAttempt);
         node.Location.Should().Be(new GeoPoint(10.0, 106.0));
+    }
+
+    [Fact]
+    public void Register_A_Fitting_With_Its_Catalog_Properties()
+    {
+        var reducer = ComponentCode.Parse("Reducer");
+        var node = NetworkNode.Register("t1", new AssetCode("ND-R"), reducer, new GeoPoint(10.0, 106.0),
+            AssetProperties.For(reducer, new Dictionary<string, string> { ["dn"] = "200", ["dn2"] = "150" }));
+
+        node.Component.Value.Should().Be("Reducer");
+        var evt = node.GetDomainEvents().OfType<NodeRegistered>().Single();
+        evt.Data.Properties.Should().Contain("dn2", "150");
+    }
+
+    [Fact]
+    public void Register_Rejects_A_Device_Code()
+    {
+        var act = () => ComponentCode.Parse("GateValve", WaterPlatform.BuildingBlocks.Components.ComponentKind.Node);
+        act.Should().Throw<DomainException>().Which.Code.Should().Be("Component.WrongKind");
     }
 }

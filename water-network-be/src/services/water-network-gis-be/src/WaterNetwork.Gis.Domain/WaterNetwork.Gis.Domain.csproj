@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.Domain/WaterPlatform.BuildingBlocks.Domain.csproj" />
+    <ProjectReference Include="../../../../building-blocks/src/WaterPlatform.BuildingBlocks.Components/WaterPlatform.BuildingBlocks.Components.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

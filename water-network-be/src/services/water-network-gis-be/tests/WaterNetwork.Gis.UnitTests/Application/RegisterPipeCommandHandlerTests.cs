@@ -24,7 +24,7 @@ public class RegisterPipeCommandHandlerTests
         new[] { (10.0, 106.0), (10.1, 106.1) };
 
     private static NetworkNode MakeNode(string id) =>
-        NetworkNode.Register("tenant-001", new AssetCode(id), NodeType.Junction, new GeoPoint(10.0, 106.0));
+        NetworkNode.Register("tenant-001", new AssetCode(id), ComponentCode.Junction, new GeoPoint(10.0, 106.0));
 
     private RegisterPipeCommandHandler CreateHandler()
     {
@@ -160,7 +160,7 @@ public class RegisterPipeCommandHandlerTests
             id: "node-from-deleted",
             tenantId: "tenant-001",
             assetCode: new AssetCode("ND-DEL"),
-            nodeType: NodeType.Junction,
+            component: ComponentCode.Junction,
             location: new GeoPoint(10.0, 106.0),
             version: 1,
             createdAt: DateTime.UtcNow.AddDays(-1),

@@ -1,13 +1,14 @@
+using WaterPlatform.BuildingBlocks.Components;
 using WaterPlatform.BuildingBlocks.Domain.Exceptions;
 using WaterPlatform.BuildingBlocks.Domain.ValueObjects;
 
 namespace WaterNetwork.Gis.Domain.ValueObjects;
 
 /// <summary>
-/// Host attachment of a device, validated against the per-type host matrix:
-/// Valve/FlowMeter → hostPipeId only; Pump/Hydrant → hostNodeId only;
-/// PressureSensor → exactly one of the two. Extra host refs are rejected,
-/// never silently ignored.
+/// Host attachment of a device, from its component's catalog host rule (decision 0028):
+/// in-line components (valves, meters, pumps, strainers) → hostPipeId only; point devices
+/// (hydrants, air valves, washouts, sensors, customer meters) → hostNodeId only. Extra host refs
+/// are rejected, never silently ignored.
 /// </summary>
 public sealed class DeviceHost : ValueObject
 {
@@ -20,26 +21,24 @@ public sealed class DeviceHost : ValueObject
         HostNodeId = hostNodeId;
     }
 
-    public static DeviceHost For(DeviceType deviceType, string? hostPipeId, string? hostNodeId)
+    public static DeviceHost For(ComponentCode device, string? hostPipeId, string? hostNodeId)
     {
         var pipeId = Normalize(hostPipeId);
         var nodeId = Normalize(hostNodeId);
 
-        return deviceType.ToString() switch
+        return device.Definition.Host switch
         {
-            "Valve" or "FlowMeter" => PipeHosted(deviceType, pipeId, nodeId),
-            "Pump" or "Hydrant" => NodeHosted(deviceType, pipeId, nodeId),
-            "PressureSensor" => EitherHosted(deviceType, pipeId, nodeId),
-            // Unreachable: DeviceType.Parse only yields the 5 canonical values above.
-            _ => throw new DomainException("DeviceHost.UnknownDeviceType",
-                $"'{deviceType}' has no host rule defined.")
+            ComponentHosts.Pipe => PipeHosted(device, pipeId, nodeId),
+            ComponentHosts.Node => NodeHosted(device, pipeId, nodeId),
+            _ => throw new DomainException("DeviceHost.NotADevice",
+                $"'{device}' is not a device; it has no host.")
         };
     }
 
     private static string? Normalize(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-    private static DeviceHost PipeHosted(DeviceType type, string? pipeId, string? nodeId)
+    private static DeviceHost PipeHosted(ComponentCode type, string? pipeId, string? nodeId)
     {
         if (nodeId is not null)
             throw new DomainException("DeviceHost.HostNotAllowed",
@@ -50,7 +49,7 @@ public sealed class DeviceHost : ValueObject
         return new DeviceHost(pipeId, null);
     }
 
-    private static DeviceHost NodeHosted(DeviceType type, string? pipeId, string? nodeId)
+    private static DeviceHost NodeHosted(ComponentCode type, string? pipeId, string? nodeId)
     {
         if (pipeId is not null)
             throw new DomainException("DeviceHost.HostNotAllowed",
@@ -59,17 +58,6 @@ public sealed class DeviceHost : ValueObject
             throw new DomainException("DeviceHost.HostRequired",
                 $"A {type} requires hostNodeId.");
         return new DeviceHost(null, nodeId);
-    }
-
-    private static DeviceHost EitherHosted(DeviceType type, string? pipeId, string? nodeId)
-    {
-        if (pipeId is not null && nodeId is not null)
-            throw new DomainException("DeviceHost.AmbiguousHost",
-                $"A {type} must reference exactly one of hostPipeId or hostNodeId, not both.");
-        if (pipeId is null && nodeId is null)
-            throw new DomainException("DeviceHost.HostRequired",
-                $"A {type} requires hostPipeId or hostNodeId.");
-        return new DeviceHost(pipeId, nodeId);
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()

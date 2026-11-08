@@ -11,7 +11,9 @@ public sealed record PipeRegisteredData(
     IReadOnlyList<GeoPoint> Points,
     double DiameterMm,
     string Material,
-    double LengthM);
+    double LengthM,
+    string ComponentCode,
+    IReadOnlyDictionary<string, string> Properties);
 
 public sealed record PipeRegistered(
     string AggregateId,

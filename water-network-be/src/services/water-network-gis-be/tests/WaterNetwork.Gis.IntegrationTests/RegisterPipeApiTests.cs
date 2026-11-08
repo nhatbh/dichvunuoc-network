@@ -29,7 +29,7 @@ public class RegisterPipeApiTests(PostgisFixture postgis) : IClassFixture<Postgi
         var from = await client.PostAsJsonAsync("/api/network/nodes", new
         {
             assetCode = $"ND-F-{Guid.NewGuid():N}"[..16],
-            nodeType = "Junction",
+            componentCode = "Junction",
             latitude = 10.762622,
             longitude = 106.660172
         });
@@ -39,7 +39,7 @@ public class RegisterPipeApiTests(PostgisFixture postgis) : IClassFixture<Postgi
         var to = await client.PostAsJsonAsync("/api/network/nodes", new
         {
             assetCode = $"ND-T-{Guid.NewGuid():N}"[..16],
-            nodeType = "Junction",
+            componentCode = "Junction",
             latitude = 10.763000,
             longitude = 106.661000
         });

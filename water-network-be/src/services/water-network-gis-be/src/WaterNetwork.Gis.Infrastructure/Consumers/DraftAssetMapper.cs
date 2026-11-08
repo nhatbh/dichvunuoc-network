@@ -1,5 +1,7 @@
 using WaterNetwork.Design.Contracts.Events;
 using WaterNetwork.Gis.Domain.ValueObjects;
+using WaterPlatform.BuildingBlocks.Components;
+using WaterPlatform.BuildingBlocks.Domain.Exceptions;
 
 namespace WaterNetwork.Gis.Infrastructure.Consumers;
 
@@ -7,22 +9,28 @@ namespace WaterNetwork.Gis.Infrastructure.Consumers;
 /// The import consumer catches it and records a failed[] entry — it never aborts the batch.</summary>
 public sealed class DraftMappingException(string message) : Exception(message);
 
+public sealed record NodeImportArgs(GeoPoint Point, ComponentCode Component, AssetProperties Properties);
+
 public sealed record PipeImportArgs(
     string FromNodeId, string ToNodeId, IReadOnlyList<GeoPoint> Points,
-    int DiameterMm, string Material, double? LengthM);
+    int DiameterMm, string Material, double? LengthM,
+    ComponentCode Component, AssetProperties Properties);
 
 public sealed record DeviceImportArgs(
-    string DeviceType, string HostPipeOrNodeId, GeoPoint Location);
+    ComponentCode Component, string HostPipeOrNodeId, GeoPoint Location, AssetProperties Properties);
 
+/// <summary>
+/// Maps a design draft to GIS factory args. Drafts name their component in the
+/// <c>componentCode</c> attribute (decision 0028); catalog-declared properties are taken from
+/// the other attributes and validated, everything else (design provenance) is dropped.
+/// </summary>
 public static class DraftAssetMapper
 {
-    public static (GeoPoint Point, NodeType NodeType) MapNode(ReadyForGisAssetV1 a)
+    public static NodeImportArgs MapNode(ReadyForGisAssetV1 a)
     {
         var point = SinglePoint(a);
-        var nodeTypeRaw = Require(a, "nodeType");
-        if (!Enum.TryParse<NodeType>(nodeTypeRaw, ignoreCase: true, out var nodeType) || !Enum.IsDefined(nodeType))
-            throw new DraftMappingException($"Draft '{a.AssetCode}': invalid nodeType '{nodeTypeRaw}'.");
-        return (point, nodeType);
+        var component = Component(a, ComponentKind.Node, required: true);
+        return new NodeImportArgs(point, component, Properties(a, component));
     }
 
     public static PipeImportArgs MapPipe(ReadyForGisAssetV1 a, IReadOnlyDictionary<string, string> clientRefToGisId)
@@ -37,15 +45,43 @@ public static class DraftAssetMapper
         var material = Require(a, "material");
         double? lengthM = a.Attributes.TryGetValue("lengthM", out var lr) && double.TryParse(lr, out var l) ? l : null;
         var points = a.Geometry.Coordinates.Select(ToGeoPoint).ToList();
-        return new PipeImportArgs(from, to, points, diameter, material, lengthM);
+        var component = Component(a, ComponentKind.Pipe, required: false);
+        return new PipeImportArgs(from, to, points, diameter, material, lengthM, component, Properties(a, component));
     }
 
     public static DeviceImportArgs MapDevice(ReadyForGisAssetV1 a, IReadOnlyDictionary<string, string> clientRefToGisId)
     {
         var location = SinglePoint(a);
-        var deviceType = Require(a, "deviceType");
+        var component = Component(a, ComponentKind.Device, required: true);
         var hostId = ResolveRef(a, a.HostRef, "hostRef", clientRefToGisId);
-        return new DeviceImportArgs(deviceType, hostId, location);
+        return new DeviceImportArgs(component, hostId, location, Properties(a, component));
+    }
+
+    private static ComponentCode Component(ReadyForGisAssetV1 a, ComponentKind kind, bool required)
+    {
+        if (!required && !a.Attributes.ContainsKey("componentCode"))
+            return ComponentCode.Pipe;
+        var raw = Require(a, "componentCode");
+        try
+        {
+            return ComponentCode.Parse(raw, kind);
+        }
+        catch (DomainException ex)
+        {
+            throw new DraftMappingException($"Draft '{a.AssetCode}': {ex.Message}");
+        }
+    }
+
+    private static AssetProperties Properties(ReadyForGisAssetV1 a, ComponentCode component)
+    {
+        try
+        {
+            return AssetProperties.FromAttributes(component, a.Attributes);
+        }
+        catch (DomainException ex)
+        {
+            throw new DraftMappingException($"Draft '{a.AssetCode}': {ex.Message}");
+        }
     }
 
     private static GeoPoint SinglePoint(ReadyForGisAssetV1 a)

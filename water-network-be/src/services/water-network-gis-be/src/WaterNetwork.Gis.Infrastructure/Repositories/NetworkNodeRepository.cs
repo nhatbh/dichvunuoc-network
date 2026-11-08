@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
+using WaterNetwork.Gis.Application.Common;
 using WaterNetwork.Gis.Domain.Aggregates;
 using WaterNetwork.Gis.Domain.Repositories;
 using WaterNetwork.Gis.Domain.ValueObjects;
 using WaterNetwork.Gis.Infrastructure.Persistence;
 using WaterPlatform.BuildingBlocks.Application.Events;
+using WaterPlatform.BuildingBlocks.Components;
 using WaterPlatform.BuildingBlocks.Domain.Exceptions;
 using WaterPlatform.BuildingBlocks.Infrastructure.Outbox;
 using WaterPlatform.BuildingBlocks.Infrastructure.Persistence;
@@ -88,7 +90,8 @@ public sealed class NetworkNodeRepository(
             }
 
             existing.AssetCode = aggregate.AssetCode.Value;
-            existing.NodeType = aggregate.NodeType.ToString();
+            existing.ComponentCode = aggregate.Component.Value;
+            existing.Properties = PropertiesJson.Write(aggregate.Properties.Values);
             existing.Location = ToPoint(aggregate.Location);
             existing.Version = aggregate.Version;
             existing.UpdatedAt = aggregate.UpdatedAt;
@@ -103,7 +106,8 @@ public sealed class NetworkNodeRepository(
         Id = node.Id,
         TenantId = node.TenantId,
         AssetCode = node.AssetCode.Value,
-        NodeType = node.NodeType.ToString(),
+        ComponentCode = node.Component.Value,
+        Properties = PropertiesJson.Write(node.Properties.Values),
         Location = ToPoint(node.Location),
         Version = node.Version,
         CreatedAt = node.CreatedAt,
@@ -114,6 +118,7 @@ public sealed class NetworkNodeRepository(
     private static NetworkNode ToDomain(NetworkNodePersistenceModel model)
         => NetworkNode.Reconstitute(
             model.Id, model.TenantId, new AssetCode(model.AssetCode),
-            Enum.Parse<NodeType>(model.NodeType), new GeoPoint(model.Location.Y, model.Location.X),
-            model.Version, model.CreatedAt, model.UpdatedAt, model.DeletedAt);
+            ComponentCode.Parse(model.ComponentCode, ComponentKind.Node), new GeoPoint(model.Location.Y, model.Location.X),
+            model.Version, model.CreatedAt, model.UpdatedAt, model.DeletedAt,
+            AssetProperties.Reconstitute(PropertiesJson.Read(model.Properties)));
 }

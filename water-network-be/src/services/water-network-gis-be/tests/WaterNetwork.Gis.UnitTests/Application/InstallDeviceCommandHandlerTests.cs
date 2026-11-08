@@ -18,7 +18,7 @@ public class InstallDeviceCommandHandlerTests
     private readonly ITenantContextAccessor _tenantAccessor = Substitute.For<ITenantContextAccessor>();
 
     private static NetworkNode MakeNode() =>
-        NetworkNode.Register("tenant-001", new AssetCode("ND-1"), NodeType.Junction, new GeoPoint(10.0, 106.0));
+        NetworkNode.Register("tenant-001", new AssetCode("ND-1"), ComponentCode.Junction, new GeoPoint(10.0, 106.0));
 
     private static NetworkPipe MakePipe() =>
         NetworkPipe.Register("tenant-001", new AssetCode("PP-1"), "node-a", "node-b",
@@ -34,8 +34,8 @@ public class InstallDeviceCommandHandlerTests
     }
 
     private static InstallDeviceCommand MakeCommand(
-        string deviceType = "Valve", string? hostPipeId = "pipe-1", string? hostNodeId = null) =>
-        new(AssetCode: "DV-001", DeviceType: deviceType,
+        string componentCode = "GateValve", string? hostPipeId = "pipe-1", string? hostNodeId = null) =>
+        new(AssetCode: "DV-001", ComponentCode: componentCode,
             HostPipeId: hostPipeId, HostNodeId: hostNodeId,
             Latitude: 10.762622, Longitude: 106.660172);
 
@@ -59,14 +59,14 @@ public class InstallDeviceCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_PumpOnExistingNode_SavesAndReturnsId()
+    public async Task Handle_HydrantOnExistingNode_SavesAndReturnsId()
     {
         _deviceRepo.ExistsByAssetCodeAsync("tenant-001", "DV-001", Arg.Any<CancellationToken>()).Returns(false);
         _nodeRepo.GetByIdAsync("tenant-001", "node-1", Arg.Any<CancellationToken>()).Returns(MakeNode());
 
         var handler = CreateHandler();
         var id = await handler.HandleAsync(
-            MakeCommand(deviceType: "Pump", hostPipeId: null, hostNodeId: "node-1"), CancellationToken.None);
+            MakeCommand(componentCode: "Hydrant", hostPipeId: null, hostNodeId: "node-1"), CancellationToken.None);
 
         id.Should().StartWith("device-");
         await _pipeRepo.DidNotReceive().GetByIdAsync(
@@ -94,14 +94,14 @@ public class InstallDeviceCommandHandlerTests
         _deviceRepo.ExistsByAssetCodeAsync("tenant-001", "DV-001", Arg.Any<CancellationToken>()).Returns(false);
         var deletedNode = NetworkNode.Reconstitute(
             id: "node-1", tenantId: "tenant-001", assetCode: new AssetCode("ND-DEL"),
-            nodeType: NodeType.Junction, location: new GeoPoint(10.0, 106.0),
+            component: ComponentCode.Junction, location: new GeoPoint(10.0, 106.0),
             version: 1, createdAt: DateTime.UtcNow.AddDays(-1), updatedAt: DateTime.UtcNow.AddDays(-1),
             deletedAt: DateTime.UtcNow);
         _nodeRepo.GetByIdAsync("tenant-001", "node-1", Arg.Any<CancellationToken>()).Returns(deletedNode);
 
         var handler = CreateHandler();
         var act = () => handler.HandleAsync(
-            MakeCommand(deviceType: "Hydrant", hostPipeId: null, hostNodeId: "node-1"), CancellationToken.None);
+            MakeCommand(componentCode: "Hydrant", hostPipeId: null, hostNodeId: "node-1"), CancellationToken.None);
 
         var ex = await act.Should().ThrowAsync<BusinessRuleException>();
         ex.Which.Code.Should().Contain("NetworkDevice.HostNotFound");
@@ -149,14 +149,35 @@ public class InstallDeviceCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_InvalidDeviceType_Throws_DomainException()
+    public async Task Handle_UnknownComponent_Throws_DomainException()
     {
         _deviceRepo.ExistsByAssetCodeAsync("tenant-001", "DV-001", Arg.Any<CancellationToken>()).Returns(false);
 
         var handler = CreateHandler();
-        var act = () => handler.HandleAsync(MakeCommand(deviceType: "Sprinkler"), CancellationToken.None);
+        var act = () => handler.HandleAsync(MakeCommand(componentCode: "Sprinkler"), CancellationToken.None);
 
         var ex = await act.Should().ThrowAsync<DomainException>();
-        ex.Which.Code.Should().Be("DeviceType.Invalid");
+        ex.Which.Code.Should().Be("Component.Unknown");
+    }
+
+    [Fact]
+    public async Task Handle_NodeComponent_Throws_WrongKind()
+    {
+        _deviceRepo.ExistsByAssetCodeAsync("tenant-001", "DV-001", Arg.Any<CancellationToken>()).Returns(false);
+
+        var act = () => CreateHandler().HandleAsync(MakeCommand(componentCode: "Tee"), CancellationToken.None);
+
+        (await act.Should().ThrowAsync<DomainException>()).Which.Code.Should().Be("Component.WrongKind");
+    }
+
+    [Fact]
+    public async Task Handle_InvalidProperties_Throws_DomainException()
+    {
+        _deviceRepo.ExistsByAssetCodeAsync("tenant-001", "DV-001", Arg.Any<CancellationToken>()).Returns(false);
+        var command = MakeCommand() with { Properties = new Dictionary<string, string> { ["state"] = "ajar" } };
+
+        var act = () => CreateHandler().HandleAsync(command, CancellationToken.None);
+
+        (await act.Should().ThrowAsync<DomainException>()).Which.Code.Should().Be("AssetProperties.Invalid");
     }
 }

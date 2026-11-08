@@ -5,6 +5,7 @@ using WaterNetwork.Gis.Domain.Entities;
 using WaterNetwork.Gis.Domain.Repositories;
 using WaterNetwork.Gis.Domain.ValueObjects;
 using WaterPlatform.BuildingBlocks.Application.Context;
+using WaterPlatform.BuildingBlocks.Components;
 using WaterPlatform.BuildingBlocks.Application.Cqrs;
 using WaterPlatform.BuildingBlocks.Domain.Exceptions;
 using WaterPlatform.BuildingBlocks.MultiTenancy;
@@ -27,11 +28,13 @@ public sealed class RegisterNodeCommandHandler(
             throw ConflictException.Duplicate("NetworkNode", nameof(command.AssetCode), command.AssetCode);
         }
 
+        var component = ComponentCode.Parse(command.ComponentCode, ComponentKind.Node);
         var node = NetworkNode.Register(
             tenant.TenantId,
             new AssetCode(command.AssetCode),
-            Enum.Parse<NodeType>(command.NodeType, ignoreCase: true),
-            new GeoPoint(command.Latitude, command.Longitude));
+            component,
+            new GeoPoint(command.Latitude, command.Longitude),
+            AssetProperties.For(component, command.Properties));
 
         var changedBy = requestContextProvider.Current()?.UserId ?? tenant.TenantId;
         var version = await geometryVersionStore.GetNextVersionAsync(node.Id, ct);

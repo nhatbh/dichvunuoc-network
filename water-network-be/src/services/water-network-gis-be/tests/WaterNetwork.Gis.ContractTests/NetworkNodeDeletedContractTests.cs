@@ -15,20 +15,20 @@ public class NetworkNodeDeletedContractTests
     // ── Schema ─────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void V1_Payload_Schema_Is_Stable()
+    public void V2_Payload_Schema_Is_Stable()
     {
-        // Exactly 4 fields — NodeId, TenantId, AssetCode, NodeType.
-        var evt = new NetworkNodeDeletedV1(
+        // Exactly 4 fields — NodeId, TenantId, AssetCode, ComponentCode.
+        var evt = new NetworkNodeDeletedV2(
             NodeId: "node-001",
             TenantId: "tenant-001",
             AssetCode: "ND-001",
-            NodeType: "Junction");
+            ComponentCode: "Junction");
 
         var json = JsonSerializer.Serialize(evt);
         using var doc = JsonDocument.Parse(json);
         var props = doc.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
 
-        props.Should().BeEquivalentTo("NodeId", "TenantId", "AssetCode", "NodeType");
+        props.Should().BeEquivalentTo("NodeId", "TenantId", "AssetCode", "ComponentCode");
     }
 
     // ── Event type / version ───────────────────────────────────────────────────
@@ -47,7 +47,7 @@ public class NetworkNodeDeletedContractTests
         var data = new NodeDeletedData(
             TenantId: "tenant-001",
             AssetCode: "ND-001",
-            NodeType: "Junction");
+            ComponentCode: "Junction");
 
         var domainEvent = new NodeDeleted("node-42", data);
 
@@ -58,7 +58,7 @@ public class NetworkNodeDeletedContractTests
         var integration = mapper.Map(domainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be(GisEventTypes.NodeDeleted);
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("node-42");
         integration.SourceAggregateType.Should().Be("NetworkNode");
 
@@ -68,7 +68,7 @@ public class NetworkNodeDeletedContractTests
         typed.Data.NodeId.Should().Be("node-42");
         typed.Data.TenantId.Should().Be("tenant-001");
         typed.Data.AssetCode.Should().Be("ND-001");
-        typed.Data.NodeType.Should().Be("Junction");
+        typed.Data.ComponentCode.Should().Be("Junction");
     }
 
     // ── Mapper: regression — existing 3 events still work ─────────────────────
@@ -77,7 +77,7 @@ public class NetworkNodeDeletedContractTests
     public void Mapper_Still_Translates_NodeRegistered_After_Delete_Support_Added()
     {
         var nodeData = new NodeRegisteredData(
-            "tenant-001", "ND-001", "Junction", 10.762622, 106.660172);
+            "tenant-001", "ND-001", "Junction", ["connects"], new Dictionary<string, string>(), 10.762622, 106.660172);
         var nodeDomainEvent = new NodeRegistered("node-1", nodeData);
 
         var mapper = new GisIntegrationEventMapper();
@@ -86,7 +86,7 @@ public class NetworkNodeDeletedContractTests
         var integration = mapper.Map(nodeDomainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be(GisEventTypes.NodeRegistered);
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("node-1");
 
         var typed = integration as NodeRegisteredIntegrationEvent;

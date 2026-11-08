@@ -54,7 +54,7 @@ public class DesignAssetImportConsumerTests(PostgisFixture postgis) : IClassFixt
             AssetCode: assetCode,
             ClientRef: clientRef,
             Geometry: new ReadyForGisGeometryV1("Point", [new double[] { lng, lat }]),
-            Attributes: new Dictionary<string, string> { ["nodeType"] = "Junction" },
+            Attributes: new Dictionary<string, string> { ["componentCode"] = "Junction" },
             FromRef: null,
             ToRef: null,
             HostRef: null);
@@ -165,7 +165,7 @@ public class DesignAssetImportConsumerTests(PostgisFixture postgis) : IClassFixt
         var collisionCode = $"ND-T2C-{Guid.NewGuid():N}"[..16];
 
         // Pre-seed a node that will collide
-        var seeded = NetworkNode.Register(tenantId, new AssetCode(collisionCode), NodeType.Junction,
+        var seeded = NetworkNode.Register(tenantId, new AssetCode(collisionCode), ComponentCode.Junction,
             new GeoPoint(10.762622, 106.660172));
         await nodeRepo.SaveAsync(seeded);
 

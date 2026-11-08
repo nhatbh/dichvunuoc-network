@@ -15,7 +15,7 @@ public class ExportAssetsQueryHandlerTests
     private readonly ITenantContextAccessor _tenant = Substitute.For<ITenantContextAccessor>();
 
     private static AssetExportItemDto NodeItem(string id) =>
-        new("Node", id, "ND-1", "Junction", null, null, null, null, null, null, null, null);
+        new("Node", id, "ND-1", "Junction", null, null, null, null, null, null, null, new Dictionary<string, string>());
 
     private ExportAssetsQueryHandler CreateHandler() => new(_dao, _tenant);
 

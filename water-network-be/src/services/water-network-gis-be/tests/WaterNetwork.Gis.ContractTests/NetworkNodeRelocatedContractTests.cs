@@ -15,7 +15,7 @@ public class NetworkNodeRelocatedContractTests
     // ── Schema ─────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void V1_Payload_Schema_Is_Stable()
+    public void V2_Payload_Schema_Is_Stable()
     {
         // Exactly 8 fields — NodeId, TenantId, AssetCode, OldLatitude, OldLongitude,
         // NewLatitude, NewLongitude, Reason.
@@ -133,7 +133,7 @@ public class NetworkNodeRelocatedContractTests
     public void Mapper_Still_Translates_NodeRegistered_After_Relocated_Support_Added()
     {
         var nodeData = new NodeRegisteredData(
-            "tenant-001", "ND-001", "Junction", 10.762622, 106.660172);
+            "tenant-001", "ND-001", "Junction", ["connects"], new Dictionary<string, string>(), 10.762622, 106.660172);
         var nodeDomainEvent = new NodeRegistered("node-1", nodeData);
 
         var mapper = new GisIntegrationEventMapper();
@@ -142,7 +142,7 @@ public class NetworkNodeRelocatedContractTests
         var integration = mapper.Map(nodeDomainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be(GisEventTypes.NodeRegistered);
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("node-1");
 
         var typed = integration as NodeRegisteredIntegrationEvent;

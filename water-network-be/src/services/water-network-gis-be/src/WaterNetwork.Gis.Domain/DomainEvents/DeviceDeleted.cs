@@ -5,7 +5,7 @@ namespace WaterNetwork.Gis.Domain.DomainEvents;
 public sealed record DeviceDeletedData(
     string TenantId,
     string AssetCode,
-    string DeviceType);
+    string ComponentCode);
 
 public sealed record DeviceDeleted(
     string AggregateId,

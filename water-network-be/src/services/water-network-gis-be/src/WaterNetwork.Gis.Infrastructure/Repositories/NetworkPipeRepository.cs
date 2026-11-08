@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
+using WaterNetwork.Gis.Application.Common;
 using WaterNetwork.Gis.Domain.Aggregates;
 using WaterNetwork.Gis.Domain.Repositories;
 using WaterNetwork.Gis.Domain.ValueObjects;
 using WaterNetwork.Gis.Infrastructure.Persistence;
 using WaterPlatform.BuildingBlocks.Application.Events;
+using WaterPlatform.BuildingBlocks.Components;
 using WaterPlatform.BuildingBlocks.Domain.Exceptions;
 using WaterPlatform.BuildingBlocks.Infrastructure.Outbox;
 using WaterPlatform.BuildingBlocks.Infrastructure.Persistence;
@@ -77,6 +79,8 @@ public sealed class NetworkPipeRepository(
             existing.DiameterMm = Convert.ToInt32(aggregate.DiameterMm.Value);
             existing.Material = aggregate.Material.ToString();
             existing.LengthM = aggregate.LengthM;
+            existing.ComponentCode = aggregate.Component.Value;
+            existing.Properties = PropertiesJson.Write(aggregate.Properties.Values);
             existing.LengthValidationWarning = aggregate.LengthValidationWarning;
             existing.Version = aggregate.Version;
             existing.UpdatedAt = aggregate.UpdatedAt;
@@ -104,6 +108,8 @@ public sealed class NetworkPipeRepository(
         DiameterMm = Convert.ToInt32(pipe.DiameterMm.Value),
         Material = pipe.Material.ToString(),
         LengthM = pipe.LengthM,
+        ComponentCode = pipe.Component.Value,
+        Properties = PropertiesJson.Write(pipe.Properties.Values),
         LengthValidationWarning = pipe.LengthValidationWarning,
         Status = "Active",
         Version = pipe.Version,
@@ -129,5 +135,7 @@ public sealed class NetworkPipeRepository(
             model.Version,
             model.CreatedAt,
             model.UpdatedAt,
-            model.DeletedAt);
+            model.DeletedAt,
+            ComponentCode.Parse(model.ComponentCode, ComponentKind.Pipe),
+            AssetProperties.Reconstitute(PropertiesJson.Read(model.Properties)));
 }

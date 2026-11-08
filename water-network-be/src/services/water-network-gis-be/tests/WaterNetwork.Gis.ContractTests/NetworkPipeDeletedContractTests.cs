@@ -15,7 +15,7 @@ public class NetworkPipeDeletedContractTests
     // ── Schema ─────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void V1_Payload_Schema_Is_Stable()
+    public void V2_Payload_Schema_Is_Stable()
     {
         // Exactly 3 fields — PipeId, TenantId, AssetCode.
         var evt = new NetworkPipeDeletedV1(
@@ -85,7 +85,9 @@ public class NetworkPipeDeletedContractTests
             },
             DiameterMm: 150.0,
             Material: "HDPE",
-            LengthM: 120.5);
+            LengthM: 120.5,
+            ComponentCode: "Pipe",
+            Properties: new Dictionary<string, string>());
 
         var pipeDomainEvent = new PipeRegistered("pipe-001", pipeData);
 
@@ -95,7 +97,7 @@ public class NetworkPipeDeletedContractTests
         var integration = mapper.Map(pipeDomainEvent);
         integration.Should().NotBeNull();
         integration!.EventType.Should().Be(GisEventTypes.PipeRegistered);
-        integration.EventVersion.Should().Be(1);
+        integration.EventVersion.Should().Be(2);
         integration.SourceAggregateId.Should().Be("pipe-001");
 
         var typed = integration as PipeRegisteredIntegrationEvent;

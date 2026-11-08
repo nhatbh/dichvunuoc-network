@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
+using WaterNetwork.Gis.Application.Common;
 using WaterNetwork.Gis.Domain.Aggregates;
 using WaterNetwork.Gis.Domain.Repositories;
 using WaterNetwork.Gis.Domain.ValueObjects;
 using WaterNetwork.Gis.Infrastructure.Persistence;
 using WaterPlatform.BuildingBlocks.Application.Events;
+using WaterPlatform.BuildingBlocks.Components;
 using WaterPlatform.BuildingBlocks.Domain.Exceptions;
 using WaterPlatform.BuildingBlocks.Infrastructure.Outbox;
 using WaterPlatform.BuildingBlocks.Infrastructure.Persistence;
@@ -75,7 +77,8 @@ public sealed class NetworkDeviceRepository(
             }
 
             existing.AssetCode = aggregate.AssetCode.Value;
-            existing.DeviceType = aggregate.DeviceType.ToString();
+            existing.ComponentCode = aggregate.Component.Value;
+            existing.Properties = PropertiesJson.Write(aggregate.Properties.Values);
             existing.HostPipeId = aggregate.Host.HostPipeId;
             existing.HostNodeId = aggregate.Host.HostNodeId;
             existing.Location = ToPoint(aggregate.Location);
@@ -93,7 +96,8 @@ public sealed class NetworkDeviceRepository(
         Id = device.Id,
         TenantId = device.TenantId,
         AssetCode = device.AssetCode.Value,
-        DeviceType = device.DeviceType.ToString(),
+        ComponentCode = device.Component.Value,
+        Properties = PropertiesJson.Write(device.Properties.Values),
         HostPipeId = device.Host.HostPipeId,
         HostNodeId = device.Host.HostNodeId,
         Location = ToPoint(device.Location),
@@ -106,17 +110,18 @@ public sealed class NetworkDeviceRepository(
 
     private static NetworkDevice ToDomain(NetworkDevicePersistenceModel model)
     {
-        var deviceType = DeviceType.Parse(model.DeviceType);
+        var component = ComponentCode.Parse(model.ComponentCode, ComponentKind.Device);
         return NetworkDevice.Reconstitute(
             model.Id,
             model.TenantId,
             new AssetCode(model.AssetCode),
-            deviceType,
-            DeviceHost.For(deviceType, model.HostPipeId, model.HostNodeId),
+            component,
+            DeviceHost.For(component, model.HostPipeId, model.HostNodeId),
             new GeoPoint(model.Location.Y, model.Location.X),   // Y = lat, X = lng
             model.Version,
             model.CreatedAt,
             model.UpdatedAt,
-            model.DeletedAt);
+            model.DeletedAt,
+            AssetProperties.Reconstitute(PropertiesJson.Read(model.Properties)));
     }
 }

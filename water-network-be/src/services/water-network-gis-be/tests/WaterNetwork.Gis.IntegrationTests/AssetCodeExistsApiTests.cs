@@ -21,7 +21,7 @@ public sealed class AssetCodeExistsApiTests(PostgisFixture postgis) : IClassFixt
         var created = await tenantA.PostAsJsonAsync("/api/network/nodes", new
         {
             assetCode,
-            nodeType = "Junction",
+            componentCode = "Junction",
             latitude = 10.762622,
             longitude = 106.660172
         });

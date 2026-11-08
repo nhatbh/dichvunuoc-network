@@ -21,6 +21,7 @@ public sealed class AssetBootstrapReadDao(GisDbContext dbContext) : IAssetBootst
         var summary = await result.ReadSingleAsync<BootstrapSummaryRow>();
         var materialMix = (await result.ReadAsync<AssetMaterialMixRow>()).AsList();
         var statusMix = (await result.ReadAsync<AssetStatusMixRow>()).AsList();
+        var componentMix = (await result.ReadAsync<AssetComponentMixRow>()).AsList();
 
         return new AssetBootstrapSnapshot(
             summary.Nodes,
@@ -32,7 +33,8 @@ public sealed class AssetBootstrapReadDao(GisDbContext dbContext) : IAssetBootst
             summary.MaxLon,
             summary.MaxLat,
             materialMix,
-            statusMix);
+            statusMix,
+            componentMix);
     }
 
     private sealed record BootstrapSummaryRow(
@@ -92,5 +94,19 @@ public sealed class AssetBootstrapReadDao(GisDbContext dbContext) : IAssetBootst
         WHERE p.tenant_id = @tenantId AND p.deleted_at IS NULL
         GROUP BY COALESCE(NULLIF(BTRIM(p.status), ''), 'Unknown')
         ORDER BY Status;
+
+        SELECT mix.Kind, mix.ComponentCode, COUNT(*) AS Count
+        FROM (
+            SELECT 'Node' AS Kind, n.component_code AS ComponentCode
+            FROM network_nodes n WHERE n.tenant_id = @tenantId AND n.deleted_at IS NULL
+            UNION ALL
+            SELECT 'Pipe', p.component_code
+            FROM network_pipes p WHERE p.tenant_id = @tenantId AND p.deleted_at IS NULL
+            UNION ALL
+            SELECT 'Device', d.component_code
+            FROM network_devices d WHERE d.tenant_id = @tenantId AND d.deleted_at IS NULL
+        ) mix
+        GROUP BY mix.Kind, mix.ComponentCode
+        ORDER BY mix.Kind, Count DESC, mix.ComponentCode;
         """;
 }

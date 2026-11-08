@@ -12,6 +12,9 @@ public sealed class NetworkPipePersistenceModel
     public LineString Geometry { get; set; } = default!;
     public int DiameterMm { get; set; }
     public string Material { get; set; } = default!;
+    public string ComponentCode { get; set; } = "Pipe";
+    /// <summary>Catalog-declared properties as jsonb text (decision 0028).</summary>
+    public string Properties { get; set; } = "{}";
     public double LengthM { get; set; }
     public string? LengthValidationWarning { get; set; }
     public string Status { get; set; } = "Active";

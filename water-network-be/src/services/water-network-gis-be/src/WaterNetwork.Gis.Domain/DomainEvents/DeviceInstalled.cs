@@ -5,7 +5,9 @@ namespace WaterNetwork.Gis.Domain.DomainEvents;
 public sealed record DeviceInstalledData(
     string TenantId,
     string AssetCode,
-    string DeviceType,
+    string ComponentCode,
+    IReadOnlyList<string> Functions,
+    IReadOnlyDictionary<string, string> Properties,
     string? HostPipeId,
     string? HostNodeId,
     double Latitude,

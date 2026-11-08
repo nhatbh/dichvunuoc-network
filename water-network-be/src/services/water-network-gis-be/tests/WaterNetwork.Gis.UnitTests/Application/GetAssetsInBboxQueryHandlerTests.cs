@@ -18,7 +18,7 @@ public class GetAssetsInBboxQueryHandlerTests
 
     private static BboxAssetRow NodeRow(string id) =>
         new("Node", id, "ND-1", "Active", "{\"type\":\"Point\",\"coordinates\":[106.66,10.76]}",
-            "Junction", null, null, null, null, null, null, null, null, null);
+            "Tee", null, null, null, null, null, null, null, null, "{\"dn\":\"150\"}");
 
     private GetAssetsInBboxQueryHandler CreateHandler() => new(_dao, _tenant);
 
@@ -59,6 +59,8 @@ public class GetAssetsInBboxQueryHandlerTests
         f.Geometry["type"]!.GetValue<string>().Should().Be("Point");
         f.Properties.Kind.Should().Be("Node");
         f.Properties.LifecycleStatus.Should().BeNull();
+        f.Properties.ComponentCode.Should().Be("Tee");
+        f.Properties.AssetProperties.Should().Contain("dn", "150");
     }
 
     [Fact]
