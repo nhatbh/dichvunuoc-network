@@ -27,7 +27,11 @@
       "@/features/*": ["./src/features/*"],
       "@/entities/*": ["./src/entities/*"],
       "@/shared/*": ["./src/shared/*"],
-      "@wn/map-runtime-3d/testing": ["../../packages/map-runtime-3d/src/testing/fake-port.ts"]
+      "@wn/map-runtime-3d/testing": ["../../packages/map-runtime-3d/src/testing/fake-port.ts"],
+      "@wn/contracts": ["../../packages/contracts/src/index.ts"],
+      "@wn/contracts/*": ["../../packages/contracts/src/*/index.ts"],
+      "@wn/component-models": ["../../packages/component-models/src/index.ts"],
+      "@wn/component-models/*": ["../../packages/component-models/src/*.ts"]
     }
   },
   "include": ["src", "src/shared/lib/events/core/event.base.ts"],

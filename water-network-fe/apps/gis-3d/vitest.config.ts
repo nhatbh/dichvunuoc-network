@@ -2,6 +2,7 @@ import path from 'path'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import solid from 'vite-plugin-solid'
 import { defineConfig } from 'vitest/config'
+import { workspaceAliases } from './workspace-aliases'
 
 export default defineConfig({
   plugins: [
@@ -53,7 +54,10 @@ export default defineConfig({
   },
   resolve: {
     conditions: ['development', 'browser'],
-    alias: {
+    alias: [
+      // @wn/contracts and @wn/component-models from source (see workspace-aliases.ts)
+      ...workspaceAliases(__dirname),
+      ...Object.entries({
       // Force all packages (including symlinked workspace deps) to share the
       // same solid-js instance in tests; without this, map-runtime resolves
       // solid-js from its own node_modules causing "multiple instances" errors.
@@ -73,6 +77,7 @@ export default defineConfig({
       '@/features': path.resolve(__dirname, './src/features'),
       '@/entities': path.resolve(__dirname, './src/entities'),
       '@/shared': path.resolve(__dirname, './src/shared'),
-    },
+      }).map(([find, replacement]) => ({ find, replacement })),
+    ],
   },
 })

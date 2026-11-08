@@ -3,10 +3,11 @@ import path from 'path'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig, type PluginOption } from 'vite'
+import { workspaceAliases } from './workspace-aliases'
 import solid from 'vite-plugin-solid'
 
 /**
- * `--mode local-stack`: the app against the backend services running on this machine.
+ * `--mode stack`: the app against the backend services running on this machine.
  * /api/gis is proxied to the BFF with a backend dev JWT (the mock login has no real token),
  * and /config.json comes from deploy/local-stack/config.json. Dev server only.
  */
@@ -42,16 +43,15 @@ async function localStack(): Promise<PluginOption> {
 
 export default defineConfig(async ({ mode, command }) => {
   const isProduction = mode === 'production'
-  const localStackPlugin = mode === 'local-stack' && command === 'serve' ? await localStack() : null
+  const localStackPlugin = mode === 'stack' && command === 'serve' ? await localStack() : null
   // Dev server reads the 3D runtime from source, so edits (and pnpm's install-time copy of
   // the package) can never leave the app running a stale dist/.
   const runtime3dSrc = path.resolve(__dirname, '../../packages/map-runtime-3d/src')
 
   return {
     server: { port: 4600, strictPort: true },
-    // Local workspace packages are rebuilt in place (run-gis-3d-mock rebuilds them on every start).
-    // If Vite pre-bundled them, its cache in node_modules/.vite would keep serving the old build
-    // ("does not provide an export named …"). Serve them as-is; still pre-bundle three for them.
+    // Local workspace packages are served from source (aliases below), never pre-bundled: a cached
+    // pre-bundle in node_modules/.vite would keep serving an old build. three is still pre-bundled.
     optimizeDeps: {
       exclude: ['@wn/component-models', '@wn/contracts'],
       include: ['@wn/map-runtime-3d > @wn/component-models > three'],
@@ -80,13 +80,13 @@ export default defineConfig(async ({ mode, command }) => {
       // own node_modules/solid-js. Dedupe so the whole app shares ONE solid-js
       // (and one QueryClient runtime) — otherwise cross-package reactivity breaks.
       dedupe: ['solid-js', 'solid-js/web', 'solid-js/store', '@tanstack/solid-query'],
-      alias: {
-        ...(command === 'serve'
-          ? {
-              '@wn/map-runtime-3d/solid': `${runtime3dSrc}/solid/use-map-runtime.ts`,
-              '@wn/map-runtime-3d': `${runtime3dSrc}/index.ts`,
-            }
-          : {}),
+      alias: [
+        // @wn/contracts and @wn/component-models from source (see workspace-aliases.ts)
+        ...workspaceAliases(__dirname),
+        ...Object.entries({
+        // map-runtime-3d from source too: its installed copy goes stale the same way
+        '@wn/map-runtime-3d/solid': `${runtime3dSrc}/solid/use-map-runtime.ts`,
+        '@wn/map-runtime-3d': `${runtime3dSrc}/index.ts`,
         '@': path.resolve(__dirname, './src'),
         '@/app': path.resolve(__dirname, './src/app'),
         '@/pages': path.resolve(__dirname, './src/pages'),
@@ -103,7 +103,8 @@ export default defineConfig(async ({ mode, command }) => {
               ),
             }
           : {}),
-      },
+        }).map(([find, replacement]) => ({ find, replacement })),
+      ],
     },
     build: {
       chunkSizeWarningLimit: 500,

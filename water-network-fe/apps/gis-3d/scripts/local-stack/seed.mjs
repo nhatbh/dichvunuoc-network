@@ -9,7 +9,8 @@
 // gis-be asset codes ([A-Za-z0-9_-]); Vietnamese material labels become material codes.
 // DMAs are left out until zone-be is merged.
 import { readFileSync } from 'node:fs'
-import { pipeMaterialCode } from '@wn/contracts/catalog'
+// the built package itself, not the app's installed copy of it (pnpm copies file: packages at install)
+import { pipeMaterialCode } from '../../../../packages/contracts/dist/catalog/index.js'
 import { devToken } from './dev-token.mjs'
 
 const arg = (name, fallback) => {
