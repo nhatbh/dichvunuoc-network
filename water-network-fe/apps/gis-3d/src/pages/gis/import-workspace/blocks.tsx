@@ -1,3 +1,4 @@
+import { COMPONENT_CODE_LIST, codeEntry } from '@wn/contracts/catalog'
 import { For, Index, Show, createMemo, createSignal } from 'solid-js'
 import { type BlockRule, type CadFeature } from './types'
 import { importButton, importField } from './ui'
@@ -6,6 +7,7 @@ import type { createImportWorkspace } from './workspace'
 
 const blockActions: [BlockRule['action'], string][] = [
   ['review', 'Cần xác minh'],
+  ['component', 'Thành phần (danh mục)'],
   ['node', 'Nút mạng'],
   ['device', 'Thiết bị'],
   ['reference', 'Tham chiếu'],
@@ -25,6 +27,26 @@ const deviceTypes = [
   ['Pump', 'Máy bơm'],
   ['Hydrant', 'Trụ cứu hỏa'],
 ] as const
+
+/** Catalog components a CAD block can stand for (pipes come from layer rules), by category. */
+const componentGroups = (() => {
+  const groups = new Map<string, typeof COMPONENT_CODE_LIST[number][]>()
+  for (const c of COMPONENT_CODE_LIST) if (c.gisKind !== 'Pipe') groups.set(c.category, [...(groups.get(c.category) ?? []), c])
+  return [...groups]
+})()
+
+/** What a block rule makes in gis-be: a node, a device (with its type), or nothing. */
+export function ruleTarget(rule: BlockRule | undefined): { kind: 'node' } | { kind: 'device'; deviceType?: string } | null {
+  if (!rule) return null
+  if (rule.action === 'node') return { kind: 'node' }
+  if (rule.action === 'device') return { kind: 'device', deviceType: rule.deviceType }
+  if (rule.action === 'component') {
+    const c = codeEntry(rule.componentCode ?? '')
+    if (c?.gisKind === 'Node') return { kind: 'node' }
+    if (c?.gisKind === 'Device') return { kind: 'device', deviceType: c.gisDeviceType ?? undefined }
+  }
+  return null
+}
 
 export function BlockMapping(props: {
   workspace: ReturnType<typeof createImportWorkspace>
@@ -83,7 +105,7 @@ export function BlockMapping(props: {
       return (
         feature.geometry.type === 'Point' &&
         !feature.properties.isBlockGeometry &&
-        rule?.action === 'device'
+        ruleTarget(rule)?.kind === 'device'
       )
     })
   )
@@ -106,7 +128,7 @@ export function BlockMapping(props: {
           rule =>
             rule.fileId === feature.properties.fileId &&
             rule.blockName === feature.properties.blockName &&
-            rule.action === 'node'
+            ruleTarget(rule)?.kind === 'node'
         )
     })
   )
@@ -131,10 +153,13 @@ export function BlockMapping(props: {
   }
   const fileName = (id: string) => w.job()?.files.find(file => file.id === id)?.name ?? id
   function compatibleHosts(device: CadFeature) {
-    const type = rules().find(
-      rule =>
-        rule.fileId === device.properties.fileId && rule.blockName === device.properties.blockName
-    )?.deviceType
+    const target = ruleTarget(
+      rules().find(
+        rule =>
+          rule.fileId === device.properties.fileId && rule.blockName === device.properties.blockName
+      )
+    )
+    const type = target?.kind === 'device' ? target.deviceType : undefined
     return hosts().filter(
       host =>
         type === 'PressureSensor' ||
@@ -227,6 +252,7 @@ export function BlockMapping(props: {
                         onChange={event =>
                           update(rule(), {
                             action: event.currentTarget.value as BlockRule['action'],
+                            componentCode: undefined,
                             nodeType: undefined,
                             deviceType: undefined,
                           })
@@ -238,6 +264,28 @@ export function BlockMapping(props: {
                       </select>
                     </td>
                     <td class="p-2">
+                      <Show when={rule().action === 'component'}>
+                        <select
+                          class={importField}
+                          disabled={w.locked()}
+                          aria-label={`Thành phần ${rule().blockName}`}
+                          value={rule().componentCode ?? ''}
+                          onChange={event =>
+                            update(rule(), { componentCode: event.currentTarget.value || undefined })
+                          }
+                        >
+                          <option value="">Chọn thành phần…</option>
+                          <For each={componentGroups}>
+                            {([category, items]) => (
+                              <optgroup label={category}>
+                                <For each={items}>
+                                  {c => <option value={c.code}>{c.vi} ({c.code})</option>}
+                                </For>
+                              </optgroup>
+                            )}
+                          </For>
+                        </select>
+                      </Show>
                       <Show when={rule().action === 'node'}>
                         <select
                           class={importField}

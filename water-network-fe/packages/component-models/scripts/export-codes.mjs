@@ -1,6 +1,6 @@
 // Writes the component code list (src/codes.ts) to packages/contracts/src/catalog/codes.json.
 // Run after `npm run build`: `npm run codes`.
-import { writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { catalogCodeList } from '../dist/codes.js';
 
 const out = new URL('../../contracts/src/catalog/codes.json', import.meta.url);
@@ -10,3 +10,10 @@ const body = {
 };
 writeFileSync(out, JSON.stringify(body, null, 2) + '\n');
 console.log(`wrote ${body.codes.length} codes to ${out.pathname}`);
+
+// the CAD import service (Python, same monorepo) validates block mappings against its own copy
+const importCopy = new URL('../../../../water-network-import/src/wn_import/catalog_codes.json', import.meta.url);
+if (existsSync(new URL('.', importCopy))) {
+  writeFileSync(importCopy, JSON.stringify(body, null, 2) + '\n');
+  console.log(`wrote ${body.codes.length} codes to ${importCopy.pathname}`);
+}

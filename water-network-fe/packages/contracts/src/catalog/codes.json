@@ -8,7 +8,9 @@
       "category": "Pipes",
       "role": "line",
       "host": "line",
+      "gisKind": "Pipe",
       "gisDeviceType": null,
+      "gisNodeType": null,
       "defaultDN": 150,
       "dnRange": [
         20,
@@ -23,7 +25,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 150,
       "dnRange": [
         20,
@@ -38,7 +42,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -53,7 +59,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 200,
       "dnRange": [
         80,
@@ -68,7 +76,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -83,7 +93,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -98,7 +110,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 200,
       "dnRange": [
         65,
@@ -113,7 +127,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -128,7 +144,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -143,7 +161,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -158,7 +178,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 300,
       "dnRange": [
         50,
@@ -173,7 +195,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 200,
       "dnRange": [
         50,
@@ -188,7 +212,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 150,
       "dnRange": [
         80,
@@ -203,7 +229,9 @@
       "category": "Fittings",
       "role": "node",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Junction",
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -218,7 +246,9 @@
       "category": "Valves",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -233,7 +263,9 @@
       "category": "Valves",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 300,
       "dnRange": [
         150,
@@ -248,7 +280,9 @@
       "category": "Valves",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 50,
       "dnRange": [
         15,
@@ -263,7 +297,9 @@
       "category": "Valves",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -278,7 +314,9 @@
       "category": "Valves",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -293,7 +331,9 @@
       "category": "Valves",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -308,7 +348,9 @@
       "category": "Valves",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -323,7 +365,9 @@
       "category": "Valves",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -338,7 +382,9 @@
       "category": "Valves",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 80,
       "dnRange": [
         25,
@@ -353,7 +399,9 @@
       "category": "Valves",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 80,
       "dnRange": [
         50,
@@ -368,7 +416,9 @@
       "category": "Valves",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 100,
       "dnRange": [
         20,
@@ -383,7 +433,9 @@
       "category": "Hydrants & services",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Device",
       "gisDeviceType": "Hydrant",
+      "gisNodeType": null,
       "defaultDN": 100,
       "dnRange": [
         80,
@@ -398,7 +450,9 @@
       "category": "Hydrants & services",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 150,
       "dnRange": [
         80,
@@ -413,7 +467,9 @@
       "category": "Hydrants & services",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "Valve",
+      "gisNodeType": null,
       "defaultDN": 25,
       "dnRange": [
         15,
@@ -428,7 +484,9 @@
       "category": "Hydrants & services",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 20,
       "dnRange": [
         15,
@@ -443,7 +501,9 @@
       "category": "Hydrants & services",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 20,
       "dnRange": [
         15,
@@ -458,7 +518,9 @@
       "category": "Metering & monitoring",
       "role": "inline",
       "host": "pipe",
+      "gisKind": "Device",
       "gisDeviceType": "FlowMeter",
+      "gisNodeType": null,
       "defaultDN": 200,
       "dnRange": [
         50,
@@ -473,7 +535,9 @@
       "category": "Metering & monitoring",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Device",
       "gisDeviceType": "PressureSensor",
+      "gisNodeType": null,
       "defaultDN": 15,
       "dnRange": [
         15,
@@ -488,7 +552,9 @@
       "category": "Metering & monitoring",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 15,
       "dnRange": [
         15,
@@ -503,7 +569,9 @@
       "category": "Metering & monitoring",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 15,
       "dnRange": [
         15,
@@ -518,7 +586,9 @@
       "category": "Metering & monitoring",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 15,
       "dnRange": [
         15,
@@ -533,7 +603,9 @@
       "category": "Metering & monitoring",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 15,
       "dnRange": [
         15,
@@ -547,8 +619,10 @@
       "vi": "Máy bơm",
       "category": "Pumping & storage",
       "role": "inline",
-      "host": "pipe",
+      "host": "node",
+      "gisKind": "Device",
       "gisDeviceType": "Pump",
+      "gisNodeType": null,
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -563,7 +637,9 @@
       "category": "Pumping & storage",
       "role": "facility",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 150,
       "dnRange": [
         80,
@@ -578,7 +654,9 @@
       "category": "Pumping & storage",
       "role": "facility",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 150,
       "dnRange": [
         80,
@@ -593,7 +671,9 @@
       "category": "Pumping & storage",
       "role": "nodeDevice",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 200,
       "dnRange": [
         100,
@@ -607,8 +687,10 @@
       "vi": "Lọc Y",
       "category": "Pumping & storage",
       "role": "inline",
-      "host": "pipe",
+      "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 150,
       "dnRange": [
         50,
@@ -623,7 +705,9 @@
       "category": "Pumping & storage",
       "role": "facility",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Other",
       "defaultDN": 300,
       "dnRange": [
         150,
@@ -638,7 +722,9 @@
       "category": "Pumping & storage",
       "role": "facility",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Reservoir",
       "defaultDN": 400,
       "dnRange": [
         200,
@@ -653,7 +739,9 @@
       "category": "Pumping & storage",
       "role": "facility",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Tank",
       "defaultDN": 300,
       "dnRange": [
         150,
@@ -668,7 +756,9 @@
       "category": "Pumping & storage",
       "role": "facility",
       "host": "node",
+      "gisKind": "Node",
       "gisDeviceType": null,
+      "gisNodeType": "Reservoir",
       "defaultDN": 600,
       "dnRange": [
         300,

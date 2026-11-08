@@ -13,6 +13,7 @@ from shapely import LineString, Point, STRtree, normalize
 from shapely.ops import substring
 
 from .cad import feature_bounds
+from .catalog import component
 from .models import ReviewConfig, issue
 from .georeference import prepare_georeference
 
@@ -340,6 +341,15 @@ def _analyze(raw, inventory, config, registration):
                 p.update(disposition="exclude", reason="Loại theo quy tắc block")
             elif action == "reference":
                 p.update(disposition="reference", reason="Giữ block làm tham chiếu")
+            elif action == "component" and f["geometry"]["type"] == "Point":
+                entry = component(br.componentCode)
+                if entry["gisKind"] == "Device":
+                    p.update(disposition="keep", kind="Device", deviceType=entry["gisDeviceType"])
+                else:
+                    p.update(disposition="keep", kind="Node", nodeType=entry["gisNodeType"])
+                p["componentCode"] = br.componentCode
+                p["sources"] = [source_record(f)]
+                point_candidates.append(f)
             elif action == "node" and f["geometry"]["type"] == "Point":
                 p.update(disposition="keep", kind="Node", nodeType=br.nodeType)
                 p["sources"] = [source_record(f)]
@@ -571,6 +581,8 @@ def _analyze(raw, inventory, config, registration):
         properties.update(clientRef=ref)
         attributes = provenance_attributes(f, "explicit-block-node")
         attributes["nodeType"] = properties["nodeType"]
+        if properties.get("componentCode"):
+            attributes["componentCode"] = properties["componentCode"]
         draft = {
             "kind": "Node",
             "assetCode": ref,
@@ -788,6 +800,8 @@ def _analyze(raw, inventory, config, registration):
         )
         attributes = provenance_attributes(f, "explicit-block-device")
         attributes["deviceType"] = properties["deviceType"]
+        if properties.get("componentCode"):
+            attributes["componentCode"] = properties["componentCode"]
         draft = {
             "kind": "Device",
             "assetCode": ref,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
+from .catalog import component
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -52,12 +53,26 @@ DeviceType = Literal["Valve", "FlowMeter", "PressureSensor", "Pump", "Hydrant"]
 class BlockRule(StrictModel):
     fileId: str = Field(min_length=1, max_length=100)
     blockName: str = Field(min_length=1, max_length=512)
-    action: Literal["node", "device", "reference", "exclude", "review"]
+    # "component": the block is a catalog component (componentCode); gis-be's node or device
+    # type follows from the catalog. "node"/"device" map to a gis-be type directly.
+    action: Literal["component", "node", "device", "reference", "exclude", "review"]
+    componentCode: str | None = Field(default=None, max_length=64)
     nodeType: NodeType | None = None
     deviceType: DeviceType | None = None
 
     @model_validator(mode="after")
     def required_type(self):
+        if self.action == "component":
+            entry = component(self.componentCode or "")
+            if entry is None:
+                raise ValueError("Mã thành phần không có trong danh mục.")
+            if entry["gisKind"] == "Pipe":
+                raise ValueError("Block không thể ánh xạ thành ống; dùng quy tắc layer.")
+            if self.nodeType is not None or self.deviceType is not None:
+                raise ValueError("Quy tắc block dạng component lấy loại từ danh mục.")
+            return self
+        if self.componentCode is not None:
+            raise ValueError("componentCode chỉ áp dụng cho block dạng component.")
         if self.action == "node" and self.nodeType is None:
             raise ValueError("Quy tắc block dạng node cần nodeType.")
         if self.action == "device" and self.deviceType is None:

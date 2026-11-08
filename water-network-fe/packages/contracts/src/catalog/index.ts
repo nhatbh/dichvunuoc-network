@@ -13,7 +13,10 @@ export const CodeListEntry = z.object({
   category: z.string(),
   role: z.enum(['line', 'node', 'inline', 'nodeDevice', 'facility']),
   host: z.enum(['line', 'pipe', 'node']),
+  /** How gis-be stores it until it accepts every code; the code travels as attribute `componentCode`. */
+  gisKind: z.enum(['Pipe', 'Node', 'Device']),
   gisDeviceType: z.enum(['Valve', 'FlowMeter', 'PressureSensor', 'Pump', 'Hydrant']).nullable(),
+  gisNodeType: z.enum(['Junction', 'Reservoir', 'Tank', 'Hydrant', 'Other']).nullable(),
   defaultDN: z.number(),
   dnRange: z.tuple([z.number(), z.number()]),
   hasStatus: z.boolean(),

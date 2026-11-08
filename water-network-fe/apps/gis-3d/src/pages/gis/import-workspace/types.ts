@@ -28,7 +28,12 @@ const layerRuleSchema = z.object({
 const blockRuleSchema = z.object({
   fileId: z.string(),
   blockName: z.string(),
-  action: z.enum(['node', 'device', 'reference', 'exclude', 'review']),
+  action: z.enum(['component', 'node', 'device', 'reference', 'exclude', 'review']),
+  /** A catalog component (@wn/contracts/catalog); gis-be's node or device type follows from it. */
+  componentCode: z
+    .string()
+    .nullish()
+    .transform(value => value ?? undefined),
   nodeType: z
     .enum(['Junction', 'Reservoir', 'Tank', 'Hydrant', 'Other'])
     .nullish()
@@ -419,9 +424,11 @@ export function validateReview(config: ReviewConfig): string | null {
   if (
     config.blockRules?.some(
       rule =>
-        (rule.action === 'node' && !rule.nodeType) || (rule.action === 'device' && !rule.deviceType)
+        (rule.action === 'node' && !rule.nodeType) ||
+        (rule.action === 'device' && !rule.deviceType) ||
+        (rule.action === 'component' && !rule.componentCode)
     )
   )
-    return 'Chọn loại nút hoặc thiết bị cho từng ký hiệu đã phân loại.'
+    return 'Chọn thành phần, loại nút hoặc loại thiết bị cho từng ký hiệu đã phân loại.'
   return null
 }

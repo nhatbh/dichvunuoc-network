@@ -716,7 +716,7 @@ describe('CAD blocks and Design approval', () => {
       target: { value: 'device' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Lưu bản nháp' }))
-    expect(screen.getByRole('alert')).toHaveTextContent('Chọn loại nút hoặc thiết bị')
+    expect(screen.getByRole('alert')).toHaveTextContent('loại nút hoặc loại thiết bị')
     fireEvent.change(screen.getByLabelText('Loại thiết bị VAN'), { target: { value: 'Valve' } })
     fireEvent.input(screen.getByLabelText('Đối tượng chứa valve-1'), {
       target: { value: 'line-1' },
