@@ -544,6 +544,8 @@ def _analyze(raw, inventory, config, registration):
     if config.snapToleranceM and keep:
         snap_endpoints(keep, config.snapToleranceM, issues)
     keep, spatial_complete = connect_tees(keep, config, issues, spatial_budget)
+    if spatial_complete:
+        keep = split_at_fittings(keep, transformed_points, config, issues, to_geo, reviewed_by_id)
     if not spatial_complete:
         return finish(
             reviewed,
@@ -956,6 +958,105 @@ def connect_tees(features, config, issues, budget):
             part["properties"]["splitFrom"] = f["id"]
             output.append(part)
     return output, True
+
+
+def split_at_fittings(features, points, config, issues, to_geo, reviewed_by_id=None):
+    """An explicit node block (a bend, reducer, tee …) drawn on a pipe's run, not at its end,
+    splits that pipe there, so the fitting joins the network instead of floating beside it.
+    The node moves onto the pipe (within the host tolerance); ambiguous or distant fittings
+    are reported, never guessed."""
+    nodes = []
+    for f in sorted(
+        (f for f in points if f["properties"].get("kind") == "Node"), key=lambda f: f["id"]
+    ):
+        twin = next(
+            (
+                n
+                for n in nodes
+                if n["properties"].get("componentCode") == f["properties"].get("componentCode")
+                and n["_point"].distance(f["_point"]) <= config.hostToleranceM
+            ),
+            None,
+        )
+        if twin is None:
+            nodes.append(f)
+            continue
+        # the same fitting drawn twice (a common CAD copy slip): keep one
+        reason = f"Trùng ký hiệu với {twin['id']} (cùng loại, trong ngưỡng gắn)"
+        f["properties"].update(kind=None, disposition="exclude", reason=reason)
+        if reviewed_by_id is not None:
+            mark(reviewed_by_id, f["id"], "exclude", reason)
+        issues.append(
+            issue(
+                "DUPLICATE_FITTING",
+                "warning",
+                f"Ký hiệu {f['properties'].get('componentCode')} vẽ trùng; giữ một, bỏ bản sao.",
+                f["id"],
+            )
+        )
+    if not features or not nodes:
+        return features
+    lines = [f["_line"] for f in features]
+    tree = STRtree(lines)
+    tolerance = config.hostToleranceM
+    splits = defaultdict(list)
+    for node in nodes:
+        point = node["_point"]
+        near = [int(j) for j in tree.query(point, predicate="dwithin", distance=tolerance)]
+        ends = [
+            Point(lines[j].coords[end]) for j in near for end in (0, -1)
+        ]
+        ends = [e for e in ends if e.distance(point) <= tolerance]
+        if ends:
+            # at a pipe end: sit exactly on it so the endpoint match joins it
+            end = min(ends, key=lambda e: e.distance(point))
+            node["_point"] = end
+            node["geometry"]["coordinates"] = list(to_geo.transform(end.x, end.y))
+            continue
+        interior = [(j, lines[j].project(point)) for j in near]
+        interior = [(j, d) for j, d in interior if 1e-6 < d < lines[j].length - 1e-6]
+        is_fitting = "connects" in (component(node["properties"].get("componentCode")) or {}).get("functions", [])
+        if not interior and not is_fitting:
+            continue  # a facility may stand apart from the pipes
+        if len(interior) != 1:
+            issues.append(
+                issue(
+                    "FITTING_NOT_ON_PIPE" if not interior else "FITTING_AMBIGUOUS",
+                    "warning",
+                    f"Phụ kiện {node['properties'].get('componentCode')} "
+                    + (
+                        f"không nằm trên tuyến ống nào trong ngưỡng {tolerance:.2f} m; sẽ là nút rời."
+                        if not interior
+                        else "nằm trên nhiều tuyến ống; chọn tuyến hoặc tách tay."
+                    ),
+                    node["id"],
+                )
+            )
+            continue
+        j, distance = interior[0]
+        on_line = lines[j].interpolate(distance)
+        node["_point"] = on_line
+        node["geometry"]["coordinates"] = list(to_geo.transform(on_line.x, on_line.y))
+        node["properties"]["splitsPipe"] = features[j]["id"]
+        splits[j].append(distance)
+    if not splits:
+        return features
+    output = []
+    for i, f in enumerate(features):
+        if i not in splits:
+            output.append(f)
+            continue
+        positions = [0] + sorted(set(splits[i])) + [lines[i].length]
+        source = f["properties"].get("splitFrom", f["id"])
+        for idx, (a, b) in enumerate(pairwise(positions)):
+            if b - a <= 1e-8:
+                continue
+            part = deepcopy(f)
+            part["id"] = identity("F-", f"{f['id']}:{idx}:{a:.7f}:{b:.7f}")
+            part["_line"] = substring(lines[i], a, b)
+            part["properties"]["splitFrom"] = source
+            output.append(part)
+    return output
 
 
 def finish(raw, clean, drafts, nodes, issues, space, config):

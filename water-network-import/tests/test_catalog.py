@@ -126,3 +126,48 @@ def test_point_device_far_from_pipe_ends_is_rejected():
         deviceHosts=[{"featureId": "hyd", "hostFeatureId": "pipe"}],
     )
     assert any(i["code"] == "DEVICE_HOST_TOO_FAR" for i in r["issues"])
+
+
+def test_a_fitting_on_a_pipe_run_splits_it_and_a_duplicate_symbol_is_dropped():
+    r = run(
+        [
+            feature("pipe", [[500000, 2320000], [500100, 2320000]]),
+            block_feature("bend", [500040, 2320000.3], "CUT"),
+            block_feature("bend-copy", [500040.2, 2320000.1], "CUT"),  # drawn twice
+            block_feature("red", [500070, 2320000], "CON"),
+            block_feature("far", [500050, 2320050], "CUT"),  # nowhere near a pipe
+        ],
+        blockRules=[
+            {"fileId": "file1", "blockName": "CUT", "action": "component", "componentCode": "Bend"},
+            {"fileId": "file1", "blockName": "CON", "action": "component", "componentCode": "Reducer"},
+        ],
+        hostToleranceM=0.5,
+    )
+    assert not [i for i in r["issues"] if i["severity"] == "error"], r["issues"]
+    pipes = [d for d in r["drafts"] if d["kind"] == "Pipe"]
+    assert len(pipes) == 3  # split at the bend and at the reducer
+    by_code = {}
+    for d in r["drafts"]:
+        if d["kind"] == "Node":
+            by_code.setdefault(d["attributes"]["componentCode"], []).append(d)
+    assert len(by_code["Bend"]) == 2  # the joined bend and the one far away
+    joined = [n for n in by_code["Bend"] if any(n["clientRef"] in (p["fromRef"], p["toRef"]) for p in pipes)]
+    assert len(joined) == 1
+    reducer = by_code["Reducer"][0]
+    assert sum(reducer["clientRef"] in (p["fromRef"], p["toRef"]) for p in pipes) == 2
+    codes = [i["code"] for i in r["issues"]]
+    assert codes.count("DUPLICATE_FITTING") == 1 and "FITTING_NOT_ON_PIPE" in codes
+
+
+def test_a_fitting_next_to_a_pipe_end_joins_that_end():
+    r = run(
+        [
+            feature("a", [[500000, 2320000], [500050, 2320000]]),
+            feature("b", [[500050, 2320000], [500050, 2320050]]),
+            block_feature("bend", [500050.2, 2320000.1], "CUT"),
+        ],
+        blockRules=[{"fileId": "file1", "blockName": "CUT", "action": "component", "componentCode": "Bend"}],
+        hostToleranceM=0.5,
+    )
+    bend = next(d for d in r["drafts"] if d["attributes"].get("componentCode") == "Bend")
+    assert sum(bend["clientRef"] in (p["fromRef"], p["toRef"]) for p in r["drafts"] if p["kind"] == "Pipe") == 2
