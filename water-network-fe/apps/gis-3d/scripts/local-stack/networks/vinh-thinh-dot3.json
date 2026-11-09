@@ -1,0 +1,6482 @@
+{
+ "name": "Vĩnh Thịnh — Đợt 3",
+ "rules": "The drawing gives pipes (layer = OD mm), valves, bends and reducers. What a working network also\nneeds is completed by fixed, documented rules; every completed asset carries `\"inferred\": \"<rule>\"`\nin the dataset (not in gis-be properties) and an asset code with the `-BS` (bổ sung) suffix:",
+ "summary": {
+  "pipes": 104,
+  "lengthM": 14790,
+  "Bend": 5,
+  "Bend (bổ sung)": 1,
+  "BulkMeter (bổ sung)": 1,
+  "Cap (bổ sung)": 17,
+  "Cross (bổ sung)": 1,
+  "GateValve": 27,
+  "Hydrant (bổ sung)": 61,
+  "Junction": 1,
+  "PressureSensor (bổ sung)": 1,
+  "Reducer": 4,
+  "ReducingTee (bổ sung)": 13,
+  "Source (bổ sung)": 1,
+  "Tee (bổ sung)": 62,
+  "Washout (bổ sung)": 17
+ },
+ "nodes": [
+  {
+   "ref": "N-eefcebc767d1d15ad023",
+   "assetCode": "VT3-N001-BS",
+   "componentCode": "Source",
+   "lon": 105.4934249,
+   "lat": 21.1961004,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315"
+   },
+   "inferred": "supply"
+  },
+  {
+   "ref": "BS-N-025",
+   "assetCode": "VT3-N002-BS",
+   "componentCode": "Tee",
+   "lon": 105.4933888,
+   "lat": 21.1951611,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-027",
+   "assetCode": "VT3-N003-BS",
+   "componentCode": "Tee",
+   "lon": 105.493422,
+   "lat": 21.1942049,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-153",
+   "assetCode": "VT3-N004-BS",
+   "componentCode": "Tee",
+   "lon": 105.4962154,
+   "lat": 21.1935525,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-151",
+   "assetCode": "VT3-N005-BS",
+   "componentCode": "Tee",
+   "lon": 105.4949616,
+   "lat": 21.1935392,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-e37ba20d09fcbfba7a9f",
+   "assetCode": "VT3-N006",
+   "componentCode": "Reducer",
+   "lon": 105.4936954,
+   "lat": 21.1932973,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   }
+  },
+  {
+   "ref": "N-3bbbb38c644c90976475",
+   "assetCode": "VT3-N007-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4935144,
+   "lat": 21.1932608,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "dn2": "110",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "N-990318f7402aa5f31178",
+   "assetCode": "VT3-N008-BS",
+   "componentCode": "Cross",
+   "lon": 105.4934538,
+   "lat": 21.1932486,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "N-5ab1d4c9cef8b5c3543c",
+   "assetCode": "VT3-N009",
+   "componentCode": "Reducer",
+   "lon": 105.4932554,
+   "lat": 21.1931657,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   }
+  },
+  {
+   "ref": "N-89c2ecb2263ba658e901",
+   "assetCode": "VT3-N010-BS",
+   "componentCode": "Cap",
+   "lon": 105.497438,
+   "lat": 21.1931468,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "N-7ef2b181f794ee518ccf",
+   "assetCode": "VT3-N011-BS",
+   "componentCode": "Cap",
+   "lon": 105.4916121,
+   "lat": 21.1926077,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-N-019",
+   "assetCode": "VT3-N012-BS",
+   "componentCode": "Tee",
+   "lon": 105.4931366,
+   "lat": 21.1923979,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-580652fe25960c922d4c",
+   "assetCode": "VT3-N013-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4931107,
+   "lat": 21.1921671,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "N-6408f56c06b429a179d0",
+   "assetCode": "VT3-N014",
+   "componentCode": "Reducer",
+   "lon": 105.4930178,
+   "lat": 21.1919714,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   }
+  },
+  {
+   "ref": "BS-N-176",
+   "assetCode": "VT3-N015-BS",
+   "componentCode": "Tee",
+   "lon": 105.4886458,
+   "lat": 21.1919586,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-178",
+   "assetCode": "VT3-N016-BS",
+   "componentCode": "Tee",
+   "lon": 105.4873643,
+   "lat": 21.191905,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-174",
+   "assetCode": "VT3-N017-BS",
+   "componentCode": "Tee",
+   "lon": 105.4898975,
+   "lat": 21.1916068,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-021",
+   "assetCode": "VT3-N018-BS",
+   "componentCode": "Tee",
+   "lon": 105.4927499,
+   "lat": 21.1915676,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-172",
+   "assetCode": "VT3-N019-BS",
+   "componentCode": "Tee",
+   "lon": 105.4911214,
+   "lat": 21.1911769,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-e6cf2178600e9bf19ab9",
+   "assetCode": "VT3-N020-BS",
+   "componentCode": "Cap",
+   "lon": 105.4963047,
+   "lat": 21.1911389,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "N-1aa84e7b16343f8cc619",
+   "assetCode": "VT3-N021-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4923448,
+   "lat": 21.1907456,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "dn2": "110",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "N-79fc848f7cd167936b21",
+   "assetCode": "VT3-N022-BS",
+   "componentCode": "Cap",
+   "lon": 105.4871135,
+   "lat": 21.1907454,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "N-393f3767cbd036036244",
+   "assetCode": "VT3-N023",
+   "componentCode": "Bend",
+   "lon": 105.4923816,
+   "lat": 21.1906604,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE",
+    "angle": "96.6"
+   }
+  },
+  {
+   "ref": "N-0a55b6139d1bec175a67",
+   "assetCode": "VT3-N024-BS",
+   "componentCode": "Cap",
+   "lon": 105.4938985,
+   "lat": 21.1901387,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-N-157",
+   "assetCode": "VT3-N025-BS",
+   "componentCode": "Tee",
+   "lon": 105.4917738,
+   "lat": 21.1896318,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-159",
+   "assetCode": "VT3-N026-BS",
+   "componentCode": "Tee",
+   "lon": 105.4913598,
+   "lat": 21.1884546,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-7ad5103b07858292070a",
+   "assetCode": "VT3-N027-BS",
+   "componentCode": "Cap",
+   "lon": 105.483441,
+   "lat": 21.1880967,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "N-d99a146b294ccbe8c5f3",
+   "assetCode": "VT3-N028-BS",
+   "componentCode": "Cap",
+   "lon": 105.4873769,
+   "lat": 21.188069,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "N-be1a7a0d93107d987537",
+   "assetCode": "VT3-N029",
+   "componentCode": "Junction",
+   "lon": 105.4884126,
+   "lat": 21.1878208,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   }
+  },
+  {
+   "ref": "BS-N-132",
+   "assetCode": "VT3-N030-BS",
+   "componentCode": "Tee",
+   "lon": 105.4845998,
+   "lat": 21.1876657,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-bf9bc3364301f90f9839",
+   "assetCode": "VT3-N031-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4909474,
+   "lat": 21.1872769,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "BS-N-130",
+   "assetCode": "VT3-N032-BS",
+   "componentCode": "Tee",
+   "lon": 105.4857566,
+   "lat": 21.1872299,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-128",
+   "assetCode": "VT3-N033-BS",
+   "componentCode": "Tee",
+   "lon": 105.4869067,
+   "lat": 21.1867815,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-001",
+   "assetCode": "VT3-N034-BS",
+   "componentCode": "Tee",
+   "lon": 105.4906511,
+   "lat": 21.186386,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-126",
+   "assetCode": "VT3-N035-BS",
+   "componentCode": "Tee",
+   "lon": 105.4880349,
+   "lat": 21.1862997,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-2dc05c0bd17e640264e8",
+   "assetCode": "VT3-N036",
+   "componentCode": "Bend",
+   "lon": 105.5001199,
+   "lat": 21.1859075,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE",
+    "angle": "0"
+   }
+  },
+  {
+   "ref": "BS-N-124",
+   "assetCode": "VT3-N037-BS",
+   "componentCode": "Tee",
+   "lon": 105.4891448,
+   "lat": 21.1857677,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-5a65b29b80e1e65f6885",
+   "assetCode": "VT3-N038-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4903547,
+   "lat": 21.1854952,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "dn2": "160",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "N-acfab6da8b7b09b94dbb",
+   "assetCode": "VT3-N039-BS",
+   "componentCode": "Tee",
+   "lon": 105.4903141,
+   "lat": 21.1853731,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "BS-N-004",
+   "assetCode": "VT3-N040-BS",
+   "componentCode": "Tee",
+   "lon": 105.4915497,
+   "lat": 21.1849785,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-68e8dc719deb567ef9d5",
+   "assetCode": "VT3-N041-BS",
+   "componentCode": "Cap",
+   "lon": 105.5015952,
+   "lat": 21.1847614,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-N-006",
+   "assetCode": "VT3-N042-BS",
+   "componentCode": "Tee",
+   "lon": 105.4927538,
+   "lat": 21.1844857,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-a680caeb5ef99bb52fc8",
+   "assetCode": "VT3-N043-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4940252,
+   "lat": 21.1842346,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "BS-N-088",
+   "assetCode": "VT3-N044-BS",
+   "componentCode": "Tee",
+   "lon": 105.4900231,
+   "lat": 21.1841732,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-163",
+   "assetCode": "VT3-N045-BS",
+   "componentCode": "Tee",
+   "lon": 105.4952032,
+   "lat": 21.1841485,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-165",
+   "assetCode": "VT3-N046-BS",
+   "componentCode": "Tee",
+   "lon": 105.4963716,
+   "lat": 21.1840773,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-167",
+   "assetCode": "VT3-N047-BS",
+   "componentCode": "Tee",
+   "lon": 105.4975142,
+   "lat": 21.1837957,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-c95101206a5f8eb2a18c",
+   "assetCode": "VT3-N048-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4985653,
+   "lat": 21.183347,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "N-5aafb66680778bd8a841",
+   "assetCode": "VT3-N049",
+   "componentCode": "Reducer",
+   "lon": 105.4987388,
+   "lat": 21.1831808,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   }
+  },
+  {
+   "ref": "N-709e8ef18c74809c52c0",
+   "assetCode": "VT3-N050-BS",
+   "componentCode": "Cap",
+   "lon": 105.4956757,
+   "lat": 21.1829773,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-N-090",
+   "assetCode": "VT3-N051-BS",
+   "componentCode": "Tee",
+   "lon": 105.4898116,
+   "lat": 21.1829556,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-092",
+   "assetCode": "VT3-N052-BS",
+   "componentCode": "Tee",
+   "lon": 105.4896001,
+   "lat": 21.181738,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-0938c20b802531cad900",
+   "assetCode": "VT3-N053",
+   "componentCode": "Bend",
+   "lon": 105.5012533,
+   "lat": 21.1808375,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE",
+    "angle": "20.2"
+   }
+  },
+  {
+   "ref": "BS-N-094",
+   "assetCode": "VT3-N054-BS",
+   "componentCode": "Tee",
+   "lon": 105.4893886,
+   "lat": 21.1805205,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-096",
+   "assetCode": "VT3-N055-BS",
+   "componentCode": "Tee",
+   "lon": 105.48911,
+   "lat": 21.1793686,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-8aa14ec669c14f595131",
+   "assetCode": "VT3-N056-BS",
+   "componentCode": "Cap",
+   "lon": 105.5054399,
+   "lat": 21.1792079,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-N-098",
+   "assetCode": "VT3-N057-BS",
+   "componentCode": "Tee",
+   "lon": 105.488902,
+   "lat": 21.1781505,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-100",
+   "assetCode": "VT3-N058-BS",
+   "componentCode": "Tee",
+   "lon": 105.4886937,
+   "lat": 21.1769324,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-526cacce114c0ecaa40a",
+   "assetCode": "VT3-N059-BS",
+   "componentCode": "Cap",
+   "lon": 105.4805725,
+   "lat": 21.1758,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-N-102",
+   "assetCode": "VT3-N060-BS",
+   "componentCode": "Tee",
+   "lon": 105.4884829,
+   "lat": 21.1757148,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-057",
+   "assetCode": "VT3-N061-BS",
+   "componentCode": "Tee",
+   "lon": 105.4818199,
+   "lat": 21.1753611,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-055",
+   "assetCode": "VT3-N062-BS",
+   "componentCode": "Tee",
+   "lon": 105.4829416,
+   "lat": 21.1747167,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-be7709eea0b75b47ddde",
+   "assetCode": "VT3-N063-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4882624,
+   "lat": 21.1744986,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "BS-N-053",
+   "assetCode": "VT3-N064-BS",
+   "componentCode": "Tee",
+   "lon": 105.4841826,
+   "lat": 21.1742763,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-051",
+   "assetCode": "VT3-N065-BS",
+   "componentCode": "Tee",
+   "lon": 105.4854981,
+   "lat": 21.1741005,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-049",
+   "assetCode": "VT3-N066-BS",
+   "componentCode": "Tee",
+   "lon": 105.4868279,
+   "lat": 21.1740212,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-dba84e43928e7588ced6",
+   "assetCode": "VT3-N067-BS",
+   "componentCode": "Cap",
+   "lon": 105.4917964,
+   "lat": 21.1739108,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "N-40232ff4715d045409c7",
+   "assetCode": "VT3-N068-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4881552,
+   "lat": 21.1739098,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "dn2": "110",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "BS-N-010",
+   "assetCode": "VT3-N069-BS",
+   "componentCode": "Tee",
+   "lon": 105.4879357,
+   "lat": 21.1728137,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-d80295aeffd2bebef805",
+   "assetCode": "VT3-N070-BS",
+   "componentCode": "Cap",
+   "lon": 105.4809459,
+   "lat": 21.1723168,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-N-082",
+   "assetCode": "VT3-N071-BS",
+   "componentCode": "Tee",
+   "lon": 105.4822237,
+   "lat": 21.1717334,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-012",
+   "assetCode": "VT3-N072-BS",
+   "componentCode": "Tee",
+   "lon": 105.4877266,
+   "lat": 21.1717159,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-080",
+   "assetCode": "VT3-N073-BS",
+   "componentCode": "Tee",
+   "lon": 105.4834952,
+   "lat": 21.1711377,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-014",
+   "assetCode": "VT3-N074-BS",
+   "componentCode": "Tee",
+   "lon": 105.4876103,
+   "lat": 21.1706159,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-078",
+   "assetCode": "VT3-N075-BS",
+   "componentCode": "Tee",
+   "lon": 105.4847792,
+   "lat": 21.1705672,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-076",
+   "assetCode": "VT3-N076-BS",
+   "componentCode": "Tee",
+   "lon": 105.4860871,
+   "lat": 21.1700459,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-68c54b356cb6b89d6601",
+   "assetCode": "VT3-N077-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4873929,
+   "lat": 21.1695197,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "dn2": "160",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "BS-N-073",
+   "assetCode": "VT3-N078-BS",
+   "componentCode": "Tee",
+   "lon": 105.487209,
+   "lat": 21.1686628,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-3dd817911afd5a5b0273",
+   "assetCode": "VT3-N079",
+   "componentCode": "Bend",
+   "lon": 105.487906,
+   "lat": 21.1683845,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE",
+    "angle": "0"
+   }
+  },
+  {
+   "ref": "N-fdd42698e995cc14abb0",
+   "assetCode": "VT3-N080-BS",
+   "componentCode": "Bend",
+   "lon": 105.4867553,
+   "lat": 21.1679014,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE",
+    "angle": "92.0"
+   },
+   "inferred": "deflection"
+  },
+  {
+   "ref": "N-07e850277b4fa3a01066",
+   "assetCode": "VT3-N081-BS",
+   "componentCode": "Cap",
+   "lon": 105.4906028,
+   "lat": 21.1676697,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "N-76e59e704af4c1290e0b",
+   "assetCode": "VT3-N082-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4876968,
+   "lat": 21.1674333,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "BS-N-031",
+   "assetCode": "VT3-N083-BS",
+   "componentCode": "Tee",
+   "lon": 105.4888681,
+   "lat": 21.167019,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-033",
+   "assetCode": "VT3-N084-BS",
+   "componentCode": "Tee",
+   "lon": 105.4900691,
+   "lat": 21.1666802,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-035",
+   "assetCode": "VT3-N085-BS",
+   "componentCode": "Tee",
+   "lon": 105.4912689,
+   "lat": 21.1663382,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-037",
+   "assetCode": "VT3-N086-BS",
+   "componentCode": "Tee",
+   "lon": 105.492455,
+   "lat": 21.1659614,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-f6722ef5a5009102d65d",
+   "assetCode": "VT3-N087",
+   "componentCode": "Bend",
+   "lon": 105.4960534,
+   "lat": 21.1655242,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE",
+    "angle": "0"
+   }
+  },
+  {
+   "ref": "BS-N-039",
+   "assetCode": "VT3-N088-BS",
+   "componentCode": "Tee",
+   "lon": 105.4935955,
+   "lat": 21.1654727,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-112",
+   "assetCode": "VT3-N089-BS",
+   "componentCode": "Tee",
+   "lon": 105.4972184,
+   "lat": 21.1654497,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-114",
+   "assetCode": "VT3-N090-BS",
+   "componentCode": "Tee",
+   "lon": 105.4983849,
+   "lat": 21.1654002,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-116",
+   "assetCode": "VT3-N091-BS",
+   "componentCode": "Tee",
+   "lon": 105.4995515,
+   "lat": 21.1653564,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-041",
+   "assetCode": "VT3-N092-BS",
+   "componentCode": "Tee",
+   "lon": 105.4948154,
+   "lat": 21.165214,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-118",
+   "assetCode": "VT3-N093-BS",
+   "componentCode": "Tee",
+   "lon": 105.5006911,
+   "lat": 21.1651855,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-9a8e0243a77e082244df",
+   "assetCode": "VT3-N094-BS",
+   "componentCode": "Cap",
+   "lon": 105.5018499,
+   "lat": 21.1650589,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "N-8ccac787d6caf8a85392",
+   "assetCode": "VT3-N095-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.4959699,
+   "lat": 21.1647579,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "dn2": "110",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "BS-N-064",
+   "assetCode": "VT3-N096-BS",
+   "componentCode": "Tee",
+   "lon": 105.4972028,
+   "lat": 21.164416,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-066",
+   "assetCode": "VT3-N097-BS",
+   "componentCode": "Tee",
+   "lon": 105.4984937,
+   "lat": 21.1643761,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-834a13b992fd817b90f9",
+   "assetCode": "VT3-N098-BS",
+   "componentCode": "Cap",
+   "lon": 105.5051464,
+   "lat": 21.1643038,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-N-068",
+   "assetCode": "VT3-N099-BS",
+   "componentCode": "Tee",
+   "lon": 105.4997796,
+   "lat": 21.1642681,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-ead7f898b849416b281e",
+   "assetCode": "VT3-N100-BS",
+   "componentCode": "ReducingTee",
+   "lon": 105.5010503,
+   "lat": 21.1641017,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "inferred": "branch"
+  },
+  {
+   "ref": "BS-N-139",
+   "assetCode": "VT3-N101-BS",
+   "componentCode": "Tee",
+   "lon": 105.5022561,
+   "lat": 21.1635841,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-141",
+   "assetCode": "VT3-N102-BS",
+   "componentCode": "Tee",
+   "lon": 105.503474,
+   "lat": 21.1630923,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "BS-N-143",
+   "assetCode": "VT3-N103-BS",
+   "componentCode": "Tee",
+   "lon": 105.5046979,
+   "lat": 21.1626132,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  },
+  {
+   "ref": "N-5766e847f96f421191ba",
+   "assetCode": "VT3-N104-BS",
+   "componentCode": "Cap",
+   "lon": 105.5072953,
+   "lat": 21.1624596,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-N-145",
+   "assetCode": "VT3-N105-BS",
+   "componentCode": "Tee",
+   "lon": 105.5059977,
+   "lat": 21.1623931,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "inferred": "hydrant-tee"
+  }
+ ],
+ "pipes": [
+  {
+   "ref": "BS-P-003",
+   "assetCode": "VT3-P001",
+   "from": "BS-N-001",
+   "to": "N-5a65b29b80e1e65f6885",
+   "coordinates": [
+    [
+     105.4906511,
+     21.186386
+    ],
+    [
+     105.4903547,
+     21.1854952
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 103.32,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-008",
+   "assetCode": "VT3-P002",
+   "from": "BS-N-004",
+   "to": "BS-N-006",
+   "coordinates": [
+    [
+     105.4915497,
+     21.1849785
+    ],
+    [
+     105.491808,
+     21.1848805
+    ],
+    [
+     105.4923345,
+     21.1846976
+    ],
+    [
+     105.4927538,
+     21.1844857
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 136.69,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-009",
+   "assetCode": "VT3-P003",
+   "from": "BS-N-006",
+   "to": "N-a680caeb5ef99bb52fc8",
+   "coordinates": [
+    [
+     105.4927538,
+     21.1844857
+    ],
+    [
+     105.4929946,
+     21.1843641
+    ],
+    [
+     105.4932074,
+     21.1843091
+    ],
+    [
+     105.4935849,
+     21.1842613
+    ],
+    [
+     105.4940252,
+     21.1842346
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 136.69,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-016",
+   "assetCode": "VT3-P004",
+   "from": "BS-N-010",
+   "to": "BS-N-012",
+   "coordinates": [
+    [
+     105.4879357,
+     21.1728137
+    ],
+    [
+     105.4879143,
+     21.1727078
+    ],
+    [
+     105.4877266,
+     21.1717159
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 123.48,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-017",
+   "assetCode": "VT3-P005",
+   "from": "BS-N-012",
+   "to": "BS-N-014",
+   "coordinates": [
+    [
+     105.4877266,
+     21.1717159
+    ],
+    [
+     105.4876666,
+     21.171399
+    ],
+    [
+     105.4877063,
+     21.1711669
+    ],
+    [
+     105.4876103,
+     21.1706159
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 123.48,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-018",
+   "assetCode": "VT3-P006",
+   "from": "BS-N-014",
+   "to": "N-68c54b356cb6b89d6601",
+   "coordinates": [
+    [
+     105.4876103,
+     21.1706159
+    ],
+    [
+     105.4875078,
+     21.1700276
+    ],
+    [
+     105.4873929,
+     21.1695197
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 123.48,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-023",
+   "assetCode": "VT3-P007",
+   "from": "BS-N-019",
+   "to": "BS-N-021",
+   "coordinates": [
+    [
+     105.4931366,
+     21.1923979
+    ],
+    [
+     105.4930942,
+     21.1923054
+    ],
+    [
+     105.4927499,
+     21.1915676
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 100.33,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-024",
+   "assetCode": "VT3-P008",
+   "from": "BS-N-021",
+   "to": "N-1aa84e7b16343f8cc619",
+   "coordinates": [
+    [
+     105.4927499,
+     21.1915676
+    ],
+    [
+     105.4924543,
+     21.1909343
+    ],
+    [
+     105.4923448,
+     21.1907456
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 100.33,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-029",
+   "assetCode": "VT3-P009",
+   "from": "BS-N-025",
+   "to": "BS-N-027",
+   "coordinates": [
+    [
+     105.4933888,
+     21.1951611
+    ],
+    [
+     105.4933976,
+     21.1949279
+    ],
+    [
+     105.493422,
+     21.1942049
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 105.93,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-030",
+   "assetCode": "VT3-P010",
+   "from": "BS-N-027",
+   "to": "N-990318f7402aa5f31178",
+   "coordinates": [
+    [
+     105.493422,
+     21.1942049
+    ],
+    [
+     105.4934475,
+     21.1934502
+    ],
+    [
+     105.4934538,
+     21.1932486
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 105.93,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-043",
+   "assetCode": "VT3-P011",
+   "from": "BS-N-031",
+   "to": "BS-N-033",
+   "coordinates": [
+    [
+     105.4888681,
+     21.167019
+    ],
+    [
+     105.4895718,
+     21.166822
+    ],
+    [
+     105.4900691,
+     21.1666802
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 130.24,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-044",
+   "assetCode": "VT3-P012",
+   "from": "BS-N-033",
+   "to": "BS-N-035",
+   "coordinates": [
+    [
+     105.4900691,
+     21.1666802
+    ],
+    [
+     105.4912689,
+     21.1663382
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 130.24,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-045",
+   "assetCode": "VT3-P013",
+   "from": "BS-N-035",
+   "to": "BS-N-037",
+   "coordinates": [
+    [
+     105.4912689,
+     21.1663382
+    ],
+    [
+     105.4915095,
+     21.1662696
+    ],
+    [
+     105.4922415,
+     21.1660546
+    ],
+    [
+     105.492455,
+     21.1659614
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 130.24,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-046",
+   "assetCode": "VT3-P014",
+   "from": "BS-N-037",
+   "to": "BS-N-039",
+   "coordinates": [
+    [
+     105.492455,
+     21.1659614
+    ],
+    [
+     105.4934563,
+     21.1655244
+    ],
+    [
+     105.4935955,
+     21.1654727
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 130.24,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-047",
+   "assetCode": "VT3-P015",
+   "from": "BS-N-039",
+   "to": "BS-N-041",
+   "coordinates": [
+    [
+     105.4935955,
+     21.1654727
+    ],
+    [
+     105.4937232,
+     21.1654253
+    ],
+    [
+     105.4939607,
+     21.1653768
+    ],
+    [
+     105.4942958,
+     21.1653334
+    ],
+    [
+     105.4946802,
+     21.1652534
+    ],
+    [
+     105.4948154,
+     21.165214
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 130.24,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-048",
+   "assetCode": "VT3-P016",
+   "from": "BS-N-041",
+   "to": "N-8ccac787d6caf8a85392",
+   "coordinates": [
+    [
+     105.4948154,
+     21.165214
+    ],
+    [
+     105.495004,
+     21.1651589
+    ],
+    [
+     105.49569,
+     21.164884
+    ],
+    [
+     105.4959699,
+     21.1647579
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 130.24,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-059",
+   "assetCode": "VT3-P017",
+   "from": "BS-N-049",
+   "to": "BS-N-051",
+   "coordinates": [
+    [
+     105.4868279,
+     21.1740212
+    ],
+    [
+     105.4863942,
+     21.1740576
+    ],
+    [
+     105.4854981,
+     21.1741005
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 138.39,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-060",
+   "assetCode": "VT3-P018",
+   "from": "BS-N-051",
+   "to": "BS-N-053",
+   "coordinates": [
+    [
+     105.4854981,
+     21.1741005
+    ],
+    [
+     105.4849701,
+     21.1741257
+    ],
+    [
+     105.4847237,
+     21.1741649
+    ],
+    [
+     105.4841826,
+     21.1742763
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 138.39,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-061",
+   "assetCode": "VT3-P019",
+   "from": "BS-N-053",
+   "to": "BS-N-055",
+   "coordinates": [
+    [
+     105.4841826,
+     21.1742763
+    ],
+    [
+     105.4838065,
+     21.1743537
+    ],
+    [
+     105.4834279,
+     21.1745049
+    ],
+    [
+     105.4829416,
+     21.1747167
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 138.39,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-062",
+   "assetCode": "VT3-P020",
+   "from": "BS-N-055",
+   "to": "BS-N-057",
+   "coordinates": [
+    [
+     105.4829416,
+     21.1747167
+    ],
+    [
+     105.4824285,
+     21.1749402
+    ],
+    [
+     105.4820869,
+     21.1751776
+    ],
+    [
+     105.482011,
+     21.1752695
+    ],
+    [
+     105.4819466,
+     21.1753196
+    ],
+    [
+     105.4818199,
+     21.1753611
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 138.39,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-063",
+   "assetCode": "VT3-P021",
+   "from": "BS-N-057",
+   "to": "N-526cacce114c0ecaa40a",
+   "coordinates": [
+    [
+     105.4818199,
+     21.1753611
+    ],
+    [
+     105.4811893,
+     21.175568
+    ],
+    [
+     105.4805725,
+     21.1758
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 138.39,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-070",
+   "assetCode": "VT3-P022",
+   "from": "BS-N-064",
+   "to": "BS-N-066",
+   "coordinates": [
+    [
+     105.4972028,
+     21.164416
+    ],
+    [
+     105.4972473,
+     21.1644109
+    ],
+    [
+     105.4977195,
+     21.1643938
+    ],
+    [
+     105.4982046,
+     21.1643909
+    ],
+    [
+     105.4984937,
+     21.1643761
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 134.18,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-071",
+   "assetCode": "VT3-P023",
+   "from": "BS-N-066",
+   "to": "BS-N-068",
+   "coordinates": [
+    [
+     105.4984937,
+     21.1643761
+    ],
+    [
+     105.4991293,
+     21.1643435
+    ],
+    [
+     105.4993208,
+     21.1643277
+    ],
+    [
+     105.4997796,
+     21.1642681
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 134.18,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-072",
+   "assetCode": "VT3-P024",
+   "from": "BS-N-068",
+   "to": "N-ead7f898b849416b281e",
+   "coordinates": [
+    [
+     105.4997796,
+     21.1642681
+    ],
+    [
+     105.4998519,
+     21.1642587
+    ],
+    [
+     105.5005902,
+     21.1642125
+    ],
+    [
+     105.5007107,
+     21.1642039
+    ],
+    [
+     105.5008869,
+     21.1641678
+    ],
+    [
+     105.5010503,
+     21.1641017
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 134.18,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-075",
+   "assetCode": "VT3-P025",
+   "from": "BS-N-073",
+   "to": "N-fdd42698e995cc14abb0",
+   "coordinates": [
+    [
+     105.487209,
+     21.1686628
+    ],
+    [
+     105.4871764,
+     21.1685652
+    ],
+    [
+     105.4870714,
+     21.1683726
+    ],
+    [
+     105.4867553,
+     21.1679014
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 96.91,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-084",
+   "assetCode": "VT3-P026",
+   "from": "BS-N-076",
+   "to": "BS-N-078",
+   "coordinates": [
+    [
+     105.4860871,
+     21.1700459
+    ],
+    [
+     105.4853455,
+     21.1703353
+    ],
+    [
+     105.4847792,
+     21.1705672
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 147.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-085",
+   "assetCode": "VT3-P027",
+   "from": "BS-N-078",
+   "to": "BS-N-080",
+   "coordinates": [
+    [
+     105.4847792,
+     21.1705672
+    ],
+    [
+     105.4842946,
+     21.1707658
+    ],
+    [
+     105.4834952,
+     21.1711377
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 147.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-086",
+   "assetCode": "VT3-P028",
+   "from": "BS-N-080",
+   "to": "BS-N-082",
+   "coordinates": [
+    [
+     105.4834952,
+     21.1711377
+    ],
+    [
+     105.4832936,
+     21.1712315
+    ],
+    [
+     105.4824927,
+     21.1716071
+    ],
+    [
+     105.4822237,
+     21.1717334
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 147.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-087",
+   "assetCode": "VT3-P029",
+   "from": "BS-N-082",
+   "to": "N-d80295aeffd2bebef805",
+   "coordinates": [
+    [
+     105.4822237,
+     21.1717334
+    ],
+    [
+     105.4819959,
+     21.1718404
+    ],
+    [
+     105.4809459,
+     21.1723168
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 147.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-104",
+   "assetCode": "VT3-P030",
+   "from": "BS-N-088",
+   "to": "BS-N-090",
+   "coordinates": [
+    [
+     105.4900231,
+     21.1841732
+    ],
+    [
+     105.4898116,
+     21.1829556
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 136.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-105",
+   "assetCode": "VT3-P031",
+   "from": "BS-N-090",
+   "to": "BS-N-092",
+   "coordinates": [
+    [
+     105.4898116,
+     21.1829556
+    ],
+    [
+     105.4896001,
+     21.181738
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 136.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-106",
+   "assetCode": "VT3-P032",
+   "from": "BS-N-092",
+   "to": "BS-N-094",
+   "coordinates": [
+    [
+     105.4896001,
+     21.181738
+    ],
+    [
+     105.4893886,
+     21.1805205
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 136.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-107",
+   "assetCode": "VT3-P033",
+   "from": "BS-N-094",
+   "to": "BS-N-096",
+   "coordinates": [
+    [
+     105.4893886,
+     21.1805205
+    ],
+    [
+     105.4893614,
+     21.1803638
+    ],
+    [
+     105.4892234,
+     21.179571
+    ],
+    [
+     105.489143,
+     21.1795616
+    ],
+    [
+     105.48911,
+     21.1793686
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 136.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-108",
+   "assetCode": "VT3-P034",
+   "from": "BS-N-096",
+   "to": "BS-N-098",
+   "coordinates": [
+    [
+     105.48911,
+     21.1793686
+    ],
+    [
+     105.488902,
+     21.1781505
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 136.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-109",
+   "assetCode": "VT3-P035",
+   "from": "BS-N-098",
+   "to": "BS-N-100",
+   "coordinates": [
+    [
+     105.488902,
+     21.1781505
+    ],
+    [
+     105.4887176,
+     21.1770705
+    ],
+    [
+     105.4886937,
+     21.1769324
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 136.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-110",
+   "assetCode": "VT3-P036",
+   "from": "BS-N-100",
+   "to": "BS-N-102",
+   "coordinates": [
+    [
+     105.4886937,
+     21.1769324
+    ],
+    [
+     105.4884829,
+     21.1757148
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 136.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-111",
+   "assetCode": "VT3-P037",
+   "from": "BS-N-102",
+   "to": "N-be7709eea0b75b47ddde",
+   "coordinates": [
+    [
+     105.4884829,
+     21.1757148
+    ],
+    [
+     105.4884686,
+     21.1756322
+    ],
+    [
+     105.4882624,
+     21.1744986
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 136.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-120",
+   "assetCode": "VT3-P038",
+   "from": "BS-N-112",
+   "to": "BS-N-114",
+   "coordinates": [
+    [
+     105.4972184,
+     21.1654497
+    ],
+    [
+     105.4979338,
+     21.165414
+    ],
+    [
+     105.4983849,
+     21.1654002
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 121.28,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-121",
+   "assetCode": "VT3-P039",
+   "from": "BS-N-114",
+   "to": "BS-N-116",
+   "coordinates": [
+    [
+     105.4983849,
+     21.1654002
+    ],
+    [
+     105.4993343,
+     21.1653712
+    ],
+    [
+     105.4995515,
+     21.1653564
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 121.28,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-122",
+   "assetCode": "VT3-P040",
+   "from": "BS-N-116",
+   "to": "BS-N-118",
+   "coordinates": [
+    [
+     105.4995515,
+     21.1653564
+    ],
+    [
+     105.4998598,
+     21.1653354
+    ],
+    [
+     105.4999154,
+     21.1652877
+    ],
+    [
+     105.5006911,
+     21.1651855
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 121.28,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-123",
+   "assetCode": "VT3-P041",
+   "from": "BS-N-118",
+   "to": "N-9a8e0243a77e082244df",
+   "coordinates": [
+    [
+     105.5006911,
+     21.1651855
+    ],
+    [
+     105.5010434,
+     21.1651391
+    ],
+    [
+     105.5016032,
+     21.1650664
+    ],
+    [
+     105.5018499,
+     21.1650589
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 121.28,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-134",
+   "assetCode": "VT3-P042",
+   "from": "BS-N-124",
+   "to": "BS-N-126",
+   "coordinates": [
+    [
+     105.4891448,
+     21.1857677
+    ],
+    [
+     105.4890509,
+     21.185807
+    ],
+    [
+     105.488367,
+     21.1861381
+    ],
+    [
+     105.4880349,
+     21.1862997
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 129.45,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-135",
+   "assetCode": "VT3-P043",
+   "from": "BS-N-126",
+   "to": "BS-N-128",
+   "coordinates": [
+    [
+     105.4880349,
+     21.1862997
+    ],
+    [
+     105.4876452,
+     21.1864893
+    ],
+    [
+     105.4873929,
+     21.1865457
+    ],
+    [
+     105.4870758,
+     21.1866836
+    ],
+    [
+     105.4869067,
+     21.1867815
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 129.45,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-136",
+   "assetCode": "VT3-P044",
+   "from": "BS-N-128",
+   "to": "BS-N-130",
+   "coordinates": [
+    [
+     105.4869067,
+     21.1867815
+    ],
+    [
+     105.4868313,
+     21.1868251
+    ],
+    [
+     105.4857566,
+     21.1872299
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 129.45,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-137",
+   "assetCode": "VT3-P045",
+   "from": "BS-N-130",
+   "to": "BS-N-132",
+   "coordinates": [
+    [
+     105.4857566,
+     21.1872299
+    ],
+    [
+     105.4845998,
+     21.1876657
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 129.45,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-138",
+   "assetCode": "VT3-P046",
+   "from": "BS-N-132",
+   "to": "N-7ad5103b07858292070a",
+   "coordinates": [
+    [
+     105.4845998,
+     21.1876657
+    ],
+    [
+     105.4836148,
+     21.1880368
+    ],
+    [
+     105.483441,
+     21.1880967
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 129.45,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-147",
+   "assetCode": "VT3-P047",
+   "from": "BS-N-139",
+   "to": "BS-N-141",
+   "coordinates": [
+    [
+     105.5022561,
+     21.1635841
+    ],
+    [
+     105.5026199,
+     21.1634261
+    ],
+    [
+     105.5031849,
+     21.1632054
+    ],
+    [
+     105.503474,
+     21.1630923
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 137.73,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-148",
+   "assetCode": "VT3-P048",
+   "from": "BS-N-141",
+   "to": "BS-N-143",
+   "coordinates": [
+    [
+     105.503474,
+     21.1630923
+    ],
+    [
+     105.5046979,
+     21.1626132
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 137.73,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-149",
+   "assetCode": "VT3-P049",
+   "from": "BS-N-143",
+   "to": "BS-N-145",
+   "coordinates": [
+    [
+     105.5046979,
+     21.1626132
+    ],
+    [
+     105.5048498,
+     21.1625537
+    ],
+    [
+     105.5049549,
+     21.1625262
+    ],
+    [
+     105.5059977,
+     21.1623931
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 137.73,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-150",
+   "assetCode": "VT3-P050",
+   "from": "BS-N-145",
+   "to": "N-5766e847f96f421191ba",
+   "coordinates": [
+    [
+     105.5059977,
+     21.1623931
+    ],
+    [
+     105.5066215,
+     21.1623134
+    ],
+    [
+     105.5066713,
+     21.1623153
+    ],
+    [
+     105.5067138,
+     21.162323
+    ],
+    [
+     105.5071272,
+     21.1624501
+    ],
+    [
+     105.5072703,
+     21.1624597
+    ],
+    [
+     105.5072953,
+     21.1624596
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 137.73,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-155",
+   "assetCode": "VT3-P051",
+   "from": "BS-N-151",
+   "to": "BS-N-153",
+   "coordinates": [
+    [
+     105.4949616,
+     21.1935392
+    ],
+    [
+     105.4951756,
+     21.1936173
+    ],
+    [
+     105.4953105,
+     21.1936681
+    ],
+    [
+     105.4954801,
+     21.1936864
+    ],
+    [
+     105.4959475,
+     21.1936303
+    ],
+    [
+     105.4962154,
+     21.1935525
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 134.72,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-156",
+   "assetCode": "VT3-P052",
+   "from": "BS-N-153",
+   "to": "N-89c2ecb2263ba658e901",
+   "coordinates": [
+    [
+     105.4962154,
+     21.1935525
+    ],
+    [
+     105.4966394,
+     21.1934294
+    ],
+    [
+     105.4972846,
+     21.193203
+    ],
+    [
+     105.497438,
+     21.1931468
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 134.72,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-161",
+   "assetCode": "VT3-P053",
+   "from": "BS-N-157",
+   "to": "BS-N-159",
+   "coordinates": [
+    [
+     105.4917738,
+     21.1896318
+    ],
+    [
+     105.4913598,
+     21.1884546
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 137.25,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-162",
+   "assetCode": "VT3-P054",
+   "from": "BS-N-159",
+   "to": "N-bf9bc3364301f90f9839",
+   "coordinates": [
+    [
+     105.4913598,
+     21.1884546
+    ],
+    [
+     105.4909786,
+     21.1873706
+    ],
+    [
+     105.4909474,
+     21.1872769
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 137.25,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-169",
+   "assetCode": "VT3-P055",
+   "from": "BS-N-163",
+   "to": "BS-N-165",
+   "coordinates": [
+    [
+     105.4952032,
+     21.1841485
+    ],
+    [
+     105.4953398,
+     21.1841347
+    ],
+    [
+     105.4959314,
+     21.1841716
+    ],
+    [
+     105.4963716,
+     21.1840773
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 122.72,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-170",
+   "assetCode": "VT3-P056",
+   "from": "BS-N-165",
+   "to": "BS-N-167",
+   "coordinates": [
+    [
+     105.4963716,
+     21.1840773
+    ],
+    [
+     105.4967882,
+     21.183988
+    ],
+    [
+     105.4975142,
+     21.1837957
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 122.72,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-171",
+   "assetCode": "VT3-P057",
+   "from": "BS-N-167",
+   "to": "N-c95101206a5f8eb2a18c",
+   "coordinates": [
+    [
+     105.4975142,
+     21.1837957
+    ],
+    [
+     105.4980423,
+     21.1836557
+    ],
+    [
+     105.4983583,
+     21.1835452
+    ],
+    [
+     105.4985653,
+     21.183347
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 122.72,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-180",
+   "assetCode": "VT3-P058",
+   "from": "BS-N-172",
+   "to": "BS-N-174",
+   "coordinates": [
+    [
+     105.4911214,
+     21.1911769
+    ],
+    [
+     105.4898975,
+     21.1916068
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 135.71,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-181",
+   "assetCode": "VT3-P059",
+   "from": "BS-N-174",
+   "to": "BS-N-176",
+   "coordinates": [
+    [
+     105.4898975,
+     21.1916068
+    ],
+    [
+     105.4897883,
+     21.1916452
+    ],
+    [
+     105.4886458,
+     21.1919586
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 135.71,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-182",
+   "assetCode": "VT3-P060",
+   "from": "BS-N-176",
+   "to": "BS-N-178",
+   "coordinates": [
+    [
+     105.4886458,
+     21.1919586
+    ],
+    [
+     105.488578,
+     21.1919772
+    ],
+    [
+     105.4880764,
+     21.1920501
+    ],
+    [
+     105.4878112,
+     21.1919907
+    ],
+    [
+     105.4873643,
+     21.191905
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 135.71,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "BS-P-183",
+   "assetCode": "VT3-P061",
+   "from": "BS-N-178",
+   "to": "N-79fc848f7cd167936b21",
+   "coordinates": [
+    [
+     105.4873643,
+     21.191905
+    ],
+    [
+     105.4873564,
+     21.1919034
+    ],
+    [
+     105.4873564,
+     21.1919034
+    ],
+    [
+     105.487207,
+     21.191754
+    ],
+    [
+     105.4871688,
+     21.1915397
+    ],
+    [
+     105.4871242,
+     21.1909706
+    ],
+    [
+     105.4871135,
+     21.1907454
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 135.71,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-09161f4b8a9661632e01",
+   "assetCode": "VT3-P062",
+   "from": "N-40232ff4715d045409c7",
+   "to": "BS-N-049",
+   "coordinates": [
+    [
+     105.4881552,
+     21.1739098
+    ],
+    [
+     105.4868279,
+     21.1740212
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 138.39,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-093345be24179b4f07d8",
+   "assetCode": "VT3-P063",
+   "from": "N-3dd817911afd5a5b0273",
+   "to": "N-07e850277b4fa3a01066",
+   "coordinates": [
+    [
+     105.487906,
+     21.1683845
+    ],
+    [
+     105.4891782,
+     21.1680454
+    ],
+    [
+     105.4898996,
+     21.1678514
+    ],
+    [
+     105.4906028,
+     21.1676697
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 291.04,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-11c6f8151c4a64517dfa",
+   "assetCode": "VT3-P064",
+   "from": "N-bf9bc3364301f90f9839",
+   "to": "N-be1a7a0d93107d987537",
+   "coordinates": [
+    [
+     105.4909474,
+     21.1872769
+    ],
+    [
+     105.4893055,
+     21.1876921
+    ],
+    [
+     105.4884126,
+     21.1878208
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 270.39,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-1d2ed706d61ba2c11dd7",
+   "assetCode": "VT3-P065",
+   "from": "N-a680caeb5ef99bb52fc8",
+   "to": "BS-N-163",
+   "coordinates": [
+    [
+     105.4940252,
+     21.1842346
+    ],
+    [
+     105.4948432,
+     21.1841851
+    ],
+    [
+     105.4952032,
+     21.1841485
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 122.72,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-264b11a44181adfa7413",
+   "assetCode": "VT3-P066",
+   "from": "N-bf9bc3364301f90f9839",
+   "to": "BS-N-001",
+   "coordinates": [
+    [
+     105.4909474,
+     21.1872769
+    ],
+    [
+     105.4906511,
+     21.186386
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 103.32,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-2830980341c750213a64",
+   "assetCode": "VT3-P067",
+   "from": "N-1aa84e7b16343f8cc619",
+   "to": "BS-N-157",
+   "coordinates": [
+    [
+     105.4923448,
+     21.1907456
+    ],
+    [
+     105.4919545,
+     21.1900733
+    ],
+    [
+     105.4918822,
+     21.1899401
+    ],
+    [
+     105.4917738,
+     21.1896318
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 137.25,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-3381b3bc526703c2b15a",
+   "assetCode": "VT3-P068",
+   "from": "N-40232ff4715d045409c7",
+   "to": "BS-N-010",
+   "coordinates": [
+    [
+     105.4881552,
+     21.1739098
+    ],
+    [
+     105.4881402,
+     21.1738273
+    ],
+    [
+     105.4879357,
+     21.1728137
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 123.48,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-3808e78e0b45874e8b2f",
+   "assetCode": "VT3-P069",
+   "from": "N-580652fe25960c922d4c",
+   "to": "N-e6cf2178600e9bf19ab9",
+   "coordinates": [
+    [
+     105.4931107,
+     21.1921671
+    ],
+    [
+     105.4937263,
+     21.1921148
+    ],
+    [
+     105.4941845,
+     21.1921022
+    ],
+    [
+     105.4943839,
+     21.1920897
+    ],
+    [
+     105.494908,
+     21.1918473
+    ],
+    [
+     105.4954479,
+     21.1915299
+    ],
+    [
+     105.4963047,
+     21.1911389
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 358.31,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-3a17b45af0a32599c55f",
+   "assetCode": "VT3-P070",
+   "from": "N-acfab6da8b7b09b94dbb",
+   "to": "BS-N-124",
+   "coordinates": [
+    [
+     105.4903141,
+     21.1853731
+    ],
+    [
+     105.4897513,
+     21.1855134
+    ],
+    [
+     105.4891448,
+     21.1857677
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 129.45,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-4096b833b2b6b887f9f8",
+   "assetCode": "VT3-P071",
+   "from": "N-3bbbb38c644c90976475",
+   "to": "N-e37ba20d09fcbfba7a9f",
+   "coordinates": [
+    [
+     105.4935144,
+     21.1932608
+    ],
+    [
+     105.4936954,
+     21.1932973
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 19.22,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-45747a7efd6af9490669",
+   "assetCode": "VT3-P072",
+   "from": "N-5a65b29b80e1e65f6885",
+   "to": "BS-N-004",
+   "coordinates": [
+    [
+     105.4903547,
+     21.1854952
+    ],
+    [
+     105.4912595,
+     21.1850885
+    ],
+    [
+     105.4915497,
+     21.1849785
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 136.69,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-47259cc909f049d8e44d",
+   "assetCode": "VT3-P073",
+   "from": "N-eefcebc767d1d15ad023",
+   "to": "BS-N-025",
+   "coordinates": [
+    [
+     105.4934249,
+     21.1961004
+    ],
+    [
+     105.4934334,
+     21.1957872
+    ],
+    [
+     105.4933688,
+     21.1956878
+    ],
+    [
+     105.4933888,
+     21.1951611
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 105.93,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-5cd5ca527460deadd7d6",
+   "assetCode": "VT3-P074",
+   "from": "N-76e59e704af4c1290e0b",
+   "to": "BS-N-031",
+   "coordinates": [
+    [
+     105.4876968,
+     21.1674333
+    ],
+    [
+     105.4878637,
+     21.1673534
+    ],
+    [
+     105.4881913,
+     21.1672272
+    ],
+    [
+     105.4885616,
+     21.1671048
+    ],
+    [
+     105.4888681,
+     21.167019
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 130.24,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-622b78e023e7bfce98b7",
+   "assetCode": "VT3-P075",
+   "from": "N-be1a7a0d93107d987537",
+   "to": "N-d99a146b294ccbe8c5f3",
+   "coordinates": [
+    [
+     105.4884126,
+     21.1878208
+    ],
+    [
+     105.4873769,
+     21.188069
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 111.01,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-79e7f26634c4278367f5",
+   "assetCode": "VT3-P076",
+   "from": "N-68c54b356cb6b89d6601",
+   "to": "BS-N-076",
+   "coordinates": [
+    [
+     105.4873929,
+     21.1695197
+    ],
+    [
+     105.4862896,
+     21.1699669
+    ],
+    [
+     105.4860871,
+     21.1700459
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 147.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-7cdccf7d520652bc2a52",
+   "assetCode": "VT3-P077",
+   "from": "N-5ab1d4c9cef8b5c3543c",
+   "to": "N-7ef2b181f794ee518ccf",
+   "coordinates": [
+    [
+     105.4932554,
+     21.1931657
+    ],
+    [
+     105.4928833,
+     21.1930102
+    ],
+    [
+     105.4927229,
+     21.1929478
+    ],
+    [
+     105.4921493,
+     21.1928189
+    ],
+    [
+     105.4916121,
+     21.1926077
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 182.06,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-894a12de0b7114851eb3",
+   "assetCode": "VT3-P078",
+   "from": "N-8ccac787d6caf8a85392",
+   "to": "N-f6722ef5a5009102d65d",
+   "coordinates": [
+    [
+     105.4959699,
+     21.1647579
+    ],
+    [
+     105.496051,
+     21.1655244
+    ],
+    [
+     105.4960534,
+     21.1655242
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 85.52,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-8d91d98ac6beaabf8821",
+   "assetCode": "VT3-P079",
+   "from": "N-990318f7402aa5f31178",
+   "to": "N-5ab1d4c9cef8b5c3543c",
+   "coordinates": [
+    [
+     105.4934538,
+     21.1932486
+    ],
+    [
+     105.4932554,
+     21.1931657
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 22.55,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-92b8f5fd1b998cd3e95c",
+   "assetCode": "VT3-P080",
+   "from": "N-580652fe25960c922d4c",
+   "to": "N-6408f56c06b429a179d0",
+   "coordinates": [
+    [
+     105.4931107,
+     21.1921671
+    ],
+    [
+     105.4930178,
+     21.1919714
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 23.72,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-969ff5f80478d8902f19",
+   "assetCode": "VT3-P081",
+   "from": "N-68c54b356cb6b89d6601",
+   "to": "BS-N-073",
+   "coordinates": [
+    [
+     105.4873929,
+     21.1695197
+    ],
+    [
+     105.4872602,
+     21.1688164
+    ],
+    [
+     105.487209,
+     21.1686628
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 96.91,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-977ab4ec7e54df8a9948",
+   "assetCode": "VT3-P082",
+   "from": "N-acfab6da8b7b09b94dbb",
+   "to": "BS-N-088",
+   "coordinates": [
+    [
+     105.4903141,
+     21.1853731
+    ],
+    [
+     105.490298,
+     21.1853247
+    ],
+    [
+     105.4901419,
+     21.1848568
+    ],
+    [
+     105.4900231,
+     21.1841732
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 136.59,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-a16c2dd260a6faa6fffb",
+   "assetCode": "VT3-P083",
+   "from": "N-5a65b29b80e1e65f6885",
+   "to": "N-acfab6da8b7b09b94dbb",
+   "coordinates": [
+    [
+     105.4903547,
+     21.1854952
+    ],
+    [
+     105.4903141,
+     21.1853731
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 14.17,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-a29d7f00dfc263311331",
+   "assetCode": "VT3-P084",
+   "from": "N-c95101206a5f8eb2a18c",
+   "to": "N-2dc05c0bd17e640264e8",
+   "coordinates": [
+    [
+     105.4985653,
+     21.183347
+    ],
+    [
+     105.4996044,
+     21.1851193
+    ],
+    [
+     105.4998522,
+     21.1855305
+    ],
+    [
+     105.5001199,
+     21.1859075
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 326.38,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-a550d482d76c9ff7cb35",
+   "assetCode": "VT3-P085",
+   "from": "N-990318f7402aa5f31178",
+   "to": "N-3bbbb38c644c90976475",
+   "coordinates": [
+    [
+     105.4934538,
+     21.1932486
+    ],
+    [
+     105.4935144,
+     21.1932608
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 6.45,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-acd5b73905010dd253ba",
+   "assetCode": "VT3-P086",
+   "from": "N-be7709eea0b75b47ddde",
+   "to": "N-dba84e43928e7588ced6",
+   "coordinates": [
+    [
+     105.4882624,
+     21.1744986
+    ],
+    [
+     105.4893464,
+     21.1742955
+    ],
+    [
+     105.4899303,
+     21.1741931
+    ],
+    [
+     105.4900067,
+     21.1741934
+    ],
+    [
+     105.4903605,
+     21.1741772
+    ],
+    [
+     105.4909828,
+     21.1740717
+    ],
+    [
+     105.4917964,
+     21.1739108
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 373.24,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-b618f2aff089560765bf",
+   "assetCode": "VT3-P087",
+   "from": "N-0938c20b802531cad900",
+   "to": "N-8aa14ec669c14f595131",
+   "coordinates": [
+    [
+     105.5012533,
+     21.1808375
+    ],
+    [
+     105.5036953,
+     21.1798787
+    ],
+    [
+     105.5054399,
+     21.1792079
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 470.72,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-b918ef25a807db7018ff",
+   "assetCode": "VT3-P088",
+   "from": "N-393f3767cbd036036244",
+   "to": "N-0a55b6139d1bec175a67",
+   "coordinates": [
+    [
+     105.4923816,
+     21.1906604
+    ],
+    [
+     105.4930445,
+     21.1904513
+    ],
+    [
+     105.4938985,
+     21.1901387
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 167.81,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-bb80a7ae0b64e0cb5777",
+   "assetCode": "VT3-P089",
+   "from": "N-ead7f898b849416b281e",
+   "to": "BS-N-139",
+   "coordinates": [
+    [
+     105.5010503,
+     21.1641017
+    ],
+    [
+     105.5012531,
+     21.1640197
+    ],
+    [
+     105.5022561,
+     21.1635841
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 137.73,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-be4d1642315eaec3f3ae",
+   "assetCode": "VT3-P090",
+   "from": "N-5aafb66680778bd8a841",
+   "to": "N-0938c20b802531cad900",
+   "coordinates": [
+    [
+     105.4987388,
+     21.1831808
+    ],
+    [
+     105.5004976,
+     21.1814962
+    ],
+    [
+     105.5012533,
+     21.1808375
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 368.19,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-c20b22796a9c646efce0",
+   "assetCode": "VT3-P091",
+   "from": "N-be7709eea0b75b47ddde",
+   "to": "N-40232ff4715d045409c7",
+   "coordinates": [
+    [
+     105.4882624,
+     21.1744986
+    ],
+    [
+     105.4881552,
+     21.1739098
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 66.14,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-c55c7ab5b59c8470f228",
+   "assetCode": "VT3-P092",
+   "from": "N-8ccac787d6caf8a85392",
+   "to": "BS-N-064",
+   "coordinates": [
+    [
+     105.4959699,
+     21.1647579
+    ],
+    [
+     105.4961597,
+     21.1646725
+    ],
+    [
+     105.496372,
+     21.1645962
+    ],
+    [
+     105.4966008,
+     21.1645308
+    ],
+    [
+     105.4970587,
+     21.1644325
+    ],
+    [
+     105.4972028,
+     21.164416
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 134.18,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-c7bbba34a6257e578d03",
+   "assetCode": "VT3-P093",
+   "from": "N-1aa84e7b16343f8cc619",
+   "to": "BS-N-172",
+   "coordinates": [
+    [
+     105.4923448,
+     21.1907456
+    ],
+    [
+     105.4912166,
+     21.1911435
+    ],
+    [
+     105.4911214,
+     21.1911769
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 135.71,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-ca1c4ee726a0d8bbd7c3",
+   "assetCode": "VT3-P094",
+   "from": "N-3bbbb38c644c90976475",
+   "to": "N-580652fe25960c922d4c",
+   "coordinates": [
+    [
+     105.4935144,
+     21.1932608
+    ],
+    [
+     105.4934888,
+     21.1930187
+    ],
+    [
+     105.4933581,
+     21.1926957
+    ],
+    [
+     105.4932389,
+     21.1924555
+    ],
+    [
+     105.4931523,
+     21.1922583
+    ],
+    [
+     105.4931107,
+     21.1921671
+    ]
+   ],
+   "diameterMm": 160,
+   "material": "HDPE",
+   "lengthM": 129.12,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-ccd4d1d3bd213a5d3319",
+   "assetCode": "VT3-P095",
+   "from": "N-6408f56c06b429a179d0",
+   "to": "N-393f3767cbd036036244",
+   "coordinates": [
+    [
+     105.4930178,
+     21.1919714
+    ],
+    [
+     105.492641,
+     21.1911776
+    ],
+    [
+     105.4923816,
+     21.1906604
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 159.49,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-d15ead1ffd8b236ccbb9",
+   "assetCode": "VT3-P096",
+   "from": "N-e37ba20d09fcbfba7a9f",
+   "to": "BS-N-151",
+   "coordinates": [
+    [
+     105.4936954,
+     21.1932973
+    ],
+    [
+     105.4941524,
+     21.1933896
+    ],
+    [
+     105.4947398,
+     21.1934583
+    ],
+    [
+     105.4949616,
+     21.1935392
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 134.72,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-d3a9e06e6f3fc2ddf86b",
+   "assetCode": "VT3-P097",
+   "from": "N-c95101206a5f8eb2a18c",
+   "to": "N-5aafb66680778bd8a841",
+   "coordinates": [
+    [
+     105.4985653,
+     21.183347
+    ],
+    [
+     105.4987388,
+     21.1831808
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 25.75,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-deddeaf5ba00edb57f45",
+   "assetCode": "VT3-P098",
+   "from": "N-a680caeb5ef99bb52fc8",
+   "to": "N-709e8ef18c74809c52c0",
+   "coordinates": [
+    [
+     105.4940252,
+     21.1842346
+    ],
+    [
+     105.4939519,
+     21.1839074
+    ],
+    [
+     105.4948191,
+     21.183455
+    ],
+    [
+     105.4954587,
+     21.1830517
+    ],
+    [
+     105.4956757,
+     21.1829773
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 244.09,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-df09cd69a1814405da87",
+   "assetCode": "VT3-P099",
+   "from": "N-f6722ef5a5009102d65d",
+   "to": "BS-N-112",
+   "coordinates": [
+    [
+     105.4960534,
+     21.1655242
+    ],
+    [
+     105.4969085,
+     21.1654652
+    ],
+    [
+     105.4972184,
+     21.1654497
+    ]
+   ],
+   "diameterMm": 110,
+   "material": "HDPE",
+   "lengthM": 121.28,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-e211f0c7b8fae2646f4b",
+   "assetCode": "VT3-P100",
+   "from": "N-ead7f898b849416b281e",
+   "to": "N-834a13b992fd817b90f9",
+   "coordinates": [
+    [
+     105.5010503,
+     21.1641017
+    ],
+    [
+     105.5010669,
+     21.1641357
+    ],
+    [
+     105.5012257,
+     21.1641459
+    ],
+    [
+     105.501435,
+     21.164159
+    ],
+    [
+     105.5026185,
+     21.1641073
+    ],
+    [
+     105.503406,
+     21.1641375
+    ],
+    [
+     105.5051464,
+     21.1643038
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 429.05,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-e446de5bbb6904280cb3",
+   "assetCode": "VT3-P101",
+   "from": "N-fdd42698e995cc14abb0",
+   "to": "N-76e59e704af4c1290e0b",
+   "coordinates": [
+    [
+     105.4867553,
+     21.1679014
+    ],
+    [
+     105.4870168,
+     21.1677587
+    ],
+    [
+     105.4876968,
+     21.1674333
+    ]
+   ],
+   "diameterMm": 225,
+   "material": "HDPE",
+   "lengthM": 110.7,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-e5b66bed744632dc5a25",
+   "assetCode": "VT3-P102",
+   "from": "N-990318f7402aa5f31178",
+   "to": "BS-N-019",
+   "coordinates": [
+    [
+     105.4934538,
+     21.1932486
+    ],
+    [
+     105.4934327,
+     21.1930936
+    ],
+    [
+     105.4933785,
+     21.1929251
+    ],
+    [
+     105.4931366,
+     21.1923979
+    ]
+   ],
+   "diameterMm": 315,
+   "material": "HDPE",
+   "lengthM": 100.33,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-ebe72e349c2664365df3",
+   "assetCode": "VT3-P103",
+   "from": "N-2dc05c0bd17e640264e8",
+   "to": "N-68e8dc719deb567ef9d5",
+   "coordinates": [
+    [
+     105.5001199,
+     21.1859075
+    ],
+    [
+     105.50012,
+     21.1859076
+    ],
+    [
+     105.5004993,
+     21.1856503
+    ],
+    [
+     105.500899,
+     21.1852644
+    ],
+    [
+     105.5009627,
+     21.1852408
+    ],
+    [
+     105.5013769,
+     21.1849817
+    ],
+    [
+     105.5015952,
+     21.1847614
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 200.3,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  },
+  {
+   "ref": "P-f9fdfb6387b0d43b41e7",
+   "assetCode": "VT3-P104",
+   "from": "N-76e59e704af4c1290e0b",
+   "to": "N-3dd817911afd5a5b0273",
+   "coordinates": [
+    [
+     105.4876968,
+     21.1674333
+    ],
+    [
+     105.4878267,
+     21.1680363
+    ],
+    [
+     105.4879024,
+     21.1683854
+    ],
+    [
+     105.487906,
+     21.1683845
+    ]
+   ],
+   "diameterMm": 90,
+   "material": "HDPE",
+   "lengthM": 107.95,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good"
+   }
+  }
+ ],
+ "devices": [
+  {
+   "ref": "D-6c51ca41c4902639b4bc",
+   "assetCode": "VT3-V001",
+   "componentCode": "GateValve",
+   "hostPipe": "P-d15ead1ffd8b236ccbb9",
+   "hostNode": null,
+   "lon": 105.4938361,
+   "lat": 21.1933258,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-4d9dfd50e02692b63b88",
+   "assetCode": "VT3-V002",
+   "componentCode": "GateValve",
+   "hostPipe": "P-7cdccf7d520652bc2a52",
+   "hostNode": null,
+   "lon": 105.4931286,
+   "lat": 21.1931101,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-ec0dda4e67bfa564fdbc",
+   "assetCode": "VT3-V003",
+   "componentCode": "GateValve",
+   "hostPipe": "P-ca1c4ee726a0d8bbd7c3",
+   "hostNode": null,
+   "lon": 105.4934938,
+   "lat": 21.1930527,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-d404d39ef7b52dad50e1",
+   "assetCode": "VT3-V004",
+   "componentCode": "GateValve",
+   "hostPipe": "P-e5b66bed744632dc5a25",
+   "hostNode": null,
+   "lon": 105.4934071,
+   "lat": 21.1930573,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-6fc58089f28d6105857a",
+   "assetCode": "VT3-V005",
+   "componentCode": "GateValve",
+   "hostPipe": "P-3808e78e0b45874e8b2f",
+   "hostNode": null,
+   "lon": 105.493333,
+   "lat": 21.1921498,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-ef332e795a2ee419caae",
+   "assetCode": "VT3-V006",
+   "componentCode": "GateValve",
+   "hostPipe": "P-ccd4d1d3bd213a5d3319",
+   "hostNode": null,
+   "lon": 105.4929617,
+   "lat": 21.191847,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-9bd9317b58c8b1c210e8",
+   "assetCode": "VT3-V007",
+   "componentCode": "GateValve",
+   "hostPipe": "P-2830980341c750213a64",
+   "hostNode": null,
+   "lon": 105.4922537,
+   "lat": 21.1905873,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-856d460625f1ee404d8d",
+   "assetCode": "VT3-V008",
+   "componentCode": "GateValve",
+   "hostPipe": "P-c7bbba34a6257e578d03",
+   "hostNode": null,
+   "lon": 105.4920656,
+   "lat": 21.1908462,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-2f0b5255008c7d365a0e",
+   "assetCode": "VT3-V009",
+   "componentCode": "GateValve",
+   "hostPipe": "P-264b11a44181adfa7413",
+   "hostNode": null,
+   "lon": 105.4908897,
+   "lat": 21.1871035,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-c3be91dc9c8ab0dd3a78",
+   "assetCode": "VT3-V010",
+   "componentCode": "GateValve",
+   "hostPipe": "P-11c6f8151c4a64517dfa",
+   "hostNode": null,
+   "lon": 105.4907325,
+   "lat": 21.1873344,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-a9272a640398566cd314",
+   "assetCode": "VT3-V011",
+   "componentCode": "GateValve",
+   "hostPipe": "P-45747a7efd6af9490669",
+   "hostNode": null,
+   "lon": 105.4905383,
+   "lat": 21.1854123,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-be9d94005bbeb8086dcf",
+   "assetCode": "VT3-V012",
+   "componentCode": "GateValve",
+   "hostPipe": "P-deddeaf5ba00edb57f45",
+   "hostNode": null,
+   "lon": 105.494007,
+   "lat": 21.1841564,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-d645f9d6e8fbe740327f",
+   "assetCode": "VT3-V013",
+   "componentCode": "GateValve",
+   "hostPipe": "P-1d2ed706d61ba2c11dd7",
+   "hostNode": null,
+   "lon": 105.4942202,
+   "lat": 21.184224,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-fa4d5c4d656bd407ce10",
+   "assetCode": "VT3-V014",
+   "componentCode": "GateValve",
+   "hostPipe": "P-be4d1642315eaec3f3ae",
+   "hostNode": null,
+   "lon": 105.4988433,
+   "lat": 21.1830879,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-22a0c98c6ae608c62576",
+   "assetCode": "VT3-V015",
+   "componentCode": "GateValve",
+   "hostPipe": "P-a29d7f00dfc263311331",
+   "hostNode": null,
+   "lon": 105.4986717,
+   "lat": 21.1835259,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-a79b9dcb0d992ae93138",
+   "assetCode": "VT3-V016",
+   "componentCode": "GateValve",
+   "hostPipe": "P-977ab4ec7e54df8a9948",
+   "hostNode": null,
+   "lon": 105.4902519,
+   "lat": 21.1851879,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-d23695fcfe325317128a",
+   "assetCode": "VT3-V017",
+   "componentCode": "GateValve",
+   "hostPipe": "P-3a17b45af0a32599c55f",
+   "hostNode": null,
+   "lon": 105.4900866,
+   "lat": 21.185432,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-87d0644d7f7b83c949ad",
+   "assetCode": "VT3-V018",
+   "componentCode": "GateValve",
+   "hostPipe": "P-acd5b73905010dd253ba",
+   "hostNode": null,
+   "lon": 105.4884777,
+   "lat": 21.1744582,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-1a51d4288fab949bc1e4",
+   "assetCode": "VT3-V019",
+   "componentCode": "GateValve",
+   "hostPipe": "P-09161f4b8a9661632e01",
+   "hostNode": null,
+   "lon": 105.4879607,
+   "lat": 21.1739288,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-30fdd2c1e8f25181014a",
+   "assetCode": "VT3-V020",
+   "componentCode": "GateValve",
+   "hostPipe": "P-79e7f26634c4278367f5",
+   "hostNode": null,
+   "lon": 105.4871945,
+   "lat": 21.1696028,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "160",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-58fc56ffcf6774cd83aa",
+   "assetCode": "VT3-V021",
+   "componentCode": "GateValve",
+   "hostPipe": "P-5cd5ca527460deadd7d6",
+   "hostNode": null,
+   "lon": 105.4878585,
+   "lat": 21.1673613,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-05e3099c3c80075de9cb",
+   "assetCode": "VT3-V022",
+   "componentCode": "GateValve",
+   "hostPipe": "P-c55c7ab5b59c8470f228",
+   "hostNode": null,
+   "lon": 105.4961315,
+   "lat": 21.1646859,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-1b3ef9ab97a15d5e6896",
+   "assetCode": "VT3-V023",
+   "componentCode": "GateValve",
+   "hostPipe": "P-f9fdfb6387b0d43b41e7",
+   "hostNode": null,
+   "lon": 105.4877464,
+   "lat": 21.1676565,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-06d1d2f463f54d60d5bc",
+   "assetCode": "VT3-V024",
+   "componentCode": "GateValve",
+   "hostPipe": "P-894a12de0b7114851eb3",
+   "hostNode": null,
+   "lon": 105.4959914,
+   "lat": 21.1649628,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "110",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-bf72678e39300d82a7bd",
+   "assetCode": "VT3-V025",
+   "componentCode": "GateValve",
+   "hostPipe": "P-bb80a7ae0b64e0cb5777",
+   "hostNode": null,
+   "lon": 105.5012119,
+   "lat": 21.1640297,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "225",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-cd996384386636970248",
+   "assetCode": "VT3-V026",
+   "componentCode": "GateValve",
+   "hostPipe": "P-e211f0c7b8fae2646f4b",
+   "hostNode": null,
+   "lon": 105.5012484,
+   "lat": 21.164149,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "D-5a2cbee3332e004e2893",
+   "assetCode": "VT3-V027",
+   "componentCode": "GateValve",
+   "hostPipe": "P-47259cc909f049d8e44d",
+   "hostNode": null,
+   "lon": 105.4934217,
+   "lat": 21.1959232,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315",
+    "state": "open"
+   }
+  },
+  {
+   "ref": "BS-H-002",
+   "assetCode": "VT3-H001-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-001",
+   "lon": 105.4906511,
+   "lat": 21.186386,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-005",
+   "assetCode": "VT3-H002-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-004",
+   "lon": 105.4915497,
+   "lat": 21.1849785,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-007",
+   "assetCode": "VT3-H003-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-006",
+   "lon": 105.4927538,
+   "lat": 21.1844857,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-011",
+   "assetCode": "VT3-H004-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-010",
+   "lon": 105.4879357,
+   "lat": 21.1728137,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-013",
+   "assetCode": "VT3-H005-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-012",
+   "lon": 105.4877266,
+   "lat": 21.1717159,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-015",
+   "assetCode": "VT3-H006-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-014",
+   "lon": 105.4876103,
+   "lat": 21.1706159,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-020",
+   "assetCode": "VT3-H007-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-019",
+   "lon": 105.4931366,
+   "lat": 21.1923979,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-022",
+   "assetCode": "VT3-H008-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-021",
+   "lon": 105.4927499,
+   "lat": 21.1915676,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-026",
+   "assetCode": "VT3-H009-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-025",
+   "lon": 105.4933888,
+   "lat": 21.1951611,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-028",
+   "assetCode": "VT3-H010-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-027",
+   "lon": 105.493422,
+   "lat": 21.1942049,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-032",
+   "assetCode": "VT3-H011-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-031",
+   "lon": 105.4888681,
+   "lat": 21.167019,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-034",
+   "assetCode": "VT3-H012-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-033",
+   "lon": 105.4900691,
+   "lat": 21.1666802,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-036",
+   "assetCode": "VT3-H013-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-035",
+   "lon": 105.4912689,
+   "lat": 21.1663382,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-038",
+   "assetCode": "VT3-H014-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-037",
+   "lon": 105.492455,
+   "lat": 21.1659614,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-040",
+   "assetCode": "VT3-H015-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-039",
+   "lon": 105.4935955,
+   "lat": 21.1654727,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-042",
+   "assetCode": "VT3-H016-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-041",
+   "lon": 105.4948154,
+   "lat": 21.165214,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-050",
+   "assetCode": "VT3-H017-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-049",
+   "lon": 105.4868279,
+   "lat": 21.1740212,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-052",
+   "assetCode": "VT3-H018-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-051",
+   "lon": 105.4854981,
+   "lat": 21.1741005,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-054",
+   "assetCode": "VT3-H019-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-053",
+   "lon": 105.4841826,
+   "lat": 21.1742763,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-056",
+   "assetCode": "VT3-H020-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-055",
+   "lon": 105.4829416,
+   "lat": 21.1747167,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-058",
+   "assetCode": "VT3-H021-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-057",
+   "lon": 105.4818199,
+   "lat": 21.1753611,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-065",
+   "assetCode": "VT3-H022-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-064",
+   "lon": 105.4972028,
+   "lat": 21.164416,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-067",
+   "assetCode": "VT3-H023-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-066",
+   "lon": 105.4984937,
+   "lat": 21.1643761,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-069",
+   "assetCode": "VT3-H024-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-068",
+   "lon": 105.4997796,
+   "lat": 21.1642681,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-074",
+   "assetCode": "VT3-H025-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-073",
+   "lon": 105.487209,
+   "lat": 21.1686628,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-077",
+   "assetCode": "VT3-H026-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-076",
+   "lon": 105.4860871,
+   "lat": 21.1700459,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-079",
+   "assetCode": "VT3-H027-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-078",
+   "lon": 105.4847792,
+   "lat": 21.1705672,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-081",
+   "assetCode": "VT3-H028-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-080",
+   "lon": 105.4834952,
+   "lat": 21.1711377,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-083",
+   "assetCode": "VT3-H029-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-082",
+   "lon": 105.4822237,
+   "lat": 21.1717334,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-089",
+   "assetCode": "VT3-H030-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-088",
+   "lon": 105.4900231,
+   "lat": 21.1841732,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-091",
+   "assetCode": "VT3-H031-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-090",
+   "lon": 105.4898116,
+   "lat": 21.1829556,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-093",
+   "assetCode": "VT3-H032-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-092",
+   "lon": 105.4896001,
+   "lat": 21.181738,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-095",
+   "assetCode": "VT3-H033-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-094",
+   "lon": 105.4893886,
+   "lat": 21.1805205,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-097",
+   "assetCode": "VT3-H034-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-096",
+   "lon": 105.48911,
+   "lat": 21.1793686,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-099",
+   "assetCode": "VT3-H035-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-098",
+   "lon": 105.488902,
+   "lat": 21.1781505,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-101",
+   "assetCode": "VT3-H036-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-100",
+   "lon": 105.4886937,
+   "lat": 21.1769324,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-103",
+   "assetCode": "VT3-H037-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-102",
+   "lon": 105.4884829,
+   "lat": 21.1757148,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-113",
+   "assetCode": "VT3-H038-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-112",
+   "lon": 105.4972184,
+   "lat": 21.1654497,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-115",
+   "assetCode": "VT3-H039-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-114",
+   "lon": 105.4983849,
+   "lat": 21.1654002,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-117",
+   "assetCode": "VT3-H040-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-116",
+   "lon": 105.4995515,
+   "lat": 21.1653564,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-119",
+   "assetCode": "VT3-H041-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-118",
+   "lon": 105.5006911,
+   "lat": 21.1651855,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-125",
+   "assetCode": "VT3-H042-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-124",
+   "lon": 105.4891448,
+   "lat": 21.1857677,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-127",
+   "assetCode": "VT3-H043-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-126",
+   "lon": 105.4880349,
+   "lat": 21.1862997,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-129",
+   "assetCode": "VT3-H044-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-128",
+   "lon": 105.4869067,
+   "lat": 21.1867815,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-131",
+   "assetCode": "VT3-H045-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-130",
+   "lon": 105.4857566,
+   "lat": 21.1872299,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-133",
+   "assetCode": "VT3-H046-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-132",
+   "lon": 105.4845998,
+   "lat": 21.1876657,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-140",
+   "assetCode": "VT3-H047-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-139",
+   "lon": 105.5022561,
+   "lat": 21.1635841,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-142",
+   "assetCode": "VT3-H048-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-141",
+   "lon": 105.503474,
+   "lat": 21.1630923,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-144",
+   "assetCode": "VT3-H049-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-143",
+   "lon": 105.5046979,
+   "lat": 21.1626132,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-146",
+   "assetCode": "VT3-H050-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-145",
+   "lon": 105.5059977,
+   "lat": 21.1623931,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-152",
+   "assetCode": "VT3-H051-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-151",
+   "lon": 105.4949616,
+   "lat": 21.1935392,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-154",
+   "assetCode": "VT3-H052-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-153",
+   "lon": 105.4962154,
+   "lat": 21.1935525,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-158",
+   "assetCode": "VT3-H053-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-157",
+   "lon": 105.4917738,
+   "lat": 21.1896318,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-160",
+   "assetCode": "VT3-H054-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-159",
+   "lon": 105.4913598,
+   "lat": 21.1884546,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-164",
+   "assetCode": "VT3-H055-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-163",
+   "lon": 105.4952032,
+   "lat": 21.1841485,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-166",
+   "assetCode": "VT3-H056-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-165",
+   "lon": 105.4963716,
+   "lat": 21.1840773,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-168",
+   "assetCode": "VT3-H057-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-167",
+   "lon": 105.4975142,
+   "lat": 21.1837957,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-173",
+   "assetCode": "VT3-H058-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-172",
+   "lon": 105.4911214,
+   "lat": 21.1911769,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-175",
+   "assetCode": "VT3-H059-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-174",
+   "lon": 105.4898975,
+   "lat": 21.1916068,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-177",
+   "assetCode": "VT3-H060-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-176",
+   "lon": 105.4886458,
+   "lat": 21.1919586,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-H-179",
+   "assetCode": "VT3-H061-BS",
+   "componentCode": "Hydrant",
+   "hostPipe": null,
+   "hostNode": "BS-N-178",
+   "lon": 105.4873643,
+   "lat": 21.191905,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "hydrant-spacing"
+  },
+  {
+   "ref": "BS-M-184",
+   "assetCode": "VT3-M001-BS",
+   "componentCode": "BulkMeter",
+   "hostPipe": "P-47259cc909f049d8e44d",
+   "hostNode": null,
+   "lon": 105.4934249,
+   "lat": 21.1961004,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "315"
+   },
+   "inferred": "dma-inlet"
+  },
+  {
+   "ref": "BS-S-185",
+   "assetCode": "VT3-S001-BS",
+   "componentCode": "PressureSensor",
+   "hostPipe": null,
+   "hostNode": "N-eefcebc767d1d15ad023",
+   "lon": 105.4934249,
+   "lat": 21.1961004,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "15"
+   },
+   "inferred": "dma-inlet"
+  },
+  {
+   "ref": "BS-X-186",
+   "assetCode": "VT3-X001-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-834a13b992fd817b90f9",
+   "lon": 105.5051464,
+   "lat": 21.1643038,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-187",
+   "assetCode": "VT3-X002-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-e6cf2178600e9bf19ab9",
+   "lon": 105.4963047,
+   "lat": 21.1911389,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-188",
+   "assetCode": "VT3-X003-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-709e8ef18c74809c52c0",
+   "lon": 105.4956757,
+   "lat": 21.1829773,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-189",
+   "assetCode": "VT3-X004-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-dba84e43928e7588ced6",
+   "lon": 105.4917964,
+   "lat": 21.1739108,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-190",
+   "assetCode": "VT3-X005-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-8aa14ec669c14f595131",
+   "lon": 105.5054399,
+   "lat": 21.1792079,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-191",
+   "assetCode": "VT3-X006-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-526cacce114c0ecaa40a",
+   "lon": 105.4805725,
+   "lat": 21.1758,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-192",
+   "assetCode": "VT3-X007-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-d80295aeffd2bebef805",
+   "lon": 105.4809459,
+   "lat": 21.1723168,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-193",
+   "assetCode": "VT3-X008-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-9a8e0243a77e082244df",
+   "lon": 105.5018499,
+   "lat": 21.1650589,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-194",
+   "assetCode": "VT3-X009-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-0a55b6139d1bec175a67",
+   "lon": 105.4938985,
+   "lat": 21.1901387,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-195",
+   "assetCode": "VT3-X010-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-7ad5103b07858292070a",
+   "lon": 105.483441,
+   "lat": 21.1880967,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-196",
+   "assetCode": "VT3-X011-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-5766e847f96f421191ba",
+   "lon": 105.5072953,
+   "lat": 21.1624596,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-197",
+   "assetCode": "VT3-X012-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-d99a146b294ccbe8c5f3",
+   "lon": 105.4873769,
+   "lat": 21.188069,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-198",
+   "assetCode": "VT3-X013-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-89c2ecb2263ba658e901",
+   "lon": 105.497438,
+   "lat": 21.1931468,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-199",
+   "assetCode": "VT3-X014-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-68e8dc719deb567ef9d5",
+   "lon": 105.5015952,
+   "lat": 21.1847614,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-200",
+   "assetCode": "VT3-X015-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-7ef2b181f794ee518ccf",
+   "lon": 105.4916121,
+   "lat": 21.1926077,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-201",
+   "assetCode": "VT3-X016-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-79fc848f7cd167936b21",
+   "lon": 105.4871135,
+   "lat": 21.1907454,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "100"
+   },
+   "inferred": "dead-end"
+  },
+  {
+   "ref": "BS-X-202",
+   "assetCode": "VT3-X017-BS",
+   "componentCode": "Washout",
+   "hostPipe": null,
+   "hostNode": "N-07e850277b4fa3a01066",
+   "lon": 105.4906028,
+   "lat": 21.1676697,
+   "properties": {
+    "dma": "VT-DOT3",
+    "year": "2026",
+    "condition": "good",
+    "dn": "90"
+   },
+   "inferred": "dead-end"
+  }
+ ]
+}

@@ -7,7 +7,7 @@
      import service, BFF, a local OIDC stand-in (RS256 sign-in, as Keycloak) and the local
      app-catalog stand-in (water-network-be\docker-compose.local.yml). Database migrations run
      once before the services start.
-  2. Seeds gis-be with the demo network when it is empty (scripts\local-stack\seed.mjs).
+  2. Seeds gis-be with the Vinh Thinh Dot 3 network when it is empty (scripts\local-stack\seed.mjs).
   3. Rebuilds the shared packages and starts the app with `pnpm run dev:local-stack`
      (http://localhost:4610, canonical data source, /api/gis proxied to the BFF).
   4. Gate check: signs in, opens the map, and checks /bootstrap and /map came from the BFF

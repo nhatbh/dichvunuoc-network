@@ -1,14 +1,23 @@
-// Seeds the local backend stack with the demo network (the canonical mock's 54 nodes, 93 pipes,
-// valves, hydrants, plant, reservoirs and pump stations) through gis-be's own write API, so the
-// SYSTEM 3D frontend has a real network to load from the BFF.
+// Seeds the local backend stack through gis-be's own write API, so the SYSTEM 3D frontend has a
+// real network to load from the BFF.
 //
 //   node scripts/local-stack/seed.mjs [--gis http://localhost:8081] [--force]
+//        [--network networks/vinh-thinh-dot3.json | --demo]
+//
+// Default: the Vĩnh Thịnh Đợt 3 network (networks/vinh-thinh-dot3.json), built from the reviewed
+// CAD drawing by networks/build_network.py — pipes, valves, bends and reducers from the drawing,
+// the remaining fittings, source, meter, caps, washouts and hydrants completed by the rules in that
+// script. Every asset is registered exactly as in the file (component, host, properties).
+//
+// --demo: the canonical mock's demo network (54 nodes, 93 pipes, valves, hydrants, plant,
+// reservoirs and pump stations), mapped as follows.
 //
 // Pipes get their end nodes by matching coordinates (a junction is registered where no node
 // sits); valves go on the nearest pipe, hydrants and pumps on the nearest node. Codes become
 // gis-be asset codes ([A-Za-z0-9_-]); Vietnamese material labels become material codes.
 // DMAs are left out until zone-be is merged.
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 // the built package itself, not the app's installed copy of it (pnpm copies file: packages at install)
 import { pipeMaterialCode } from '../../../../packages/contracts/dist/catalog/index.js'
 import { devToken } from './dev-token.mjs'
@@ -20,7 +29,8 @@ const arg = (name, fallback) => {
 const GIS = (arg('gis', process.env.WN_GIS_URL ?? 'http://localhost:8081')).replace(/\/$/, '')
 const FORCE = process.argv.includes('--force')
 const TOKEN = devToken()
-const seed = JSON.parse(readFileSync(new URL('../../src/shared/api/mocks/gis-seed.json', import.meta.url), 'utf8')).network
+const DEMO = process.argv.includes('--demo')
+const NETWORK = arg('network', fileURLToPath(new URL('./networks/vinh-thinh-dot3.json', import.meta.url)))
 
 const M_PER_DEG = 111_320
 const metres = (a, b) => {
@@ -52,9 +62,12 @@ const stats = { nodes: 0, autoJunctions: 0, pipes: 0, devices: 0, skipped: [] }
 async function main() {
   const boot = await call('GET', '/api/network/assets/bootstrap')
   if (boot?.counts?.total > 0 && !FORCE) {
-    console.log(`gis-be already holds ${boot.counts.total} assets; nothing seeded (use --force to add the demo network anyway)`)
+    console.log(`gis-be already holds ${boot.counts.total} assets; nothing seeded (use --force to add the network anyway)`)
     return
   }
+
+  if (!DEMO) return seedNetwork(JSON.parse(readFileSync(NETWORK, 'utf8')))
+  const seed = JSON.parse(readFileSync(new URL('../../src/shared/api/mocks/gis-seed.json', import.meta.url), 'utf8')).network
 
   // nodes: junctions, then facilities as nodes (plant/reservoir = Reservoir, elevated tank = Tank,
   // pump station = PumpStation). Every asset names its catalog component (decision 0028).
@@ -146,6 +159,46 @@ async function main() {
 
   const after = await call('GET', '/api/network/assets/bootstrap')
   console.log(JSON.stringify({ seeded: stats, gisCounts: after?.counts }, null, 2))
+}
+
+// A network dataset (networks/*.json): nodes, pipes between node refs, devices hosted by ref.
+async function seedNetwork(net) {
+  const id = new Map() // dataset ref → gis-be id
+  for (const n of net.nodes) {
+    const r = await call('POST', '/api/network/nodes', {
+      assetCode: n.assetCode, componentCode: n.componentCode, latitude: n.lat, longitude: n.lon, properties: n.properties,
+    })
+    id.set(n.ref, r.id)
+    stats.nodes++
+  }
+  for (const p of net.pipes) {
+    const r = await call('POST', '/api/network/pipes', {
+      assetCode: p.assetCode,
+      fromNodeId: id.get(p.from),
+      toNodeId: id.get(p.to),
+      points: p.coordinates.map(([lng, lat]) => ({ lat, lng })),
+      diameterMm: p.diameterMm,
+      material: p.material,
+      lengthM: p.lengthM,
+      properties: p.properties,
+    })
+    id.set(p.ref, r.id)
+    stats.pipes++
+  }
+  for (const d of net.devices) {
+    await call('POST', '/api/network/devices', {
+      assetCode: d.assetCode,
+      componentCode: d.componentCode,
+      hostPipeId: d.hostPipe ? id.get(d.hostPipe) : null,
+      hostNodeId: d.hostNode ? id.get(d.hostNode) : null,
+      latitude: d.lat,
+      longitude: d.lon,
+      properties: d.properties,
+    })
+    stats.devices++
+  }
+  const after = await call('GET', '/api/network/assets/bootstrap')
+  console.log(JSON.stringify({ network: net.name, seeded: stats, gisCounts: after?.counts }, null, 2))
 }
 
 main().catch((e) => {
