@@ -1,6 +1,6 @@
 # 0028 — Component catalog as the network asset model
 
-Date: 2026-11-08. Status: Proposed (awaiting review).
+Date: 2026-11-08. Status: Accepted (implemented on feat/integration-p0, plan CMP).
 
 ## Context
 
@@ -43,11 +43,18 @@ The platform has no production data yet, so the model can change without a data 
    for catalog-declared properties (DN, second DN, material, angle, valve state, year,
    condition, elevation, DMA). Keys and value types are validated against the catalog;
    unknown keys are rejected, not silently stored.
-6. **Versioned contracts.** Events move to v2 (`network.node.registered.v2`, …) carrying
-   `componentCode`, the functional flags and `properties`. Requests take `componentCode`.
-   v1 is removed, not dual-published: there are no external consumers yet.
+6. **Versioned contracts.** Events keep their types (`network.node.registered`, …) with
+   `EventVersion` 2 and v2 payloads (`NetworkNodeRegisteredV2`, …) carrying `componentCode`, the
+   functional flags and `properties`. Requests take `componentCode` + `properties`. v1 is
+   removed, not dual-published: there are no external consumers yet.
 7. **Fresh schema.** gis-be's migrations are squashed into one initial migration with the
    new columns; development databases are recreated (`run-gis-3d-local-stack.cmd -Reset`).
+
+8. **Attribute bags.** Drafts (CAD import, editor, design) carry the code as attribute
+   `componentCode` and catalog properties as further attributes. Attributes no component
+   declares (provenance, pipe columns) are ignored; a property of another component (a setpoint on
+   a gate valve) is rejected (`IComponentCatalog.ValidateAttributes`, mirrored in
+   `@wn/contracts/catalog`).
 
 ## Consequences
 
@@ -58,3 +65,5 @@ The platform has no production data yet, so the model can change without a data 
 - asset-be keeps `AssetType` Node/Pipe/Device and gains `componentCode` on registration so
   asset profiles can be filtered by component.
 - Existing development data is discarded.
+- Point devices drawn on a pipe (CAD import, editor) attach to the nearest pipe-end node.
+- The legacy `apps/gis` frontend still sends `nodeType`/`deviceType`; it is retired, not ported.

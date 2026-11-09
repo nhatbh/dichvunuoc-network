@@ -1,7 +1,7 @@
 # CMP — Component catalog as the network asset model
 
 **Date:** 2026-11-08
-**Status:** Proposed — awaiting review (decision 0028)
+**Status:** Done (decision 0028 accepted) — verified on the local cloud stack 2026-11-08
 **Services:** building blocks, gis-be, design-be, topology-rs, asset-be, BFF (passthrough),
 water-network-import, water-network-fe (contracts, editor, map)
 
@@ -21,50 +21,60 @@ Done when, on the local stack:
 ## Slices (each: TDD, `dotnet test` green with 0 warnings, conventional commit)
 
 ### CMP-1 Catalog building block
-- [ ] `@wn/component-models`: catalog entries gain `kind` (Node/Pipe/Device), `host`
+- [x] `@wn/component-models`: catalog entries gain `kind` (Node/Pipe/Device), `host`
       (line/pipe/node), functional flags, and property schema (name → type, range, unit).
       `npm run codes` writes the copies for contracts, the import worker and the backend.
-- [ ] `WaterPlatform.BuildingBlocks.Components`: embedded `component-codes.json`,
+- [x] `WaterPlatform.BuildingBlocks.Components`: embedded `component-codes.json`,
       `IComponentCatalog` (Get, Require, HostFor, ValidateProperties), unit tests.
-- [ ] Frontend drift test covers the backend copy.
+- [x] Frontend drift test covers the backend copy.
 
 ### CMP-2 gis-be model
-- [ ] Domain: `ComponentCode` value object; `NetworkNode`, `NetworkPipe`, `NetworkDevice`
+- [x] Domain: `ComponentCode` value object; `NetworkNode`, `NetworkPipe`, `NetworkDevice`
       carry it and `Properties`; `DeviceHost` from the catalog; `NodeType`/`DeviceType` removed.
-- [ ] Persistence: `component_code` and `properties jsonb` on nodes, pipes, devices; squashed
+- [x] Persistence: `component_code` and `properties jsonb` on nodes, pipes, devices; squashed
       initial migration.
-- [ ] API: register/edit requests take `componentCode` + `properties`; bbox, export,
+- [x] API: register/edit requests take `componentCode` + `properties`; bbox, export,
       bootstrap and editor-assets return them (bootstrap gains a component mix).
-- [ ] Events v2 with `componentCode`, flags, `properties`; `NetworkEditValidator` and
+- [x] Events v2 with `componentCode`, flags, `properties`; `NetworkEditValidator` and
       `NetworkEditInspector` use the catalog.
-- [ ] Contract and integration tests updated.
+- [x] Contract and integration tests updated.
 
 ### CMP-3 design-be
-- [ ] `DraftValidationService`: required `componentCode` for nodes/devices, host and DN
+- [x] `DraftValidationService`: required `componentCode` for nodes/devices, host and DN
       rules from the catalog, property validation.
-- [ ] Publication passes `componentCode` + `properties` to gis-be.
+- [x] Publication passes `componentCode` + `properties` to gis-be.
 
 ### CMP-4 topology-rs
-- [ ] Consume v2 events and snapshot fields; isolation uses `isolates`.
-- [ ] Tests: check valve and PRV never chosen as isolation valves.
+- [x] Consume v2 events and snapshot fields; isolation uses `isolates`.
+- [x] Tests: check valve and PRV never chosen as isolation valves.
 
 ### CMP-5 asset-be
-- [ ] Registration consumer stores `componentCode`; list filter by component.
+- [x] Registration consumer stores `componentCode`; list filter by component.
 
 ### CMP-6 CAD import worker
-- [ ] Block rules map to component codes only (legacy node/device rules translated:
+- [x] Block rules map to component codes only (legacy node/device rules translated:
       Valve → GateValve, FlowMeter → BulkMeter, …); drafts carry `componentCode` +
       `properties` (DN from block attributes when mapped).
-- [ ] Node-hosted devices may attach to a generated pipe-end node within tolerance.
+- [x] Node-hosted devices may attach to a generated pipe-end node within tolerance.
 
 ### CMP-7 Frontend
-- [ ] `@wn/contracts`: network-edits port follows the new rules; catalog schema fields.
-- [ ] Editor: drafts carry component codes (valve kinds, node fittings, hydrants, new
+- [x] `@wn/contracts`: network-edits port follows the new rules; catalog schema fields.
+- [x] Editor: drafts carry component codes (valve kinds, node fittings, hydrants, new
       devices from the catalog palette); revision-ops sends `componentCode` + `properties`.
-- [ ] Canonical map and 3D symbols from `componentCode`.
-- [ ] Mock services follow the new contract.
+- [x] Canonical map and 3D symbols from `componentCode`.
+- [x] Mock services follow the new contract.
+
+### Verification results (2026-11-08)
+- CAD e2e (`six components`): tee, reducer (dn 200/dn2 150 from block ATTRIBs), PRV (setpoint
+  35), air valve (on the pipe-end node), bulk meter, booster station (pumpCount 3) published;
+  gis-be bbox and asset-be (`?componentCode=PRV`) return them.
+- Editor live test: butterfly valve (state closed) on its pipe and a washout on a node published
+  with their codes.
+- Isolation: topology-rs test `isolation_closes_gate_and_butterfly_valves_but_never_check_valves_or_prvs`.
+- Suites: building block, gis-be/design-be/asset-be/BFF unit + contract, topology-rs, import
+  worker (111), contracts, gis-3d (460) green; integration suites compile (Docker needed).
 
 ### CMP-8 Verification
-- [ ] Local stack reset; the four "done when" checks above, automated where possible
+- [x] Local stack reset; the four "done when" checks above, automated where possible
       (live editor test, CAD e2e script, isolation test).
-- [ ] Docs: decision 0028 accepted, README and roadmap updated.
+- [x] Docs: decision 0028 accepted, README and roadmap updated.

@@ -37,7 +37,7 @@ public sealed class OverviewEndpointTests
     public async Task Both_Ok_Returns_Full_Overview()
     {
         using var factory = new BffApiFactory();
-        StubGisNode(factory, "n1", HttpStatusCode.OK, "{\"id\":\"n1\",\"assetCode\":\"N-1\",\"nodeType\":\"Junction\"}");
+        StubGisNode(factory, "n1", HttpStatusCode.OK, "{\"id\":\"n1\",\"assetCode\":\"N-1\",\"componentCode\":\"Tee\"}");
         StubAsset(factory, "n1", HttpStatusCode.OK,
             "{\"id\":\"n1\",\"assetCode\":\"N-1\",\"status\":\"Active\",\"technicalProfile\":{\"manufacturer\":\"Acme\"}}");
         using var client = AuthedClient(factory);
@@ -48,7 +48,7 @@ public sealed class OverviewEndpointTests
         var body = await resp.Content.ReadFromJsonAsync<JsonNode>();
         body!["assetId"]!.GetValue<string>().Should().Be("n1");
         body["type"]!.GetValue<string>().Should().Be("node");
-        body["gis"]!["nodeType"]!.GetValue<string>().Should().Be("Junction");
+        body["gis"]!["componentCode"]!.GetValue<string>().Should().Be("Tee");
         body["lifecycle"]!["status"]!.GetValue<string>().Should().Be("Active");
         body["sources"]!["gis"]!.GetValue<string>().Should().Be("ok");
         body["sources"]!["asset"]!.GetValue<string>().Should().Be("ok");

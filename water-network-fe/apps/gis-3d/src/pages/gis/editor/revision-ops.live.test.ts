@@ -47,7 +47,9 @@ describe.skipIf(!BFF)('editor operations on the real design-be (live)', () => {
     const drafts: Draft[] = [
       // a new pipe from an existing node out to open ground (a junction is added at the far end)
       { id: `L${stamp}-1`, op: 'add', kind: 'pipe', geom: 'line', pts: [[ex + 0.3, ey], [ex + 40, ey + 25]], dn: 150, material: 'Gang dẻo', year: 2026, cond: 'good', trunk: false, dma: 'DMA-01', eam: null },
-      { id: `L${stamp}-2`, op: 'add', kind: 'valve', geom: 'point', x: ex + 20, y: ey + 12.5, dn: 150, vkind: 'gate', state: 'open', dma: 'DMA-01', eam: null, onPipe: `L${stamp}-1` },
+      { id: `L${stamp}-2`, op: 'add', kind: 'valve', geom: 'point', x: ex + 20, y: ey + 12.5, dn: 150, vkind: 'butterfly', state: 'closed', dma: 'DMA-01', eam: null, onPipe: `L${stamp}-1` },
+      // a washout at the far end of the new pipe (a point device: hosted on that end's node)
+      { id: `L${stamp}-6`, op: 'add', kind: 'valve', geom: 'point', x: ex + 40, y: ey + 25.5, dn: 100, vkind: 'washout', state: 'open', dma: 'DMA-01', eam: null, onPipe: `L${stamp}-1` },
       { id: `L${stamp}-3`, op: 'add', kind: 'hydrant', geom: 'point', x: ex + 41, y: ey + 26, dma: 'DMA-01', htype: 'pillar', eam: null },
       // a node dropped on a published pipe splits it
       { id: `L${stamp}-4`, op: 'add', kind: 'node', geom: 'point', x: sx, y: sy, dma: 'DMA-01', ntype: 'Nút tách', z: 10, eam: null, splitOf: splitId },
@@ -79,5 +81,11 @@ describe.skipIf(!BFF)('editor operations on the real design-be (live)', () => {
     }
     expect(Object.values(after).some(v => v.asset.assetCode === `ONG-L${stamp}-1`)).toBe(true)
     expect(after[modId]!.asset.attributes.diameterMm).toBe('250')
+    // the catalog components arrive with their codes and properties (decision 0028)
+    const byCode = (assetCode: string) => Object.values(after).find(v => v.asset.assetCode === assetCode)?.asset
+    expect(byCode(`VAN-L${stamp}-2`)?.attributes).toMatchObject({ componentCode: 'ButterflyValve', state: 'closed', dn: '150' })
+    expect(byCode(`VAN-L${stamp}-6`)?.attributes.componentCode).toBe('Washout')
+    expect(byCode(`VAN-L${stamp}-6`)?.hostRef).toBeTruthy()
+    expect(byCode(`NUT-L${stamp}-4`)?.attributes.componentCode).toBe('Junction')
   }, 90_000)
 })
