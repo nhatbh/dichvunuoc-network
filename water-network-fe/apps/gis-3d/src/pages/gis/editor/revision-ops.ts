@@ -265,7 +265,9 @@ export function draftsToOperations(drafts: Draft[], p: Projector, base: EditStat
   // a split pipe becomes several pieces; later splits and valves pick the nearest piece
   const pieces = new Map<string, string[]>()
   const nearestPiece = (key: string, pt: Point) => {
-    const keys = pieces.get(key) ?? [key]
+    // an unsplit pipe is its only piece: no need to touch (and update) it
+    if (!pieces.has(key)) return key
+    const keys = pieces.get(key)!
     let best: { key: string; d: number } | null = null
     for (const k of keys) {
       const op = pipeOp(k)

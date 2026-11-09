@@ -1,7 +1,7 @@
 # EDT — The SYSTEM 3D editor on the live network
 
 **Date:** 2026-11-09
-**Status:** In progress — approved 2026-11-09 (EDT-1…4 done)
+**Status:** Done — approved and verified on the local cloud stack 2026-11-09
 **Services:** water-network-fe (gis-3d); design-be (revision list gains name, createdAt, returnedReason)
 
 ## Outcome
@@ -72,10 +72,21 @@ Done when, on the local stack with the Vĩnh Thịnh Đợt 3 network:
 - [x] Tests: attach-eam needs an EAM source; demo mode unchanged.
 
 ### EDT-5 Verification
-- [ ] Live test (`WN_LIVE_BFF`): clone → edit → save → submit → approve → publish on the Đợt 3
-      network; topology isolation sees the new valve.
-- [ ] Screenshots of gate, workspace and publish result; project doc and integration plan updated.
+- [x] Live test (`WN_LIVE_BFF`): on the Đợt 3 network, move a tee (its pipes follow), close a gate
+      valve and add a property → save → validate → submit → approve → published in gis-be with
+      the other properties kept; topology issues stay 0.
+- [x] Screenshots of gate, workspace and property panel; project doc and integration plan updated.
 
 ## Out of scope
 Server-side branch metadata beyond the revision (lanes, cards on the scenario board), DMA
 editing (no zone-be yet), multi-user locking of the same revision.
+
+## Verification results (2026-11-09)
+- Biên tập → gate: the official network (14.9 km, 126 assets after the live tests) to clone, the
+  tenant's draft revisions, published ones under Lưu trữ; another browser sees the same list.
+- Cloned the official network, selected a tee: panel shows "Tê đều", DN 225, HDPE; Khoá & sửa →
+  Lưu nháp saved an Update keeping dn/material.
+- Live tests (`revision-ops.live.test.ts`, 2) passed against the BFF; smoke passed; gis-3d 443
+  tests green; design-be list test compiles (runs with Docker).
+- Fixed on the way: the editor drew over the shell's top bar; the property panel did not follow
+  selection changes; a valve on an unsplit published pipe created a needless pipe update.

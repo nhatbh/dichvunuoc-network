@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { server } from '@/shared/api/mocks/server'
 // @ts-expect-error -- plain .mjs helper shared with the local-stack scripts
 import { devToken } from '../../../../scripts/local-stack/dev-token.mjs'
-import { draftsToOperations, type Projector } from './revision-ops'
+import { draftFromBase, draftsToOperations, type Projector } from './revision-ops'
 import type { Draft } from './model'
 import type { Edit, Revision, State } from './revision-model'
 
@@ -87,5 +87,46 @@ describe.skipIf(!BFF)('editor operations on the real design-be (live)', () => {
     expect(byCode(`VAN-L${stamp}-6`)?.attributes.componentCode).toBe('Washout')
     expect(byCode(`VAN-L${stamp}-6`)?.hostRef).toBeTruthy()
     expect(byCode(`NUT-L${stamp}-4`)?.attributes.componentCode).toBe('Junction')
+  }, 90_000)
+
+  it('edits the published network: moves a tee with its pipes, closes a valve, keeps properties', async () => {
+    const base = (await call<State>('/assets')).json
+    const all = Object.entries(base)
+    const pipesAt = (id: string) => all.filter(([, v]) => v.asset.kind === 'Pipe' && (v.asset.fromRef === id || v.asset.toRef === id))
+    const [teeId, tee] = all.find(([id, v]) => /Tee$/.test(v.asset.attributes.componentCode ?? '') && pipesAt(id).length >= 3)!
+    const [valveId, valve] = all.find(([, v]) => v.asset.attributes.componentCode === 'GateValve')!
+    const moved = draftFromBase(teeId, tee.asset, proj)
+    moved.x! += 3 // ~3 m east
+    const closed = draftFromBase(valveId, valve.asset, proj)
+    closed.state = 'closed'
+    closed.props = { ...closed.props, manufacturer: 'AVK' }
+    const ops = draftsToOperations([moved, closed], proj, base)
+    expect(ops.filter(o => o.kind === 'Pipe').length).toBe(pipesAt(teeId).length)
+
+    const project = await call<{ id: string }>('/projects', 'POST', { name: 'Live edit ' + Date.now().toString(36) })
+    const created = await call<{ id: string }>(`/projects/${project.json.id}/revisions`, 'POST', {})
+    const rev = (await call<Revision>(`/revisions/${created.json.id}`)).json
+    const saved = await call<Revision & { errors: unknown[] }>(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: ops })
+    expect(saved.status, JSON.stringify(saved.json)).toBe(200)
+    expect(saved.json.errors, JSON.stringify(saved.json.errors)).toEqual([])
+    expect((await call<{ isValid: boolean }>(`/revisions/${rev.id}/validate`, 'POST', {})).json).toMatchObject({ isValid: true })
+    expect((await call(`/revisions/${rev.id}/submit`, 'POST', {})).status).toBeLessThan(300)
+    expect((await call(`/revisions/${rev.id}/approve`, 'POST', {})).status).toBeLessThan(300)
+
+    const at = ops.find(o => o.targetId === teeId)!.after!.geometry.coordinates[0]!
+    let after: State = {}
+    for (let i = 0; i < 30; i++) {
+      after = (await call<State>('/assets')).json
+      if (after[valveId]?.asset.attributes.state === 'closed') break
+      await new Promise(r => setTimeout(r, 1000))
+    }
+    expect(after[valveId]!.asset.attributes).toMatchObject({ state: 'closed', manufacturer: 'AVK', dn: valve.asset.attributes.dn })
+    expect(after[teeId]!.asset.geometry.coordinates[0]).toEqual(at)
+    expect(after[teeId]!.asset.attributes).toMatchObject(tee.asset.attributes)
+    for (const [pid] of pipesAt(teeId)) {
+      const line = after[pid]!.asset.geometry.coordinates
+      const end = after[pid]!.asset.fromRef === teeId ? line[0] : line[line.length - 1]
+      expect(end, pid).toEqual(at)
+    }
   }, 90_000)
 })
