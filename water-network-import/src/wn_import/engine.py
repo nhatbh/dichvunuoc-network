@@ -131,13 +131,42 @@ def remove_exact_duplicates(features, reviewed_by_id, issues, config):
     return keep, aliases
 
 
-def validate_device_host_selection(points, pipes, aliases, selections, issues):
+def drawn_host(device, pipes, points, tolerance):
+    """The one pipe or node the device symbol is drawn on, in drawing coordinates.
+
+    A host is drawn on when it lies within `tolerance` of the symbol and no other accepted
+    host does; with none or several in reach the reviewer chooses (decision 0030).
+    """
+    code = device["properties"].get("componentCode")
+    at = Point(device["geometry"]["coordinates"][:2])
+    reach = []
+    for host in pipes + [p for p in points if p["properties"].get("kind") == "Node"]:
+        if not accepts_host(code, host["properties"].get("kind")):
+            continue
+        geometry = host["geometry"]
+        shape = (
+            LineString([c[:2] for c in geometry["coordinates"]])
+            if geometry["type"] == "LineString"
+            else Point(geometry["coordinates"][:2])
+        )
+        if shape.distance(at) <= tolerance:
+            reach.append(host["id"])
+    return reach[0] if len(reach) == 1 else None
+
+
+def validate_device_host_selection(points, pipes, aliases, selections, issues, config=None):
     assets = {feature["id"]: feature for feature in pipes + points}
     invalid = set()
     resolved = {}
+    drawn_on = 0
+    # host tolerance is metres; raw drawing coordinates are in the source units
+    tolerance = (config.hostToleranceM * (1000 if config.sourceUnits == "mm" else 1)) if config else 0
     for device in (f for f in points if f["properties"].get("kind") == "Device"):
         feature_id = device["id"]
         requested = selections.get(feature_id)
+        if not requested and config is not None and config.resolveDeviceHosts:
+            requested = drawn_host(device, pipes, points, tolerance)
+            drawn_on += requested is not None
         if not requested:
             issues.append(
                 issue(
@@ -175,6 +204,14 @@ def validate_device_host_selection(points, pipes, aliases, selections, issues):
             invalid.add(feature_id)
             continue
         resolved[feature_id] = host_id
+    if drawn_on:
+        issues.append(
+            issue(
+                "DEVICE_HOST_RESOLVED",
+                "info",
+                f"{drawn_on} thiết bị được gắn vào ống/nút duy nhất nằm dưới ký hiệu (trong {config.hostToleranceM:g} m).",
+            )
+        )
     return invalid, resolved
 
 
@@ -386,7 +423,7 @@ def _analyze(raw, inventory, config, registration):
     if not pipes:
         issues.append(issue("NO_PIPES", "error", "Chưa chọn được tuyến ống để nhập."))
     invalid_devices, resolved_host_ids = validate_device_host_selection(
-        point_candidates, pipes, duplicate_aliases, device_hosts, issues
+        point_candidates, pipes, duplicate_aliases, device_hosts, issues, config
     )
     mapped_devices = {
         f["id"] for f in point_candidates if f["properties"].get("kind") == "Device"
@@ -831,10 +868,101 @@ def _analyze(raw, inventory, config, registration):
                 "Đã bật snap đầu ống. Kiểm tra các vị trí điều chỉnh theo ngưỡng đã chọn.",
             )
         )
+    if config.inferFittings:
+        resolve_fittings(nodes, pipe_draft_records, valid_devices, config, issues)
     drafts = list(nodes.values()) + drafts
     return finish(
         reviewed, clean, drafts, list(nodes.values()), issues, "EPSG:4326", config
     )
+
+
+def _catalog_value(code, key, value):
+    """`value` as the catalog property `key` of `code`, or None when the catalog rejects it."""
+    props, _ = properties_from_block(code, {key: value})
+    return props.get(key)
+
+
+def _deflection(a, b):
+    """Degrees a run turns at a node, from the two pipes' directions leaving it (0 = straight)."""
+    turn = abs(math.degrees(math.atan2(a[1], a[0]) - math.atan2(b[1], b[0]))) % 360
+    return 180 - min(turn, 360 - turn)
+
+
+def resolve_fittings(nodes, pipe_draft_records, devices, config, issues):
+    """Fill in what the drawing determines but does not name (decision 0030).
+
+    A node generated at pipe ends is a Junction until here; from the pipes meeting at it, it
+    becomes a Tee (ReducingTee when the branch is smaller) or a Cross, or on a run a Reducer
+    (diameter changes) or a Bend (turns by at least bendMinAngleDeg). Dead ends and straight
+    joints stay Junctions. Every node, and every device on a pipe, gets dn/dn2/material/angle
+    from those pipes when the drawing gave none and the catalog accepts the value. A component
+    drawn as a block is never overruled; one that does not fit its pipes is reported.
+    """
+    legs = defaultdict(list)  # node ref -> [(diameter, material, direction away from the node)]
+    pipe_dn = {}
+    for f, draft in pipe_draft_records:
+        coords = list(f["_line"].coords)
+        dn = draft["attributes"].get("diameterMm") or ""
+        dn = str(int(float(dn))) if dn else ""
+        pipe_dn[draft["clientRef"]] = dn
+        material = draft["attributes"].get("material") or ""
+        for ref, (x0, y0), (x1, y1) in (
+            (draft["fromRef"], coords[0], coords[1]),
+            (draft["toRef"], coords[-1], coords[-2]),
+        ):
+            legs[ref].append((dn, material, (x1 - x0, y1 - y0)))
+    for ref, node in nodes.items():
+        attrs = node["attributes"]
+        meeting = legs.get(ref, [])
+        dns = sorted({int(d) for d, _, _ in meeting if d}, reverse=True)
+        materials = {m for _, m, _ in meeting}
+        angle = _deflection(meeting[0][2], meeting[1][2]) if len(meeting) == 2 else None
+        if len(meeting) >= 3:
+            fitting = "Cross" if len(meeting) == 4 else ("ReducingTee" if len(dns) > 1 else "Tee")
+            if len(meeting) > 4:
+                fitting = None
+        elif len(meeting) == 2 and len(dns) > 1:
+            fitting = "Reducer"
+        elif angle is not None and angle >= config.bendMinAngleDeg:
+            fitting = "Bend"
+        else:
+            fitting = None
+        drawn = attrs.get("generatedFrom") == "explicit-block-node"
+        if not drawn and fitting:
+            attrs["componentCode"] = fitting
+            attrs["componentFrom"] = "geometry"
+        elif drawn and len(meeting) >= 3 and attrs["componentCode"] in ("Bend", "Reducer", "Cap", "Junction"):
+            issues.append(
+                issue(
+                    "FITTING_BRANCH_MISMATCH",
+                    "warning",
+                    f"Ký hiệu {attrs['componentCode']} đặt tại nút có {len(meeting)} ống gặp nhau; kiểm tra lại phụ kiện.",
+                    attrs.get("sourceFeatureId"),
+                )
+            )
+        code = attrs["componentCode"]
+        derived = {}
+        if dns:
+            derived["dn"] = str(dns[0])
+            if len(dns) > 1 and code in ("Reducer", "ReducingTee"):
+                derived["dn2"] = str(dns[-1])
+        if len(materials) == 1 and "" not in materials:
+            derived["material"] = next(iter(materials))
+        if code == "Bend" and angle is not None and angle >= config.bendMinAngleDeg:
+            # a drawn bend on what looks straight keeps its angle unknown
+            derived["angle"] = format(round(angle, 1), "g")
+        for key, value in derived.items():
+            if key not in attrs:
+                accepted = _catalog_value(code, key, value)
+                if accepted is not None:
+                    attrs[key] = accepted
+    for device in devices:
+        attrs = device["attributes"]
+        dn = pipe_dn.get(device["hostRef"])
+        if dn and "dn" not in attrs:
+            accepted = _catalog_value(attrs["componentCode"], "dn", dn)
+            if accepted is not None:
+                attrs["dn"] = accepted
 
 
 def mark(raw_by_id, fid, disposition, reason):

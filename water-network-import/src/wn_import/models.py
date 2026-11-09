@@ -132,6 +132,13 @@ class ReviewConfig(StrictModel):
     snapToleranceM: FiniteFloat = Field(default=0, ge=0, le=2)
     simplifyToleranceM: FiniteFloat = Field(default=0, ge=0, le=0.5)
     minLengthM: FiniteFloat = Field(default=0, ge=0, le=10)
+    # Nodes the drawing leaves unnamed get the fitting the pipes meeting there make (Tee,
+    # ReducingTee, Cross, Reducer, Bend); dn/dn2/material/angle come from those pipes.
+    inferFittings: bool = True
+    # A device with no host selection goes on the one pipe/node drawn under its symbol
+    # (within hostToleranceM); none or several in reach still need the reviewer.
+    resolveDeviceHosts: bool = True
+    bendMinAngleDeg: FiniteFloat = Field(default=11.25, gt=0, lt=90)
     # Affine target is in sourceCrs; evidence and independent check points are required.
     controlPoints: list[ControlPoint] = Field(default_factory=list, max_length=100)
     # Explicit GIS-click mode: raw CAD has no asserted CRS; target pairs are lon/lat.

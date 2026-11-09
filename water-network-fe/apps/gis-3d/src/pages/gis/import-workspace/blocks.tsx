@@ -322,7 +322,7 @@ export function BlockMapping(props: {
                             w.config()?.deviceHosts?.find(host => host.featureId === device.id)
                               ?.hostFeatureId ?? ''
                           }
-                          placeholder="Chọn hoặc nhập đúng mã đối tượng gốc"
+                          placeholder="Để trống: gắn vào ống/nút duy nhất dưới ký hiệu"
                           onInput={event => updateHost(device.id, event.currentTarget.value)}
                         />
                         <datalist id={`hosts-${device.id}`}>
