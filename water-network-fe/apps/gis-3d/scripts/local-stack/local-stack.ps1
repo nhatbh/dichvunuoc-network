@@ -35,7 +35,7 @@ $OutDir   = Join-Path $RepoRoot '_sync_tmp\local-stack'
 $LogFile  = Join-Path $OutDir 'local-stack.log'
 $Compose  = @('compose', '-f', 'docker-compose.yml', '-f', 'docker-compose.local.yml')
 $Infra    = @('postgres', 'redis', 'rabbitmq', 'jaeger')
-$Services = @('dev-oidc', 'water-network-gis-be', 'water-network-asset-be', 'water-network-design-be', 'water-network-import', 'dev-app-catalog', 'water-network-bff')
+$Services = @('dev-oidc', 'water-network-gis-be', 'water-network-asset-be', 'water-network-design-be', 'water-network-import', 'water-network-topology-rs', 'dev-app-catalog', 'water-network-bff')
 
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 Set-Content -Path $LogFile -Value "local-stack $(Get-Date -Format s)" -Encoding UTF8
@@ -104,7 +104,7 @@ if ((Run 'docker' ($Compose + @('up', '-d', '--wait') + $Infra) $BeRoot) -ne 0) 
 
 if (-not $NoBuild) {
   Step 'Building backend images (first time takes several minutes; the CAD import image compiles LibreDWG)'
-  if ((Run 'docker' ($Compose + @('build') + @('water-network-gis-be', 'water-network-asset-be', 'water-network-design-be', 'water-network-bff', 'water-network-import')) $BeRoot) -ne 0) { Fail 'image build failed - see local-stack.log' }
+  if ((Run 'docker' ($Compose + @('build') + @('water-network-gis-be', 'water-network-asset-be', 'water-network-design-be', 'water-network-bff', 'water-network-import', 'water-network-topology-rs')) $BeRoot) -ne 0) { Fail 'image build failed - see local-stack.log' }
 }
 
 Step 'Applying database migrations (gis-be, asset-be, design-be)'
@@ -112,12 +112,13 @@ foreach ($svc in 'water-network-gis-be', 'water-network-asset-be', 'water-networ
   if ((Run 'docker' ($Compose + @('run', '--rm', '--no-deps', $svc, '--migrate')) $BeRoot) -ne 0) { Fail "$svc migrations failed - see local-stack.log" }
 }
 
-Step 'Starting gis-be, asset-be, design-be, CAD import, BFF'
+Step 'Starting gis-be, asset-be, design-be, CAD import, topology, BFF'
 if ((Run 'docker' ($Compose + @('up', '-d') + $Services) $BeRoot) -ne 0) { Fail 'services did not start - see local-stack.log' }
 if (-not (Wait-Http 'http://localhost:8081/health' 120)) { Fail 'gis-be is not healthy on :8081 (docker compose logs water-network-gis-be)' }
 if (-not (Wait-Http 'http://localhost:8083/health' 120)) { Fail 'BFF is not healthy on :8083 (docker compose logs water-network-bff)' }
 if (-not (Wait-Http 'http://localhost:8090/health' 120)) { Fail 'the CAD import service is not healthy on :8090 (docker compose logs water-network-import)' }
-Write-Host '    gis-be :8081, BFF :8083, CAD import :8090 healthy'
+if (-not (Wait-Http 'http://localhost:8085/health' 120)) { Fail 'topology-rs is not healthy on :8085 (docker compose logs water-network-topology-rs)' }
+Write-Host '    gis-be :8081, BFF :8083, CAD import :8090, topology :8085 healthy'
 
 # -- 2. frontend packages + seed -----------------------------------------------------------------
 if (-not (Test-Path (Join-Path $AppDir 'node_modules\.bin\vite.cmd'))) {

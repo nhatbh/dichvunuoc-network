@@ -60,6 +60,8 @@ const CANONICAL_SUPPORTED_ROUTES = new Set([
   'import',
   // design revisions from design-be (BFF /editor/*); #editor opens the server-native editor
   'versions',
+  // trace and valve isolation from topology-rs (BFF /topology/*, decision 0029)
+  'trace',
   // the operations screens run on the canonical network once /ops is live
   ...(getOpsSource() === 'live' ? OPS_ROUTES : []),
 ])

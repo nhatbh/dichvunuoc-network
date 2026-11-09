@@ -11,6 +11,8 @@
 # - the BFF's editor and import routes pointed at design-be and the import service, and
 #   design-be's edit inspection at gis-be (the base file leaves these unset).
 # - water-network-import: the CAD import service (DWG via LibreDWG, DXF), data in a volume.
+# - the BFF's topology routes pointed at topology-rs (decision 0029); topology-rs rebuilds a
+#   tenant's graph from gis-be's export with the caller's token, so no service credential.
 # Never deploy this file.
 x-local-auth: &local-auth
   Jwt__Mode: Authority
@@ -75,11 +77,17 @@ services:
       AppEntitlement__BaseUrl: http://dev-app-catalog:8080/
       Downstream__Design__BaseUrl: http://water-network-design-be:8080
       Downstream__Import__BaseUrl: http://water-network-import:8090
+      Downstream__Topology__BaseUrl: http://water-network-topology-rs:50051
     depends_on:
       - dev-oidc
       - dev-app-catalog
       - water-network-design-be
       - water-network-import
+      - water-network-topology-rs
+
+  water-network-topology-rs:
+    environment:
+      TOPOLOGY_GIS_BASE_URL: http://water-network-gis-be:8080
 
   water-network-import:
     build:

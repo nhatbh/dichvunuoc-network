@@ -5,7 +5,8 @@
 //   node scripts/local-stack/smoke.mjs [--app http://localhost:4610] [--out <dir>]
 //
 // Exit code 0 = gate passed: /bootstrap and /map answered 200 from the BFF with features,
-// the app shows the canonical map, and no page errors.
+// the app shows the canonical map, topology isolates a pipe (topology-rs through the BFF,
+// decision 0029), and no page errors.
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { chromium } from '@playwright/test'
@@ -40,6 +41,7 @@ try {
         for (const f of body.features ?? []) {
           const k = f.properties?.assetType ?? f.properties?.kind ?? f.geometry?.type
           entry.kinds[k] = (entry.kinds[k] ?? 0) + 1
+          if (!report.pipeId && f.geometry?.type === 'LineString') report.pipeId = String(f.id)
         }
       } catch { /* body not JSON: keep the status only */ }
     }
@@ -61,6 +63,16 @@ try {
   await page.waitForTimeout(5000)
   await page.screenshot({ path: path.join(OUT, 'map.png') })
   report.url = page.url()
+  // isolation through the dev server's /api/gis proxy (it adds the dev token)
+  report.topology = report.pipeId
+    ? await page.evaluate(async (pipeId) => {
+        const r = await fetch('/api/gis/topology/isolation', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pipeId }),
+        })
+        const body = await r.json().catch(() => null)
+        return { status: r.status, graphReady: body?.graphReady, isolatedPipes: body?.isolatedPipes?.length, valvesToClose: body?.valvesToClose?.length }
+      }, report.pipeId)
+    : null
 
   const boot = report.api.find((a) => a.path === '/api/gis/bootstrap')
   const map = report.api.filter((a) => a.path === '/api/gis/map')
@@ -70,6 +82,7 @@ try {
     bootstrapHasData: (boot?.counts?.total ?? 0) > 0,
     map200: map.length > 0 && map.every((m) => m.status === 200),
     mapHasFeatures: map.some((m) => (m.features ?? 0) > 0),
+    topologyIsolates: report.topology?.status === 200 && report.topology.graphReady === true && report.topology.isolatedPipes > 0,
     noPageErrors: report.pageErrors.length === 0,
   }
 } finally {

@@ -1,6 +1,6 @@
 # 0029 — Topology queries through the BFF, rebuilt on demand
 
-Date: 2026-11-09. Status: Proposed (plan TRC approved; accepted when TRC-5 passes).
+Date: 2026-11-09. Status: Accepted (plan TRC, verified on the local cloud stack 2026-11-09).
 
 ## Context
 

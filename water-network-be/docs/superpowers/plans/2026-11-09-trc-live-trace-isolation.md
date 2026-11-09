@@ -1,7 +1,7 @@
 # TRC — Trace and isolation live in SYSTEM 3D
 
 **Date:** 2026-11-09
-**Status:** Proposed — awaiting review (decision 0029)
+**Status:** Done (decision 0029 accepted) — verified on the local cloud stack 2026-11-09
 **Services:** topology-rs, BFF, gis-be (read only), water-network-fe (contracts, Trace screen, mocks), local stack
 
 ## Outcome
@@ -34,48 +34,60 @@ Done when, on the local stack:
 ## Slices (each: TDD, green suites with 0 warnings, conventional commit)
 
 ### TRC-1 topology-rs graph model
-- [ ] Nodes keep `component_code` and functions (from v2 events and export); devices keep all
+- [x] Nodes keep `component_code` and functions (from v2 events and export); devices keep all
       functions, not just `isolates`. Snapshot stays backward compatible (`serde(default)`).
-- [ ] `compute_isolation_zone` accepts a pipe: the segment is the pipe's valve-free component;
+- [x] `compute_isolation_zone` accepts a pipe: the segment is the pipe's valve-free component;
       a valve on the target pipe itself is closed; result adds `affectedServices` (devices with
       `serves` on isolated pipes/nodes) and `boundaryPipes`.
-- [ ] `trace(start, direction)`: `upstream` = shortest paths to the nearest `supplies`/`stores`
+- [x] `trace(start, direction)`: `upstream` = shortest paths to the nearest `supplies`/`stores`
       nodes; `downstream` = everything reachable from the start when the upstream path is cut;
       `all` = the current depth BFS. Closed valves (`state=closed` property) block traversal.
-- [ ] Tests: pipe start, valve on the target pipe, check valve/PRV never closed, closed valve
+- [x] Tests: pipe start, valve on the target pipe, check valve/PRV never closed, closed valve
       blocks trace, upstream reaches a reservoir.
 
 ### TRC-2 topology-rs API and rebuild
-- [ ] Proto v1 additions (backward compatible): `oneof start { start_node_id, start_pipe_id }`,
+- [x] Proto v1 additions (backward compatible): `oneof start { start_node_id, start_pipe_id }`,
       `TraceDirection`, `affected_service_ids`, `boundary_pipe_ids`, `graph_ready`.
-- [ ] Rebuild wired: when a query arrives for a tenant with no graph, topology-rs pages gis-be's
+- [x] Rebuild wired: when a query arrives for a tenant with no graph, topology-rs pages gis-be's
       export with the caller's bearer token (forwarded in gRPC metadata by the BFF), applies it,
       then answers; concurrent callers wait on the same rebuild. `graph_ready=false` with an
       empty result if gis-be is unreachable.
-- [ ] Tests: wiremock export → first query rebuilds; second query does not.
+- [x] Tests: wiremock export → first query rebuilds; second query does not.
 
 ### TRC-3 BFF routes
-- [ ] gRPC client (same proto as incident-be), `Topology:BaseUrl`, 5 s deadline, bearer forwarded.
-- [ ] `POST /api/gis/topology/isolation` `{ pipeId | nodeId }` →
+- [x] gRPC client (same proto as incident-be), `Topology:BaseUrl`, 5 s deadline, bearer forwarded.
+- [x] `POST /api/gis/topology/isolation` `{ pipeId | nodeId }` →
       `{ valvesToClose, isolatedPipes, isolatedNodes, boundaryPipes, affectedServices, graphVersion, graphReady }`.
-- [ ] `GET /api/gis/topology/trace?from=&direction=upstream|downstream|all&maxDepth=`.
-- [ ] `GET /api/gis/topology/nearest-valves?nodeId=&k=`, `GET /api/gis/topology/issues`.
-- [ ] Permission `network-gis:read`; tenant from the token; 503 `TOPOLOGY_UNAVAILABLE` on transport faults.
-- [ ] Unit tests with a fake gRPC client; OpenAPI updated.
+- [x] `GET /api/gis/topology/trace?from=&direction=upstream|downstream|all&maxDepth=`.
+- [x] `GET /api/gis/topology/nearest-valves?nodeId=&k=`, `GET /api/gis/topology/issues`.
+- [x] Permission `network-gis:read`; tenant from the token; 503 `TOPOLOGY_UNAVAILABLE` on transport faults.
+- [x] Unit tests with a fake gRPC client; OpenAPI updated.
 
 ### TRC-4 Frontend
-- [ ] `@wn/contracts/topology`: Zod schemas for the four responses.
-- [ ] Trace screen: target picker (click a pipe/node on the map), runs the BFF call, highlights
+- [x] `@wn/contracts/topology`: Zod schemas for the four responses.
+- [x] Trace screen: target picker (click a pipe/node on the map), runs the BFF call, highlights
       result; valve list shows component names from the catalog; "customers affected" count.
-- [ ] MSW mock: same contract, computed from the demo seed with a port of the isolation rule
+- [x] MSW mock: same contract, computed from the demo seed with a port of the isolation rule
       (valves with `isolates`), so offline mode behaves like the server.
-- [ ] Tests: contract parse, screen with the mock, mock rule (check valve never closed).
+- [x] Tests: contract parse, screen with the mock, mock rule (check valve never closed).
 
 ### TRC-5 Local stack and verification
-- [ ] `docker-compose.local.yml`: topology-rs with `TOPOLOGY_GIS_BASE_URL`, BFF `Topology__BaseUrl`.
-- [ ] Live test (`WN_LIVE_BFF`): isolate a seeded pipe; restart topology-rs with no snapshot and
+- [x] `docker-compose.local.yml`: topology-rs with `TOPOLOGY_GIS_BASE_URL`, BFF `Topology__BaseUrl`.
+- [x] Live test (`WN_LIVE_BFF`): isolate a seeded pipe; restart topology-rs with no snapshot and
       query again (rebuild path).
-- [ ] Decision 0029 accepted; integration plan doc updated.
+- [x] Decision 0029 accepted; integration plan doc updated.
+
+## Verification results (2026-11-09)
+- topology-rs started with no snapshot after the network was published; the first BFF isolation
+  call rebuilt the tenant's graph from gis-be's export (19 assets) with the caller's token.
+- Isolating a pipe of the CAD-imported network: 5 pipes, 6 nodes, 1 valve to close (the
+  editor's butterfly valve); the PRV and the bulk meter were never chosen.
+- `smoke.mjs` (Phase 0 gate + `topologyIsolates`) passed; the Trace screen ran on the real
+  network (screenshot in the session).
+- Suites: topology-rs 51, BFF unit 41, contracts 40, gis-3d 463 green; BFF endpoint tests
+  compile (WireMock, run on the user's machine).
+- Known gap: the mock's demo network has no source nodes, so offline upstream traces find none;
+  valve state changes after installation do not reach topology-rs yet (decision 0029).
 
 ## Out of scope
 Pressure-aware criticality, valve operability history, persisting isolation plans from the
