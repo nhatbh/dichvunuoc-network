@@ -170,6 +170,14 @@ function lengthM(coords: Point[]): number {
   return m
 }
 
+/** The official network as published assets (the topology mock builds its graph from it). */
+export function officialAssets(): Asset[] {
+  return Object.entries(assets()).map(([id, v]) => ({ ...v.asset, draftAssetId: id }))
+}
+let topologyVersion = 0
+/** Bumps whenever publishing changes the official network. */
+export const officialVersion = () => topologyVersion
+
 /** Server-side validation: the port of gis-be's NetworkEditValidator (same rules, same codes). */
 export function validateOperations(ops: Edit[]): Issue[] {
   return inspectNetworkEdits(assets(), ops).errors
@@ -187,6 +195,7 @@ function publish(rev: Revision): void {
     published.push({ ...op, after: op.after ? { ...op.after, draftAssetId: id } : null })
   }
   rev.status = 'Published'
+  topologyVersion++
 }
 
 /** Replay published operations onto a `/full` payload (pixel plane). */

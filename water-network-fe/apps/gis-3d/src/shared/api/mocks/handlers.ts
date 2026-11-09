@@ -10,6 +10,7 @@ import { aSnapshot, aMapFeatureCollection } from '@wn/contracts/testing'
 import { editorHandlers } from './editor-handlers'
 import { gisHandlers } from './gis-handlers'
 import { opsHandlers } from './ops-handlers'
+import { topologyHandlers } from './topology-handlers'
 import {
   CreateDraftFeatureRequest,
   UpdateDraftFeatureGeometryRequest,
@@ -84,6 +85,7 @@ export const handlers = [
   ...editorHandlers,
   ...gisHandlers,
   ...opsHandlers,
+  ...topologyHandlers,
   http.get('*/snapshot/:id/features', () => HttpResponse.json(mockFeatures)),
 
   http.post('*/snapshot/:id/draft/features', async ({ request }) => {

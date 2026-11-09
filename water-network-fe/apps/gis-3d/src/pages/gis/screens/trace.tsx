@@ -1,64 +1,92 @@
 /* GIS — Truy vết mạng & cô lập van (SolidJS port of trace.jsx). */
+import { findComponent } from '@wn/contracts/catalog'
 import { For, Show, createMemo, createSignal, type JSX } from 'solid-js'
+import { topologyApi } from '../lib/topology-api'
+import type { Selection } from '../ui/network-map'
 import { useGis } from '../lib/gis-data'
 import { cAccent, chex, fmtInt, tone } from '../lib/theme'
 import { Badge, Btn, Card, DmaChip, Empty, ScreenHead, SegToggle } from '../ui/kit'
 import { MapOverlay } from '../shell/map-stage'
 
 type TraceMode = 'isolation' | 'upstream' | 'downstream'
+interface Result {
+  kind: 'isolation' | 'trace'
+  pipes: string[]
+  valves: string[]
+  services: number
+  nodes: number
+  sources: string[]
+  /** topology-rs had (or could build) the tenant's graph */
+  ready: boolean
+}
 
 export function TraceScreen(props: { toast: (m: string, k?: string) => void }): JSX.Element {
   const G = useGis()
-  const ISO = G.isolation
   const [mode, setMode] = createSignal<TraceMode>('isolation')
-  const [ran, setRan] = createSignal(true)
   const [running, setRunning] = createSignal(false)
+  const [result, setResult] = createSignal<Result | null>(null)
+  const [error, setError] = createSignal<string | null>(null)
 
-  // the seed's isolation target can be missing from the published pipes: fall back to the first pipe
-  const targetPipe = G.pipeBy[ISO.target] ?? G.pipes[0]!
+  // target: a pipe picked on the map; by default the demo's isolation target, else the first pipe
+  const [targetId, setTargetId] = createSignal<string>(G.pipeBy[G.isolation?.target]?.id ?? G.pipes[0]?.id ?? '')
+  const targetPipe = createMemo(() => G.pipeBy[targetId()] ?? G.pipes[0]!)
+  const ran = () => result() !== null
 
-  const empPipes = createMemo(() => {
-    if (mode() === 'isolation') return ISO.affectedPipes
-    return G.pipes.filter((p) => p.dma === targetPipe.dma).slice(0, mode() === 'upstream' ? 7 : 10).map((p) => p.id)
-  })
+  const run = async () => {
+    const pipe = targetPipe()
+    if (!pipe) return
+    setRunning(true)
+    setError(null)
+    setResult(null)
+    try {
+      if (mode() === 'isolation') {
+        const r = await topologyApi.isolate({ pipeId: pipe.id })
+        setResult({ kind: 'isolation', pipes: r.isolatedPipes, valves: r.valvesToClose, services: r.affectedServices.length, nodes: r.isolatedNodes.length, sources: [], ready: r.graphReady })
+      } else {
+        const r = await topologyApi.trace(pipe.from, mode() as 'upstream' | 'downstream')
+        setResult({ kind: 'trace', pipes: r.pipeIds, valves: [], services: 0, nodes: r.nodeIds.length, sources: r.sourceNodeIds, ready: r.graphReady })
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+      props.toast(e instanceof Error ? e.message : 'Không thể chạy phân tích mạng.', 'err')
+    } finally {
+      setRunning(false)
+    }
+  }
 
-  const closeValves = new Set(ISO.valves)
+  const closeValves = createMemo(() => new Set(result()?.valves ?? []))
   const valveObjs = createMemo(() =>
-    ISO.valves.map((id) => G.valves.find((v) => v.id === id)).filter(Boolean) as typeof G.valves,
+    (result()?.valves ?? []).map(id => {
+      const v = G.valves.find(x => x.id === id)
+      const d = v ? undefined : G.sourceDevices.find(x => x.id === id)
+      return { id, code: v?.code ?? d?.code ?? id, dn: v?.dn, kind: v?.kind ?? d?.deviceType }
+    })
   )
+  const valveLabel = (kind: string | undefined) =>
+    kind === 'boundary' ? 'Van biên' : (findComponent(kind)?.vi ?? 'Van chặn')
 
   const emphasis = createMemo(() =>
-    ran()
-      ? { dim: true, pipes: empPipes(), valvesClosed: closeValves, valvesOpen: new Set<string>() }
-      : {},
+    ran() ? { dim: true, pipes: result()!.pipes, valvesClosed: closeValves(), valvesOpen: new Set<string>() } : {}
   )
 
-  const pins = [
-    {
-      id: 'target',
-      x: ISO.targetMid[0],
-      y: ISO.targetMid[1],
-      col: tone('#D1242F'),
-      pulse: true,
-    },
-  ]
+  const pins = createMemo(() => {
+    const p = targetPipe()
+    const mid = p?.pts?.[0] && p.pts[p.pts.length - 1] ? [(p.pts[0][0] + p.pts[p.pts.length - 1]![0]) / 2, (p.pts[0][1] + p.pts[p.pts.length - 1]![1]) / 2] : [0, 0]
+    return [{ id: 'target', x: mid[0]!, y: mid[1]!, col: tone('#D1242F'), pulse: true }]
+  })
 
   const focus = createMemo(() => ({
-    x: targetPipe.pts[0][0] - 260,
-    y: targetPipe.pts[0][1] - 200,
+    x: targetPipe().pts[0][0] - 260,
+    y: targetPipe().pts[0][1] - 200,
     w: 520,
     h: 420,
     _k: mode() === 'isolation' ? 0 : mode() === 'upstream' ? 1 : 2,
   }))
 
-  const run = () => {
-    setRunning(true)
-    setRan(false)
-    props.toast('Chạy ' + (mode() === 'isolation' ? 'phân tích cô lập' : 'truy vết') + ' bằng graph engine…')
-    setTimeout(() => {
-      setRunning(false)
-      setRan(true)
-    }, 1300)
+  const pick = (sel: Selection) => {
+    if (sel?.type !== 'pipe' || !G.pipeBy[sel.id]) return
+    setTargetId(sel.id)
+    setResult(null)
   }
 
   return (
@@ -77,7 +105,7 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
               value={mode()}
               onChange={(m) => {
                 setMode(m as TraceMode)
-                setRan(false)
+                setResult(null)
               }}
               options={[
                 { id: 'isolation', label: 'Cô lập van', icon: 'IcValve' },
@@ -99,15 +127,16 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
               </div>
               <div class="mt-1.5 flex items-center justify-between text-[11.5px]">
                 <span class="text-[color:var(--muted)]">Tuyến ống vỡ giả định</span>
-                <span class="font-mono text-[color:var(--text2)]">{targetPipe.code}</span>
+                <span class="font-mono text-[color:var(--text2)]">{targetPipe().code}</span>
               </div>
               <div class="mt-1 flex items-center justify-between text-[11.5px]">
                 <span class="text-[color:var(--muted)]">DMA</span>
-                <DmaChip dma={targetPipe.dma} sm />
+                <DmaChip dma={targetPipe().dma} sm />
               </div>
+              <div class="mt-1.5 text-[10.5px] text-[color:var(--muted2)]">Bấm vào một tuyến ống trên bản đồ để đổi điểm phân tích.</div>
             </div>
             <div class="mt-3">
-              <Btn full variant="primary" icon={running() ? 'IcRefresh' : 'IcRoute'} onClick={run} disabled={running()}>
+              <Btn full variant="primary" icon={running() ? 'IcRefresh' : 'IcRoute'} onClick={() => void run()} disabled={running()}>
                 {running() ? 'Đang chạy graph…' : 'Chạy phân tích'}
               </Btn>
             </div>
@@ -119,8 +148,8 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
               <Card>
                 <Empty
                   icon="IcRoute"
-                  title={running() ? 'Đang tính toán…' : 'Chưa có kết quả'}
-                  hint={'Bấm "Chạy phân tích" để graph engine tính tập van cô lập và vùng ảnh hưởng.'}
+                  title={running() ? 'Đang tính toán…' : error() ? 'Chưa chạy được phân tích' : 'Chưa có kết quả'}
+                  hint={error() ?? 'Bấm "Chạy phân tích" để graph engine tính tập van cô lập và vùng ảnh hưởng.'}
                 />
               </Card>
             }
@@ -129,13 +158,16 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
               <div class="mb-3 text-[13px] font-semibold text-[color:var(--text)]">
                 {mode() === 'isolation' ? 'Kết quả cô lập' : 'Kết quả truy vết'}
               </div>
+              <Show when={!result()!.ready}>
+                <p class="mb-3 text-[12px] text-[color:var(--muted)]">Dịch vụ topology chưa nạp được mạng lưới của đơn vị; kết quả có thể trống.</p>
+              </Show>
               <div class="grid grid-cols-2 gap-2.5">
                 <For
                   each={[
                     ['Van cần đóng', valveObjs().length, '#D1242F'],
-                    ['Đoạn ảnh hưởng', empPipes().length, '#0E7C86'],
-                    ['Đấu nối mất nước', ISO.affectedConns, '#9A6700'],
-                    ['Dân số ~', Math.round(ISO.estPop), '#8250DF'],
+                    ['Đoạn ảnh hưởng', result()!.pipes.length, '#0E7C86'],
+                    ['Đấu nối mất nước', result()!.services, '#9A6700'],
+                    ['Nút trong vùng', result()!.nodes, '#8250DF'],
                   ] as [string, number, string][]}
                 >
                   {(s) => (
@@ -153,7 +185,11 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
                 fallback={
                   <p class="mt-3 text-[12px] leading-relaxed text-[color:var(--muted)]">
                     Truy vết {mode() === 'upstream' ? 'ngược dòng về nguồn cấp' : 'xuôi dòng tới các điểm tiêu thụ'} từ tuyến ống chọn —{' '}
-                    {empPipes().length} đoạn nằm trên đường truy vết.
+                    {result()!.pipes.length} đoạn nằm trên đường truy vết.
+                    <Show when={mode() === 'upstream'}>
+                      {' '}
+                      {result()!.sources.length ? `Đến ${result()!.sources.length} nguồn cấp.` : 'Không tìm thấy nguồn cấp (van đóng hoặc mạng chưa nối tới nguồn).'}
+                    </Show>
                   </p>
                 }
               >
@@ -170,10 +206,10 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
                             {i() + 1}
                           </span>
                           <span class="flex-1 font-mono text-[12px] text-[color:var(--text)]">
-                            {v.code} · DN{v.dn}
+                            {v.code}{v.dn ? ` · DN${v.dn}` : ''}
                           </span>
                           <Badge color={tone('#0969DA')} soft>
-                            {v.kind === 'boundary' ? 'Van biên' : 'Van chặn'}
+                            {valveLabel(v.kind)}
                           </Badge>
                         </div>
                       )}
@@ -221,7 +257,9 @@ export function TraceScreen(props: { toast: (m: string, k?: string) => void }): 
           <MapOverlay
               layers={{ basemap: true, dma: true, pipe: true, valve: true, conn: true, source: true }}
               emphasis={ran() ? emphasis() : {}}
-              pins={pins}
+              pins={pins()}
+              onSelect={pick}
+              selected={{ type: 'pipe', id: targetPipe().id }}
               focus={focus()}
               controls
               legend={false}

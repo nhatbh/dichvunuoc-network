@@ -43,6 +43,10 @@
     "./network-edits": {
       "types": "./dist/network-edits/index.d.ts",
       "import": "./dist/network-edits/index.js"
+    },
+    "./topology": {
+      "types": "./dist/topology/index.d.ts",
+      "import": "./dist/topology/index.js"
     }
   },
   "files": [

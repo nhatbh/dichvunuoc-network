@@ -408,6 +408,138 @@
           }
         }
       }
+    },
+    "/api/gis/topology/isolation": {
+      "post": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IsolationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/topology/trace": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxDepth",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/topology/nearest-valves": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "parameters": [
+          {
+            "name": "nodeId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "k",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/gis/topology/issues": {
+      "get": {
+        "tags": [
+          "WaterNetwork.Bff.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "IsolationRequest": {
+        "required": [
+          "pipeId",
+          "nodeId"
+        ],
+        "type": "object",
+        "properties": {
+          "pipeId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nodeId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      }
     }
   },
   "tags": [
