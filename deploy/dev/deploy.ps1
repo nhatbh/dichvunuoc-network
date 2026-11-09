@@ -13,7 +13,8 @@
     load the Vinh Thinh Dot 3 network after deploying.
   Unattended (no questions): pass the answers as switches -
     -Discover (list the cluster's services, then stop)  -DryRun  -SkipBuild [-Tag <tag>]
-    -SkipInstall  -Seed  -Yes (replace the demo without asking). Any switch turns the questions off.
+    -SkipInstall  -Seed  -Yes (replace the demo without asking)  -AutoFill (take missing settings
+    from the cluster's services and secrets). Any switch turns the questions off.
 
   What it changes in namespace $NAMESPACE (nothing else): secret + configmaps
   "water-network-system*", the deployments/services of the components above, PVCs
@@ -27,6 +28,7 @@ param(
     [switch]$SkipInstall,
     [switch]$Seed,
     [switch]$Yes,
+    [switch]$AutoFill,
     [string]$Tag
 )
 $ErrorActionPreference = 'Stop'
@@ -118,6 +120,114 @@ $required = 'REGISTRY', 'FRONTEND_HOST', 'INGRESS_CLASS', 'TLS_SECRET', 'KEYCLOA
     'REDIS_HOST', 'REDIS_PORT', 'RABBITMQ_HOST', 'RABBITMQ_PORT', 'RABBITMQ_VHOST', 'RABBITMQ_USER', 'RABBITMQ_PASSWORD',
     'MAP_LON', 'MAP_LAT', 'MAP_ZOOM'
 $missing = @($required | Where-Object { -not $cfg[$_] })
+
+function Save-Settings([hashtable]$Values) {
+    $lines = [System.Collections.Generic.List[string]](Get-Content $EnvFile -Encoding UTF8)
+    foreach ($k in $Values.Keys) {
+        $i = $lines.FindIndex([Predicate[string]]{ param($l) $l -match "^\s*$k\s*=" })
+        if ($i -ge 0) { $lines[$i] = "$k=$($Values[$k])" } else { $lines.Add("$k=$($Values[$k])") }
+    }
+    Set-Content $EnvFile $lines -Encoding UTF8
+}
+
+<# Finds the shared services' settings in the cluster: the PostgreSQL, Redis, RabbitMQ and app-catalog
+   services, and the credentials in their secrets (Bitnami chart keys, CloudNativePG / RabbitMQ
+   operator secrets, or plain username/password keys). Returns only what it found. #>
+function Find-ClusterSettings {
+    $found = @{}
+    $svcs = (Remote "$Kubectl get svc -A -o json" | Out-String | ConvertFrom-Json).items |
+        Where-Object { $_.spec.clusterIP -and $_.spec.clusterIP -ne 'None' }
+    $pick = {
+        param([string]$pattern, [int]$port)
+        $svcs | Where-Object { $_.metadata.name -match $pattern -and ($_.spec.ports | Where-Object { $_.port -eq $port }) } |
+            Sort-Object { $_.metadata.name -match '(replica|read|ro|headless|metrics|exporter)' }, { $_.metadata.name.Length } |
+            Select-Object -First 1
+    }
+    $secretsIn = @{}
+    $secret = {
+        param([string]$ns, [string]$pattern)
+        if (-not $secretsIn.ContainsKey($ns)) {
+            $secretsIn[$ns] = (Remote "$Kubectl -n $ns get secret -o json" | Out-String | ConvertFrom-Json).items |
+                Where-Object { $_.type -eq 'Opaque' -or $_.type -eq 'kubernetes.io/basic-auth' }
+        }
+        $secretsIn[$ns] | Where-Object { $_.metadata.name -match $pattern }
+    }
+    $value = {
+        param($sec, [string[]]$keys)
+        foreach ($s in @($sec)) {
+            foreach ($k in $keys) {
+                $raw = $s.data.$k
+                if ($raw) { return @{ Value = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($raw)); From = "$($s.metadata.namespace)/$($s.metadata.name):$k" } }
+            }
+        }
+        return $null
+    }
+    $hostOf = { param($svc) "$($svc.metadata.name).$($svc.metadata.namespace).svc.cluster.local" }
+
+    $pg = & $pick 'postg|pgbouncer|cnpg|timescale' 5432
+    if ($pg) {
+        $found.POSTGRES_HOST = @{ Value = (& $hostOf $pg); From = 'service' }
+        $found.POSTGRES_PORT = @{ Value = '5432'; From = 'service' }
+        $sec = & $secret $pg.metadata.namespace 'postg|pg|cnpg|superuser|timescale'
+        $super = & $value $sec @('postgres-password', 'POSTGRES_PASSWORD', 'postgresql-password')
+        if ($super) {
+            $found.POSTGRES_PASSWORD = $super
+            $u = & $value $sec @('POSTGRES_USER', 'postgres-user')
+            $found.POSTGRES_USER = if ($u) { $u } else { @{ Value = 'postgres'; From = 'chart default' } }
+        } else {
+            $u = & $value $sec @('username', 'user')
+            $pw = & $value $sec @('password')
+            if ($u -and $pw) { $found.POSTGRES_USER = $u; $found.POSTGRES_PASSWORD = $pw }
+        }
+    }
+    $redis = & $pick 'redis|valkey|dragonfly' 6379
+    if ($redis) {
+        $found.REDIS_HOST = @{ Value = (& $hostOf $redis); From = 'service' }
+        $found.REDIS_PORT = @{ Value = '6379'; From = 'service' }
+        $pw = & $value (& $secret $redis.metadata.namespace 'redis|valkey|dragonfly') @('redis-password', 'REDIS_PASSWORD', 'password')
+        if ($pw) { $found.REDIS_PASSWORD = $pw }
+    }
+    $mq = & $pick 'rabbit' 5672
+    if ($mq) {
+        $found.RABBITMQ_HOST = @{ Value = (& $hostOf $mq); From = 'service' }
+        $found.RABBITMQ_PORT = @{ Value = '5672'; From = 'service' }
+        $sec = & $secret $mq.metadata.namespace 'rabbit|default-user'
+        $u = & $value $sec @('username', 'rabbitmq-username', 'RABBITMQ_DEFAULT_USER')
+        $pw = & $value $sec @('password', 'rabbitmq-password', 'RABBITMQ_DEFAULT_PASS')
+        if ($pw) {
+            $found.RABBITMQ_PASSWORD = $pw
+            $found.RABBITMQ_USER = if ($u) { $u } else { @{ Value = 'user'; From = 'chart default' } }
+        }
+    }
+    $cat = $svcs | Where-Object { $_.metadata.name -match 'app-?catalog|catalog' } | Sort-Object { $_.metadata.name.Length } | Select-Object -First 1
+    if ($cat) {
+        $port = ($cat.spec.ports | Select-Object -First 1).port
+        $found.APP_CATALOG_URL = @{ Value = "http://$(& $hostOf $cat):$port/"; From = 'service' }
+    }
+    return $found
+}
+
+$autoFill = $AutoFill -or ($missing -and $Interactive -and (Ask 'Find the missing settings in the cluster (its services and their secrets)?' $true))
+if ($missing -and $autoFill) {
+    Step 'Looking for the shared services and their credentials in the cluster'
+    try { $found = Find-ClusterSettings } catch { $found = @{}; Write-Host "   could not read the cluster: $_" -ForegroundColor Yellow }
+    $use = @{}
+    # the Redis password is optional, so it is not "missing" — but take it when the cluster has one
+    foreach ($k in @($missing) + @(@('REDIS_PASSWORD') | Where-Object { -not $cfg[$_] })) {
+        if (-not $found.ContainsKey($k)) { continue }
+        $shown = if ($k -like '*PASSWORD') { '********' } else { $found[$k].Value }
+        Write-Host ("   {0,-18} {1}   ({2})" -f $k, $shown, $found[$k].From)
+        $use[$k] = $found[$k].Value
+    }
+    $notFound = @($missing | Where-Object { -not $use.ContainsKey($_) })
+    if ($notFound) { Note "not found: $($notFound -join ', ')" }
+    if ($use.Count -and (-not $Interactive -or (Ask 'Use these values (saved to deploy.env)?' $true))) {
+        foreach ($k in $use.Keys) { $cfg[$k] = $use[$k] }
+        Save-Settings $use
+        Note "saved $($use.Count) settings to $EnvFile (git-ignored)"
+    }
+    $missing = @($required | Where-Object { -not $cfg[$_] })
+}
 if ($missing -and $Interactive) {
     Step "Settings still missing in deploy.env ($($missing.Count)); they are saved there for next time"
     $hints = @{
@@ -126,7 +236,7 @@ if ($missing -and $Interactive) {
         REDIS_HOST = 'in-cluster host, e.g. redis.db.svc.cluster.local'
         RABBITMQ_HOST = 'in-cluster host, e.g. rabbitmq.mq.svc.cluster.local'
     }
-    $lines = [System.Collections.Generic.List[string]](Get-Content $EnvFile -Encoding UTF8)
+    $typed = @{}
     foreach ($k in $missing) {
         if ($hints[$k]) { Note $hints[$k] }
         if ($k -like '*PASSWORD') {
@@ -135,10 +245,9 @@ if ($missing -and $Interactive) {
         } else { $v = (Read-Host "   $k").Trim() }
         if (-not $v) { Fail "$k is required" }
         $cfg[$k] = $v
-        $i = $lines.FindIndex([Predicate[string]]{ param($l) $l -match "^\s*$k\s*=" })
-        if ($i -ge 0) { $lines[$i] = "$k=$v" } else { $lines.Add("$k=$v") }
+        $typed[$k] = $v
     }
-    Set-Content $EnvFile $lines -Encoding UTF8
+    Save-Settings $typed
     Note "saved to $EnvFile (git-ignored)"
     $missing = @()
 }

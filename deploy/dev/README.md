@@ -19,7 +19,12 @@ It uses the cluster's **shared** PostgreSQL (PostGIS), Redis and RabbitMQ and th
 1. VPN on; `ssh tino32` works (dev access pack; `sudo -n k3s kubectl` allowed).
 2. Docker Desktop running; `docker login registry-dev.dichvunuoc.vn` once. pnpm and git installed.
 3. Double-click `deploy-system.cmd`. It first offers to list the cluster's shared
-   PostgreSQL/Redis/RabbitMQ/app-catalog services, then asks for every setting still missing
+   PostgreSQL/Redis/RabbitMQ/app-catalog services, then offers to **fill the missing settings
+   from the cluster**: it finds those services and reads the credentials from their secrets
+   (Bitnami chart keys such as `postgres-password`, `redis-password`, `rabbitmq-password`;
+   CloudNativePG / RabbitMQ-operator `username`/`password` secrets), shows what it found
+   (passwords masked, with the secret each came from) and saves it on your yes. It then asks for
+   every setting still missing
    (in-cluster names, e.g. `postgres.db.svc.cluster.local`; passwords are typed hidden) and saves
    them in `deploy/dev/deploy.env` (git-ignored; created from `deploy.env.example`). Passwords go
    only into that file and the Kubernetes secret `water-network-system`.
@@ -37,7 +42,9 @@ Double-click `deploy-system.cmd` and answer y/n (Enter takes the default in capi
 | Question | Default |
 |---|---|
 | Show the cluster's shared services first? | n |
-| (each missing setting) | — |
+| Find the missing settings in the cluster (services and their secrets)? | Y |
+| Use these values? (after showing them) | Y |
+| (each setting still missing) | — |
 | Dry run only (write the manifests, change nothing)? | n |
 | Build and push new images of this commit? (n = deploy images already pushed, then the tag) | Y |
 | Run pnpm install for the frontend packages? | Y |
@@ -45,8 +52,8 @@ Double-click `deploy-system.cmd` and answer y/n (Enter takes the default in capi
 | After deploying, load the Vinh Thinh Dot 3 network if gis-be is empty? | n |
 
 Unattended (CI, no questions): pass the answers as switches, e.g.
-`deploy-system.cmd -SkipBuild -Tag <tag> -Yes`; `-Discover`, `-DryRun`, `-SkipInstall`, `-Seed`
-also exist. Any switch turns the questions off.
+`deploy-system.cmd -SkipBuild -Tag <tag> -Yes`; `-Discover`, `-DryRun`, `-SkipInstall`, `-Seed`,
+`-AutoFill` also exist. Any switch turns the questions off.
 
 Images are tagged with the commit (`<sha>`, or `<sha>-dirty-<time>` with uncommitted changes).
 If `FRONTEND_HOST` is served by the frontend-only demo, the script asks before replacing it.
