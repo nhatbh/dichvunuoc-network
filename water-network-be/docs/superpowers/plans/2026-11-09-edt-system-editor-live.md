@@ -1,8 +1,8 @@
 # EDT — The SYSTEM 3D editor on the live network
 
 **Date:** 2026-11-09
-**Status:** Proposed — awaiting review
-**Services:** water-network-fe (gis-3d); design-be/BFF `/api/gis/editor/*` (read and write as today, no backend change expected)
+**Status:** In progress — approved 2026-11-09 (EDT-1…4 done)
+**Services:** water-network-fe (gis-3d); design-be (revision list gains name, createdAt, returnedReason)
 
 ## Outcome
 
@@ -16,7 +16,8 @@ Done when, on the local stack with the Vĩnh Thịnh Đợt 3 network:
 2. Clone the official network → move a valve, add a pipe and a valve, delete a pipe →
    Lưu nháp → Gửi duyệt → approve in Versions → publish → the map and topology show the change.
 3. Reopening a saved branch restores its change set; another browser sees the same branches.
-4. A finished CAD import opens in the editor as its own branch.
+4. "Import" in the editor opens the CAD import; once that import is published, its assets are
+   part of the network the editor clones.
 5. Suites green (gis-3d, contracts); live test against the BFF passes.
 
 ## Findings (tried on the local stack, 2026-11-09)
@@ -34,39 +35,41 @@ Done when, on the local stack with the Vĩnh Thịnh Đợt 3 network:
 ## Slices (each: tests first, green suites, conventional commit)
 
 ### EDT-1 Route Biên tập to the SYSTEM 3D editor
-- [ ] `editor` joins the live-mode routes; `gis-runtime-page` no longer intercepts `#editor`.
-- [ ] Move `network-editor/api.ts` and `model.ts` (used by revision-sync) to `editor/revision-api.ts`,
+- [x] `editor` joins the live-mode routes; `gis-runtime-page` no longer intercepts `#editor`.
+- [x] Move `network-editor/api.ts` and `model.ts` (used by revision-sync) to `editor/revision-api.ts`,
       `editor/revision-model.ts`; delete `network-editor/workspace.tsx`, its CSS and tests.
-- [ ] Delete the `/gis/editor` route, `pages/gis/editor/index.tsx`, its page test and the
+- [x] Delete the `/gis/editor` route, `pages/gis/editor/index.tsx`, its page test and the
       `newEditor` flag (configs, app-shell link).
-- [ ] Tests: live-mode shell opens the editor route on Biên tập; no reference to the removed modules.
+- [x] Tests: live-mode shell opens the editor route on Biên tập; no reference to the removed modules.
 
 ### EDT-2 Branches from the server
-- [ ] Live mode builds the gate from `GET /api/gis/editor/revisions` + bootstrap: one locked
+- [x] Live mode builds the gate from `GET /api/gis/editor/revisions` + bootstrap: one locked
       "Mạng lưới chính thức" branch (published version, pipe km, asset count) and one branch per
       revision (Draft/Validated → Nháp, Submitted → Chờ duyệt, Rejected → Nháp with the reason;
       Approved/Published shown as history, read-only).
-- [ ] Clone official = new revision on first save (current behaviour); a blank branch likewise.
-- [ ] Branch names/notes come from the revision name; thumbnails are rendered, not stored.
-- [ ] Nothing in live mode reads or writes `gis.branches.v1` (demo mode keeps it).
-- [ ] Tests: gate from a mocked revision list; opening a revision restores its drafts; MSW mock
+- [x] Clone official = new revision on first save (current behaviour); a blank branch likewise.
+- [x] Branch names/notes come from the revision name; thumbnails are rendered, not stored.
+- [x] Nothing in live mode reads or writes `gis.branches.v1` (demo mode keeps it).
+- [x] Tests: gate from a mocked revision list; opening a revision restores its drafts; MSW mock
       serves the same list so demo and offline behave alike.
 
 ### EDT-3 Editing the real network
-- [ ] Base assets of every component in the network are selectable, movable and deletable
+- [x] Base assets of every component in the network are selectable, movable and deletable
       (nodes by component code: Tee/ReducingTee/Cross/Bend/Reducer/Junction; GateValve on pipes).
-- [ ] Moving a node drags its pipe ends; moving/deleting a pipe with valves keeps or removes the
+- [x] Moving a node drags its pipe ends; moving/deleting a pipe with valves keeps or removes the
       valves as the server rules require (no orphan devices).
-- [ ] Property panel shows and edits catalog properties (dn, dn2, material, angle, state) with
+- [x] Property panel shows and edits catalog properties (dn, dn2, material, angle, state) with
       catalog validation; component picker uses the catalog.
-- [ ] Tests: revision-ops round trip for each case against the catalog; server validation
+- [x] Tests: revision-ops round trip for each case against the catalog; server validation
       issues land on the right feature.
 
 ### EDT-4 Import and EAM in live mode
-- [ ] "Nhập từ tệp" opens the CAD import (Import screen); when the import is submitted to
-      design-be, its revision opens in the editor as a branch (`#editor:<revisionId>`).
-- [ ] The EAM picker is hidden in live mode until an asset/EAM source exists.
-- [ ] Tests: import hand-off; demo mode unchanged.
+- [x] "Import" in the editor (button and Tệp menu) opens the CAD import screen; with unsaved edits
+      it asks to save first. design-be keeps CAD drafts apart from network-edit revisions ("Hồ
+      sơ CAD cần được giữ riêng"), so an import is reviewed and published by the import flow and
+      is then part of the network the editor clones — not opened as an editor branch.
+- [x] The EAM picker, menu item and action are off in live mode until an asset/EAM source exists.
+- [x] Tests: attach-eam needs an EAM source; demo mode unchanged.
 
 ### EDT-5 Verification
 - [ ] Live test (`WN_LIVE_BFF`): clone → edit → save → submit → approve → publish on the Đợt 3

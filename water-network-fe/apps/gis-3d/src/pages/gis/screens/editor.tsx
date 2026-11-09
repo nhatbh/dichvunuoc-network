@@ -164,6 +164,13 @@ function EditorWorkspace(props: {
   const [redoStack, setRedoStack] = createSignal<string[]>([])
   let impRef: string | null = null
 
+  // the live network: CAD files go through the CAD import (its own review), no demo EAM records
+  const live = !!G.canonical
+  const openImport = () => {
+    if (!live) return setImportOpen(true)
+    if (dirty()) return props.toast('Lưu nháp trước khi chuyển sang Import CAD', 'info')
+    props.go({ name: 'import' })
+  }
   const locked = () => !!props.boundBranch && (props.boundBranch.state === 'official' || props.boundBranch.state === 'archived')
   const grid = () => snapModes().grid
   const addLog = (t: string, k?: LogEntry['k']) => setLog((l) => [...l.slice(-60), { t, k: k || 'info' }])
@@ -410,7 +417,7 @@ function EditorWorkspace(props: {
   }
   createEffect(() => {
     const job = props.importJob
-    if (job && impRef !== job) {
+    if (job && impRef !== job && !live) {
       impRef = job
       setTimeout(() => loadImport(job), 60)
     }
@@ -639,6 +646,7 @@ function EditorWorkspace(props: {
     onMulti,
     onMatch: (hit) => onPaint(hit),
     onAttachEam: (id, kind) => onAttach(id, kind),
+    eam: !live,
     setStatus,
     toast: (msg, kind) => props.toast(msg, kind as Parameters<Toaster>[1]),
     setTool: setToolFromRibbon,
@@ -769,7 +777,7 @@ function EditorWorkspace(props: {
           { label: 'Kiểm tra quy tắc', icon: 'IcCheckCircle', onClick: () => { setDockTab('changes'); validate() } },
           { label: 'Gửi duyệt', icon: 'IcSend', disabled: ro || !drafts().length || sync.busy(), onClick: () => void commit() },
           'sep',
-          { label: 'Import dữ liệu…', icon: 'IcUpload', disabled: ro, onClick: () => setImportOpen(true) },
+          { label: live ? 'Import CAD…' : 'Import dữ liệu…', icon: 'IcUpload', disabled: ro, onClick: openImport },
           { label: 'Dựng tuyến COGO…', icon: 'IcRuler', disabled: ro, onClick: () => setCogoOpen(true) },
           'sep',
           { label: 'Nhân bản bản này', icon: 'IcCopy', onClick: cloneHere },
@@ -787,7 +795,7 @@ function EditorWorkspace(props: {
           { label: 'Sửa thuộc tính', icon: 'IcPencil', kbd: 'Enter', disabled: !canOnSelection('edit'), onClick: () => { setPropsCollapsed(false); runOnSelection('edit') } },
           { label: 'Sửa hàng loạt…', icon: 'IcRows', disabled: !canOnSelection('batch-edit'), onClick: () => runOnSelection('batch-edit') },
           { label: 'Nhân bản', icon: 'IcCopy', kbd: 'Ctrl+D', disabled: ro || !canOnSelection('duplicate'), onClick: () => runOnSelection('duplicate') },
-          { label: 'Gắn EAM…', icon: 'IcTag', disabled: ro || !canOnSelection('attach-eam'), onClick: () => runOnSelection('attach-eam') },
+          ...(live ? [] : [{ label: 'Gắn EAM…', icon: 'IcTag', disabled: ro || !canOnSelection('attach-eam'), onClick: () => runOnSelection('attach-eam') }]),
           'sep',
           { label: multiSel().length ? 'Xoá các đối tượng đã chọn' : 'Đánh dấu xoá', icon: 'IcTrash', kbd: 'Del', danger: true, disabled: ro || !(canOnSelection('delete') || canOnSelection('delete-all')), onClick: () => runOnSelection(multiSel().length ? 'delete-all' : 'delete') },
           { label: 'Xoá hết thay đổi', icon: 'IcTrash', danger: true, disabled: ro || !drafts().length, onClick: onClearAll },
@@ -856,7 +864,7 @@ function EditorWorkspace(props: {
             </Show>
             <button onClick={undo} disabled={!hist().length} title="Hoàn tác (Ctrl+Z)" class="flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--muted)] transition-colors enabled:hover:bg-[var(--surface2)] enabled:hover:text-[color:var(--text)] disabled:opacity-30"><Icon name="IcUndo" size={15} /></button>
             <button onClick={redo} disabled={!redoStack().length} title="Làm lại (Ctrl+Y)" class="flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--muted)] transition-colors enabled:hover:bg-[var(--surface2)] enabled:hover:text-[color:var(--text)] disabled:opacity-30"><Icon name="IcRedo" size={15} /></button>
-            <Show when={locked()} fallback={<Btn size="sm" icon="IcUpload" onClick={() => setImportOpen(true)}>Import</Btn>}>
+            <Show when={locked()} fallback={<Btn size="sm" icon="IcUpload" onClick={openImport}>Import</Btn>}>
               <Btn size="sm" variant="primary" icon="IcCopy" onClick={cloneHere}>Nhân bản để sửa</Btn>
             </Show>
           </>

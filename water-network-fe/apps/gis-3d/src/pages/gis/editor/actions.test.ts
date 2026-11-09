@@ -34,6 +34,12 @@ describe('actionsForTarget', () => {
     expect(ids).toContain('reverse');
   });
 
+  it('offers attaching an EAM record only where an EAM source exists', () => {
+    const t: ActionTarget = { kind: 'pipe', hit: { kind: 'draft', f: pipeDraft } };
+    expect(actionsForTarget(t, makeCtx({ drafts: [pipeDraft] })).map((a) => a.id)).toContain('attach-eam');
+    expect(actionsForTarget(t, makeCtx({ drafts: [pipeDraft], eam: false })).map((a) => a.id)).not.toContain('attach-eam');
+  });
+
   it('does NOT offer reverse on empty target', () => {
     const t: ActionTarget = { kind: 'empty', pt: [5, 5] };
     const ids = actionsForTarget(t, makeCtx()).map((a) => a.id);

@@ -18,6 +18,8 @@ export interface ActionCtx {
   onMulti: (ids: string[]) => void;
   onMatch: (hit: Hit) => void;
   onAttachEam: (id: string, kind: DraftKind) => void;
+  /** An EAM record source is available (the demo network); false on the live network. */
+  eam?: boolean;
   setStatus: (s: string | null) => void;
   toast: (msg: string, kind?: string) => void;
   setTool: (t: string) => void;
@@ -249,7 +251,7 @@ export const EDITOR_ACTIONS: EditorAction[] = [
     label: 'Gắn EAM',
     icon: 'IcTag',
     group: 'edit',
-    enabledFor: (t) => !!targetDraft(t),
+    enabledFor: (t, ctx) => ctx.eam !== false && !!targetDraft(t),
     run: (t, ctx) => { const d = targetDraft(t); if (d) ctx.onAttachEam(d.id, d.kind); },
   },
   {
