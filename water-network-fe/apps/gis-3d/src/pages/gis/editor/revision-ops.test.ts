@@ -118,7 +118,8 @@ describe('revision-ops', () => {
   it('round-trips back to the same drafts', () => {
     const back = operationsToDrafts(ops, proj, id => (id === 'H-0003' ? 'hydrant' : undefined))
     // pipe ends were moved onto their nodes
-    const expected = drafts.map(d => (d.id === 'DRF-A1' ? { ...d, pts: [[150, 0], [150, 80]] } : d))
+    // a delete carries no attributes, so the deleted hydrant's DMA is unknown again (not guessed)
+    const expected = drafts.map(d => (d.id === 'DRF-A1' ? { ...d, pts: [[150, 0], [150, 80]] } : d.op === 'del' ? { ...d, dma: '' } : d))
     expect(back).toEqual(expected)
   })
 

@@ -15,7 +15,7 @@
      washouts) on a node (the nearest one, or a new junction at the device);
    - every `after.draftAssetId` is the operation id, existing assets keep their code.
    Operations the editor did not draw itself carry `derived` and are dropped on reopen. */
-import { findComponent, pipeMaterialCode, pipeMaterialLabel } from '@wn/contracts/catalog'
+import { findComponent, pipeMaterialCode, pipeMaterialLabel, propertiesIn } from '@wn/contracts/catalog'
 import { nearMetres, type EditState } from '@wn/contracts/network-edits'
 import type { Draft, DraftKind, Pt, RuleIssue } from './model'
 import type { Asset, Edit, Issue, Kind, Point } from './revision-model'
@@ -86,7 +86,7 @@ export function deviceComponent(d: Pick<Draft, 'kind' | 'vkind'>): string {
 const onNode = (componentCode: string | undefined) => findComponent(componentCode)?.host === 'node'
 
 function attributes(d: Draft): Record<string, string> {
-  const raw: Record<string, unknown> = { dma: d.dma }
+  const raw: Record<string, unknown> = { ...(d.kind === 'pipe' ? {} : d.props), dma: d.dma }
   if (d.kind === 'pipe')
     Object.assign(raw, {
       diameterMm: d.dn === undefined ? undefined : Math.round(d.dn),
@@ -170,7 +170,8 @@ export function draftsToOperations(drafts: Draft[], p: Projector, base: EditStat
         kind: KIND[d.kind],
         assetCode: (target && (was?.assetCode ?? codeOf(d.kind, target))) || code(`${PREFIX[d.kind]}-${d.id}`),
         geometry: geom,
-        attributes: attributes(d),
+        // an update keeps what the editor does not show (other catalog properties, provenance)
+        attributes: was ? { ...withoutBridgeMarks(was.attributes ?? {}), ...attributes(d) } : attributes(d),
         // an updated pipe keeps its ends until they move away from them (checked below)
         fromRef: was?.fromRef ?? null,
         toRef: was?.toRef ?? null,
@@ -236,7 +237,7 @@ export function draftsToOperations(drafts: Draft[], p: Projector, base: EditStat
 
   // the pipe asset a split or a valve works on: a drawn pipe, or the published one (made an Update)
   const deleted = new Set(ops.filter(o => o.action === 'Delete').map(o => o.targetId))
-  const pipeOp = (key: string): Edit | null => {
+  const pipeOp = (key: string, why = 'split'): Edit | null => {
     const own = byKey.get(key)
     if (own) return own.action === 'Delete' || own.kind !== 'Pipe' ? null : own
     const was = base[key]
@@ -249,7 +250,13 @@ export function draftsToOperations(drafts: Draft[], p: Projector, base: EditStat
       targetId: key,
       expectedVersion: was.version,
       before: null,
-      after: { ...was.asset, draftAssetId: id, clientRef: id, attributes: { ...was.asset.attributes, derived: 'split' } },
+      after: {
+        ...was.asset,
+        draftAssetId: id,
+        clientRef: id,
+        geometry: { ...was.asset.geometry, coordinates: [...was.asset.geometry.coordinates] },
+        attributes: { ...was.asset.attributes, derived: why },
+      },
     }
     derived.push(op)
     byKey.set(key, op)
@@ -314,6 +321,23 @@ export function draftsToOperations(drafts: Draft[], p: Projector, base: EditStat
     pieces.set(splitOf, [...(pieces.get(splitOf) ?? [splitOf]), id])
   }
 
+  // a published node moved: the pipes on it follow with that end
+  for (const op of ops) {
+    const key = op.targetId
+    if (op.kind !== 'Node' || op.action !== 'Update' || !key) continue
+    const was = base[key]?.asset.geometry.coordinates[0]
+    const at = op.after!.geometry.coordinates[0]!
+    if (!was || metres(was, at) < 0.01) continue
+    for (const [pid, { asset }] of Object.entries(base)) {
+      if (asset.kind !== 'Pipe' || (asset.fromRef !== key && asset.toRef !== key)) continue
+      const pipe = pipeOp(pid, 'node-moved')
+      if (!pipe?.after) continue
+      const line = pipe.after.geometry.coordinates
+      if (pipe.after.fromRef === key) line[0] = at
+      if (pipe.after.toRef === key) line[line.length - 1] = at
+    }
+  }
+
   // pipe ends sit on nodes
   for (const op of [...ops, ...derived]) {
     const a = op.after
@@ -344,6 +368,12 @@ export function draftsToOperations(drafts: Draft[], p: Projector, base: EditStat
   return [...ops, ...derived]
 }
 
+/** Attributes the bridge adds for itself; a new update re-derives them. */
+const withoutBridgeMarks = (attrs: Record<string, string>) => {
+  const { derived: _derived, origGeometry: _orig, splitPipe: _split, ...rest } = attrs
+  return rest
+}
+
 const valveKindOf = (componentCode: string | undefined) =>
   Object.entries(VALVE_COMPONENT).find(([, c]) => c === componentCode)?.[0] ?? componentCode
 
@@ -365,7 +395,7 @@ export function operationsToDrafts(edits: Edit[], p: Projector, kindOf: (id: str
       const kind = (e.action === 'Delete' && e.targetId && kindOf(e.targetId)) || draftKind(e)
       const a = e.after?.attributes ?? {}
       const op = e.action === 'Add' ? 'add' : e.action === 'Update' ? 'mod' : 'del'
-      const d: Draft = { id: e.id, op, kind, geom: kind === 'pipe' ? 'line' : 'point', dma: a.dma ?? 'DMA-01' }
+      const d: Draft = { id: e.id, op, kind, geom: kind === 'pipe' ? 'line' : 'point', dma: a.dma ?? '' }
       if (e.targetId) d.baseId = e.targetId
       const px = (pt: Point): Pt => {
         const [x, y] = p.toPixel(pt[0], pt[1])
@@ -389,9 +419,24 @@ export function operationsToDrafts(edits: Edit[], p: Projector, kindOf: (id: str
       if (e.after && kind === 'valve') d.onPipe = e.after.hostRef ?? null
       if (e.after) d.eam = a.eamCode ? { code: a.eamCode, kind, name: a.eamName ?? a.eamCode, serial: a.eamSerial ?? '', maker: a.eamMaker ?? '', year: num(a.eamYear) ?? 0 } : null
       if (a.imported === 'true') d.imported = true
+      if (kind !== 'pipe' && e.after) {
+        // catalog properties beyond the draft's own fields
+        const own = new Set(['dma', ...(kind === 'valve' ? ['dn', 'state'] : []), ...(kind === 'node' ? ['elevationM'] : [])])
+        const props = Object.fromEntries(Object.entries(propertiesIn(a.componentCode ?? '', a)).filter(([k]) => !own.has(k)))
+        if (Object.keys(props).length) d.props = props
+      }
       for (const k of Object.keys(d) as (keyof Draft)[]) if (d[k] === undefined) delete d[k]
       return d
     })
+}
+
+/** A "Sửa" draft for a published asset, starting from the asset as the server holds it. */
+export function draftFromBase(id: string, asset: Asset, p: Projector): Draft {
+  const [d] = operationsToDrafts(
+    [{ id: 'DRF-M' + id, action: 'Update', kind: asset.kind, targetId: id, expectedVersion: null, before: null, after: asset }],
+    p
+  )
+  return d!
 }
 
 /** Server validation issues → change-set pane rows (rule `server`). */

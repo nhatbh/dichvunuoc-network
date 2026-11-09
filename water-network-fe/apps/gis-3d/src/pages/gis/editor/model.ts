@@ -94,6 +94,8 @@ export interface Draft {
   lenM?: number
   imported?: boolean
   splitOf?: string
+  /** Catalog properties the fields above do not cover (dn2, angle, material of a fitting…). */
+  props?: Record<string, string>
 }
 
 /** Base object referenced from a selection (an existing, non-draft feature). */

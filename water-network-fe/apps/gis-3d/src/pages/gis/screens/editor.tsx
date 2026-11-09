@@ -44,7 +44,8 @@ import {
   REF_LAYERS,
   type MenuDef,
 } from '../editor/workspace-chrome'
-import { REVISION_STATUS, createRevisionSync } from '../editor/revision-sync'
+import { draftFromBase } from '../editor/revision-ops'
+import { REVISION_STATUS, createRevisionSync, gisProjector } from '../editor/revision-sync'
 import { resolveShortcut } from '../editor/shortcuts'
 import { renderBranchThumb } from '../editor/thumbnail'
 import { CommandPalette } from '../editor/ui/command-palette'
@@ -187,6 +188,8 @@ function EditorWorkspace(props: {
     if (!r) return dirty() ? 'Chưa lưu lên máy chủ' : ''
     return r.id + ' · v' + r.version + ' · ' + (REVISION_STATUS[r.status] ?? r.status) + (dirty() ? ' · có thay đổi chưa lưu' : '')
   }
+  // the published network as the editor service holds it: properties of base assets, "Sửa" drafts
+  void sync.loadBase()
   // reopen the branch's saved revision (once, when the workspace opens on an empty buffer)
   void sync.load(props.boundBranch?.revisionId).then((restored) => {
     const r = sync.revision()
@@ -292,12 +295,18 @@ function EditorWorkspace(props: {
       setDrafts((d) => [...d, { id, op: 'del', baseId: b.id, kind: b.type, geom: b.geom || 'line', dma: p ? p.dma : 'DMA-01' }])
       setSel(id)
     } else {
+      // start from the asset as the editor service holds it (every component, all its properties)
+      const asset = sync.baseAsset(b.id)
       const p = G.pipeBy[b.id]
-      if (!p) return
       const id = 'DRF-M' + b.id
-      const f: Draft = { id, op: 'mod', baseId: b.id, kind: 'pipe', geom: 'line', pts: p.pts.map((pt) => [...pt] as Pt), dn: p.dn, material: p.material, year: p.year, cond: p.cond, trunk: p.trunk, dma: p.dma, eam: null }
-      setDrafts((d) => [...d.filter((x) => x.id !== id), f])
-      setSel(id)
+      const f: Draft | null = asset
+        ? draftFromBase(b.id, asset, gisProjector(G))
+        : p
+          ? { id, op: 'mod', baseId: b.id, kind: 'pipe', geom: 'line', pts: p.pts.map((pt) => [...pt] as Pt), dn: p.dn, material: p.material, year: p.year, cond: p.cond, trunk: p.trunk, dma: p.dma, eam: null }
+          : null
+      if (!f) return
+      setDrafts((d) => [...d.filter((x) => x.id !== f.id), f])
+      setSel(f.id)
     }
   }
   const modBaseWith = (baseId: string, patch: Partial<Draft>) => {
@@ -944,7 +953,7 @@ function EditorWorkspace(props: {
               }
             >
               <div class="min-h-0 overflow-y-auto">
-                <Show when={rightMode() === 'batch'} fallback={<PropBody sel={sel()} drafts={drafts()} onUpdate={onUpdate} onRemove={onRemove} onAttach={onAttach} onBaseAction={onBaseAction} />}>
+                <Show when={rightMode() === 'batch'} fallback={<PropBody sel={sel()} drafts={drafts()} onUpdate={onUpdate} onRemove={onRemove} onAttach={onAttach} onBaseAction={onBaseAction} baseAsset={sync.baseAsset} />}>
                   <BatchBody ids={multiSel()} drafts={drafts()} onApply={applyBatch} onClear={() => setMultiSel([])} />
                 </Show>
               </div>

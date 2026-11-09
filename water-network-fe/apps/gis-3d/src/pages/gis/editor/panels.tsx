@@ -22,6 +22,17 @@ import { useGis } from '../lib/gis-data'
 import { Icon } from '../lib/icons'
 import { cAccent, cnorm, cTheme, chex, fmtInt, fmtKm, tone } from '../lib/theme'
 import { Badge, Btn, DmaChip, Empty, Field, KV, Modal, Select, Switch, TextInput, Tile } from '../ui/kit'
+import { COMPONENT_CODE_LIST, findComponent } from '@wn/contracts/catalog'
+import { CatalogProps } from './catalog-props'
+import { deviceComponent, nodeComponent } from './revision-ops'
+import type { Asset } from './revision-model'
+
+/** Node components to choose from (fittings and facilities of the catalog). */
+const NODE_COMPONENTS = COMPONENT_CODE_LIST.filter((c) => c.kind === 'Node').map((c) => ({ value: c.code, label: c.vi }))
+/** The catalog component a draft is (what its properties are checked against). */
+const draftComponent = (d: Draft) => (d.kind === 'node' ? nodeComponent(d.ntype) : d.kind === 'pipe' ? 'Pipe' : deviceComponent(d))
+/** Draft fields that already edit a catalog property. */
+const OWN_FIELDS: Record<DraftKind, string[]> = { pipe: [], node: ['dma', 'elevationM'], valve: ['dma', 'dn', 'state'], hydrant: ['dma'] }
 
 const OP_LABEL: Record<string, [string, string]> = { add: ['Mới', '#1A7F37'], mod: ['Sửa', '#9A6700'], del: ['Xoá', '#D1242F'] }
 
@@ -63,6 +74,8 @@ export function PropBody(props: {
   onRemove: (id: string) => void
   onAttach: (id: string, kind: DraftKind) => void
   onBaseAction: (action: 'mod' | 'del', b: BaseRef) => void
+  /** A published asset as the editor service holds it (live network), for its properties. */
+  baseAsset?: (id: string) => Asset | undefined
 }): JSX.Element {
   const G = useGis()
   const sel = () => props.sel
@@ -71,13 +84,27 @@ export function PropBody(props: {
     const meta = KIND_META[b.type] || KIND_META.pipe
     const delDraft = () => props.drafts.find((f) => f.op === 'del' && f.baseId === b.id)
     const modDraft = () => props.drafts.find((f) => f.op === 'mod' && f.baseId === b.id)
+    const asset = () => props.baseAsset?.(b.id)
+    const component = () => findComponent(asset()?.attributes.componentCode ?? (asset()?.kind === 'Pipe' ? 'Pipe' : undefined))
+    const editable = () => b.type === 'pipe' || !!asset()
     return (
       <div class="px-4 py-3.5">
-        <div class="mb-2 flex items-center gap-2"><Tile icon={meta.icon} col={meta.col} size={30} /><div><div class="text-[12.5px] font-semibold text-[color:var(--text)]">{b.id}</div><div class="font-mono text-[10.5px] text-[color:var(--muted)]">{meta.label} · đối tượng gốc</div></div></div>
+        <div class="mb-2 flex items-center gap-2"><Tile icon={meta.icon} col={meta.col} size={30} /><div class="min-w-0"><div class="truncate text-[12.5px] font-semibold text-[color:var(--text)]">{asset()?.assetCode ?? b.id}</div><div class="font-mono text-[10.5px] text-[color:var(--muted)]">{component()?.vi ?? meta.label} · đối tượng gốc</div></div></div>
+        <Show when={asset()}>
+          {(a) => (
+            <div class="mb-3 rounded-lg border border-line px-3 py-2">
+              <Show when={a().kind === 'Pipe'}>
+                <KV label="Đường kính" mono>DN {a().attributes.diameterMm ?? '—'}</KV>
+                <KV label="Vật liệu" mono>{a().attributes.material ?? '—'}</KV>
+              </Show>
+              <CatalogProps code={component()?.code ?? ''} values={a().attributes} exclude={a().kind === 'Pipe' ? ['dn'] : []} />
+            </div>
+          )}
+        </Show>
         <div class="rounded-lg border border-line bg-[var(--surface2)] px-3 py-2.5 text-[11px] text-[color:var(--muted)]"><Icon name="IcLockClosed" size={12} class="mr-1 inline" />Sửa đối tượng gốc tạo bản ghi thay đổi trong change set — không ghi đè cho tới khi được duyệt.</div>
         <div class="mt-3 flex flex-col gap-2">
-          <Show when={b.type === 'pipe' && !modDraft() && !delDraft()}>
-            <Btn full size="sm" icon="IcPencil" onClick={() => props.onBaseAction('mod', b)}>Khoá & sửa thuộc tính</Btn>
+          <Show when={editable() && !modDraft() && !delDraft()}>
+            <Btn full size="sm" icon="IcPencil" onClick={() => props.onBaseAction('mod', b)}>{b.type === 'pipe' ? 'Khoá & sửa thuộc tính' : 'Khoá & sửa (vị trí, thuộc tính)'}</Btn>
           </Show>
           <Show when={modDraft()}>
             <div class="rounded-lg px-3 py-2 text-[11px]" style={{ background: chex(tone('#9A6700'), 0.12), color: tone('#9A6700') }}>Đang sửa — xem bản ghi “Sửa” trong change set.</div>
@@ -131,11 +158,26 @@ export function PropBody(props: {
                 </Show>
                 <Show when={ff().kind === 'node'}>
                   <div class="grid grid-cols-2 gap-2.5">
-                    <Field label="Loại phụ kiện"><Select value={ff().ntype!} onChange={(v) => set('ntype', v)} options={ED_FITTINGS} /></Field>
+                    <Field label="Loại phụ kiện"><Select value={G.canonical ? nodeComponent(ff().ntype) : ff().ntype!} onChange={(v) => set('ntype', v)} options={G.canonical ? NODE_COMPONENTS : ED_FITTINGS} /></Field>
                     <Field label="Cao độ (m)"><TextInput value={String(ff().z)} onChange={(v) => set('z', v.replace(/[^\d.]/g, ''))} mono /></Field>
                   </div>
                 </Show>
-                <div><div class="mb-1 text-[12px] font-medium text-[color:var(--text2)]">Thuộc DMA</div><DmaChip dma={ff().dma} /></div>
+                <Show when={ff().kind !== 'pipe'}>
+                  <CatalogProps
+                    code={draftComponent(ff())}
+                    values={ff().props ?? {}}
+                    exclude={OWN_FIELDS[ff().kind]}
+                    onChange={(k, v) => {
+                      const next = { ...(ff().props ?? {}) }
+                      if (v) next[k] = v
+                      else delete next[k]
+                      set('props', next)
+                    }}
+                  />
+                </Show>
+                <Show when={ff().dma}><div><div class="mb-1 text-[12px] font-medium text-[color:var(--text2)]">Thuộc DMA</div><DmaChip dma={ff().dma} /></div></Show>
+                {/* EAM records exist only for the demo network until an asset/EAM source is connected */}
+                <Show when={!G.canonical}>
                 <div class="rounded-lg border border-line p-3">
                   <div class="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--muted2)]"><Icon name="IcLink" size={13} />Lý lịch tài sản (EAM)</div>
                   <Show when={ff().eam} fallback={<Btn full size="sm" icon="IcPlus" onClick={() => props.onAttach(ff().id, ff().kind)}>Gắn tài sản từ EAM</Btn>}>
@@ -146,6 +188,7 @@ export function PropBody(props: {
                     </div>
                   </Show>
                 </div>
+                </Show>
                 <Btn full size="sm" danger variant="ghost" icon="IcTrash" onClick={() => props.onRemove(ff().id)}>Xoá khỏi change set</Btn>
               </div>
             </div>
@@ -156,9 +199,9 @@ export function PropBody(props: {
   }
 
   return (
-    <Show when={sel()} fallback={<div class="px-4 py-6 text-center text-[12px] text-[color:var(--muted)]">Chọn một đối tượng để xem & sửa thuộc tính.</div>}>
-      {(s) => {
-        const v = s()
+    <Show when={sel()} keyed fallback={<div class="px-4 py-6 text-center text-[12px] text-[color:var(--muted)]">Chọn một đối tượng để xem & sửa thuộc tính.</div>}>
+      {(v) => {
+        // keyed: a new selection (another feature, or base → its "Sửa" draft) renders anew
         if (typeof v === 'object' && v !== null && 'base' in v) return baseView(v.base)
         return draftView(v as string)
       }}

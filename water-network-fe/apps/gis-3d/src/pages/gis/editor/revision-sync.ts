@@ -9,7 +9,7 @@ import { importSessionScope } from '../import-workspace/api'
 import { gisLonLatToPixel, gisPixelToLonLat, type GisData } from '../lib/gis-data'
 import { createNetworkEditorApi, type EditorApi } from './revision-api'
 import type { Draft, DraftKind, RuleIssue } from './model'
-import type { Issue, Revision, State } from './revision-model'
+import type { Asset, Issue, Revision, State } from './revision-model'
 
 export const WRITE_PERMISSION = 'network-design:write'
 const EDITABLE = ['Draft', 'Validated', 'Rejected']
@@ -58,6 +58,10 @@ export interface RevisionSync {
   load: (revisionId: string | undefined) => Promise<Draft[] | null>
   save: (drafts: Draft[], name: string, revisionId: string | undefined) => Promise<Revision | null>
   submit: (drafts: Draft[], name: string, revisionId: string | undefined) => Promise<Revision | null>
+  /** Read the published network as the editor service holds it (codes, versions, properties). */
+  loadBase: () => Promise<void>
+  /** A published asset as last read (undefined before loadBase, or when it is not published). */
+  baseAsset: (id: string) => Asset | undefined
 }
 
 export function createRevisionSync(opts: {
@@ -79,6 +83,12 @@ export function createRevisionSync(opts: {
   const proj = gisProjector(G)
   /** The published network (versions, nodes to connect to); re-read after a conflict. */
   let base: State | null = null
+  const [baseState, setBaseState] = createSignal<State | null>(null)
+  const readBase = async (api: EditorApi) => {
+    base ??= await api.assets()
+    setBaseState(base)
+    return base
+  }
 
   const client = () => (opts.api ?? createNetworkEditorApi)(importSessionScope(session.data()), controller.signal)
 
@@ -110,8 +120,7 @@ export function createRevisionSync(opts: {
 
   async function persist(api: EditorApi, drafts: Draft[], name: string, id: string | undefined): Promise<Revision | null> {
     const rev = await ensureRevision(api, name, id)
-    base ??= await api.assets()
-    const ops = draftsToOperations(drafts, proj, base, (k, i) => baseCode(G, k, i))
+    const ops = draftsToOperations(drafts, proj, await readBase(api), (k, i) => baseCode(G, k, i))
     // a refused save (409: a base asset changed meanwhile) re-reads the network next time
     const saved = await api.save(rev, ops).catch((e: unknown) => {
       base = null
@@ -152,6 +161,14 @@ export function createRevisionSync(opts: {
           })
         : Promise.resolve(null),
     save: (drafts, name, id) => run(api => persist(api, drafts, name, id)),
+    loadBase: async () => {
+      try {
+        await readBase(client())
+      } catch (e) {
+        if (!controller.signal.aborted) opts.onError(e instanceof Error ? e.message : String(e))
+      }
+    },
+    baseAsset: id => baseState()?.[id]?.asset,
     submit: (drafts, name, id) =>
       run(async api => {
         const saved = await persist(api, drafts, name, id)

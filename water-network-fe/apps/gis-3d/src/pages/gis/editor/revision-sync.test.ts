@@ -88,6 +88,16 @@ describe('createRevisionSync', () => {
     expect(sync.savedSnapshot()).toBe(JSON.stringify([add, mod]))
   })
 
+  it('reads the published network once, for the property panel and the saves', async () => {
+    const f = fakeApi()
+    const { sync } = setup(f.api)
+    expect(sync.baseAsset('P-1')).toBeUndefined()
+    await sync.loadBase()
+    expect(sync.baseAsset('P-1')).toEqual({})
+    await sync.save([add], 'A', undefined)
+    expect(f.api.assets).toHaveBeenCalledTimes(1)
+  })
+
   it('reuses the linked revision and submits through validate', async () => {
     const f = fakeApi()
     const { sync } = setup(f.api)
