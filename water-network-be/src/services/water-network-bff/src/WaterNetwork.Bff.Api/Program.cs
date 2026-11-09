@@ -61,6 +61,19 @@ builder.Services.AddHttpClient<IAssetApiClient, AssetApiClient>((sp, client) =>
     .AddHttpMessageHandler<AuthForwardingHandler>()
     .AddStandardResilienceHandler(ResilienceConfig.Configure);
 
+// Topology queries (decision 0029): topology-rs over gRPC when configured.
+var topologyUrl = builder.Configuration["Downstream:Topology:BaseUrl"];
+if (DownstreamOptionsValidation.IsAbsoluteHttpUrl(topologyUrl))
+{
+    builder.Services.AddGrpcClient<Waternetwork.Topology.V1.TopologyService.TopologyServiceClient>(
+        o => o.Address = new Uri(topologyUrl!));
+    builder.Services.AddScoped<WaterNetwork.Bff.Api.Topology.ITopologyClient, WaterNetwork.Bff.Api.Topology.GrpcTopologyClient>();
+}
+else
+{
+    builder.Services.AddSingleton<WaterNetwork.Bff.Api.Topology.ITopologyClient, WaterNetwork.Bff.Api.Topology.UnconfiguredTopologyClient>();
+}
+
 // The streaming import proxy deliberately has no retry/resilience handler.
 builder.Services.AddHttpClient("cad-import", client => client.Timeout = Timeout.InfiniteTimeSpan)
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false });

@@ -1,4 +1,8 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using WaterNetwork.Bff.Api.Topology;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using WireMock.RequestBuilders;
@@ -14,6 +18,8 @@ public sealed class BffApiFactory : WebApplicationFactory<Program>
     public WireMockServer Gis { get; } = WireMockServer.Start();
     public WireMockServer Asset { get; } = WireMockServer.Start();
     public WireMockServer AppCatalog { get; } = WireMockServer.Start();
+    /// <summary>Replaces the topology-rs client (decision 0029) when set.</summary>
+    public ITopologyClient? Topology { get; set; }
 
     public BffApiFactory()
     {
@@ -25,6 +31,12 @@ public sealed class BffApiFactory : WebApplicationFactory<Program>
                 .WithPath("/api/platform/app-catalog/me/apps/ml-0/access")
                 .UsingGet())
             .RespondWith(Response.Create().WithStatusCode(204));
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder) =>
+        builder.ConfigureTestServices(services =>
+        {
+            if (Topology is not null) services.AddSingleton(Topology);
+        });
 
     protected override IHost CreateHost(IHostBuilder builder)
     {

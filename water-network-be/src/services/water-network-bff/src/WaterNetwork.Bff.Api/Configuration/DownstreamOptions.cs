@@ -8,6 +8,8 @@ public sealed class DownstreamOptions
     // Optional: an unconfigured CAD import service fails closed at the endpoint.
     public DownstreamEndpoint Design { get; set; } = new();
     public DownstreamEndpoint Import { get; set; } = new();
+    // Optional: topology-rs gRPC address (decision 0029); unset → 503 TOPOLOGY_UNAVAILABLE.
+    public DownstreamEndpoint Topology { get; set; } = new();
 }
 
 public sealed class DownstreamEndpoint
