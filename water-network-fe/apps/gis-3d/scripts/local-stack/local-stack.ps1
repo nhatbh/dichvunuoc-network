@@ -102,6 +102,23 @@ if ((Run 'node' @('scripts/local-stack/dev-token.mjs', 'init') $AppDir) -ne 0) {
 Step 'Starting infrastructure (postgres, redis, rabbitmq, jaeger)'
 if ((Run 'docker' ($Compose + @('up', '-d', '--wait') + $Infra) $BeRoot) -ne 0) { Fail 'infrastructure did not start - see local-stack.log' }
 
+# gis-be's migrations were squashed when assets became catalog components (decision 0028): a
+# database made before that cannot be migrated. It only holds development data, so start fresh
+# as -Reset would.
+if (-not $Reset) {
+  Push-Location $BeRoot
+  $prev = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+  $sql = "SELECT count(*) FROM information_schema.columns WHERE table_name = 'network_nodes' AND column_name = 'node_type'"
+  $oldSchema = (& docker @($Compose + @('exec', '-T', 'postgres', 'psql', '-U', 'postgres', '-d', 'wn_gis', '-tAc', $sql)) 2>$null | Out-String).Trim()
+  $ErrorActionPreference = $prev
+  Pop-Location
+  if ($oldSchema -eq '1') {
+    Step 'The database predates the component catalog (decision 0028): resetting it (development data only)'
+    Run 'docker' ($Compose + @('down', '-v')) $BeRoot | Out-Null
+    if ((Run 'docker' ($Compose + @('up', '-d', '--wait') + $Infra) $BeRoot) -ne 0) { Fail 'infrastructure did not start - see local-stack.log' }
+  }
+}
+
 if (-not $NoBuild) {
   Step 'Building backend images (first time takes several minutes; the CAD import image compiles LibreDWG)'
   if ((Run 'docker' ($Compose + @('build') + @('water-network-gis-be', 'water-network-asset-be', 'water-network-design-be', 'water-network-bff', 'water-network-import', 'water-network-topology-rs')) $BeRoot) -ne 0) { Fail 'image build failed - see local-stack.log' }
