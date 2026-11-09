@@ -29,7 +29,8 @@ const arg = (name, fallback) => {
 }
 const GIS = (arg('gis', process.env.WN_GIS_URL ?? 'http://localhost:8081')).replace(/\/$/, '')
 const FORCE = process.argv.includes('--force')
-const TOKEN = devToken()
+// WN_TOKEN: a real access token (deployed system, deploy/dev/deploy.ps1 -Seed); else the local dev token
+const TOKEN = process.env.WN_TOKEN || devToken()
 const DEMO = process.argv.includes('--demo')
 const NETWORK = arg('network', fileURLToPath(new URL('./networks/vinh-thinh-dot3.drafts.json', import.meta.url)))
 

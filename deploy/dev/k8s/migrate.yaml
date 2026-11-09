@@ -1,0 +1,61 @@
+# Database migrations, run to completion before the services roll out (the services do not
+# migrate on startup). Rendered by deploy.ps1; one Job per database, named after the image tag.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: water-network-gis-be-migrate-${JOB_SUFFIX}
+  namespace: ${NAMESPACE}
+  labels: { app.kubernetes.io/part-of: water-network-system, water-network/migration: "true" }
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: ${REGISTRY}/water-network-gis-be:${TAG}
+          args: ["--migrate"]
+          envFrom: [{ configMapRef: { name: water-network-system } }]
+          env:
+            - { name: ConnectionStrings__PostgreSQL, valueFrom: { secretKeyRef: { name: water-network-system, key: GIS_DB } } }
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: water-network-asset-be-migrate-${JOB_SUFFIX}
+  namespace: ${NAMESPACE}
+  labels: { app.kubernetes.io/part-of: water-network-system, water-network/migration: "true" }
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: ${REGISTRY}/water-network-asset-be:${TAG}
+          args: ["--migrate"]
+          envFrom: [{ configMapRef: { name: water-network-system } }]
+          env:
+            - { name: ConnectionStrings__PostgreSQL, valueFrom: { secretKeyRef: { name: water-network-system, key: ASSET_DB } } }
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: water-network-design-be-migrate-${JOB_SUFFIX}
+  namespace: ${NAMESPACE}
+  labels: { app.kubernetes.io/part-of: water-network-system, water-network/migration: "true" }
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: ${REGISTRY}/water-network-design-be:${TAG}
+          args: ["--migrate"]
+          envFrom: [{ configMapRef: { name: water-network-system } }]
+          env:
+            - { name: ConnectionStrings__PostgreSQL, valueFrom: { secretKeyRef: { name: water-network-system, key: DESIGN_DB } } }

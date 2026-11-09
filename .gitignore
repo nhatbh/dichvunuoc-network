@@ -87,3 +87,7 @@ harness.db-shm
 Thumbs.db
 desktop.ini
 *.log
+
+# ── deploy/dev: shared-service passwords and rendered manifests ──
+/deploy/dev/deploy.env
+/deploy/dev/.rendered/
