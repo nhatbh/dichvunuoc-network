@@ -7,15 +7,13 @@
   Needs: VPN on and the tino32 access pack (ssh tino32 works, sudo k3s without password),
          Docker Desktop running and logged in to the registry, pnpm, git.
 
-  Run (or double-click deploy-system.cmd at the repository root):
-    powershell -ExecutionPolicy Bypass -File deploy\dev\deploy.ps1            # build, push, deploy
-    ... -Discover      list the cluster's shared services and current water-network resources
-    ... -DryRun        build nothing, change nothing: render the manifests to deploy\dev\.rendered
-    ... -SkipBuild     deploy images already pushed (current commit's tag, or -Tag <tag>)
-    ... -SkipInstall   do not run pnpm install for the frontend (faster)
-    ... -Seed          after deploying, load the Vinh Thinh Dot 3 network if gis-be is empty
-                       (asks for an access token; see deploy\dev\README.md)
-    ... -Yes           do not ask before replacing the frontend-only demo on the same host
+  Run: double-click deploy-system.cmd at the repository root. It asks, step by step (y/n):
+    show the cluster's shared services, fill in missing settings (saved to deploy\dev\deploy.env),
+    dry run only, build + push new images, pnpm install, replace the frontend-only demo,
+    load the Vinh Thinh Dot 3 network after deploying.
+  Unattended (no questions): pass the answers as switches -
+    -Discover (list the cluster's services, then stop)  -DryRun  -SkipBuild [-Tag <tag>]
+    -SkipInstall  -Seed  -Yes (replace the demo without asking). Any switch turns the questions off.
 
   What it changes in namespace $NAMESPACE (nothing else): secret + configmaps
   "water-network-system*", the deployments/services of the components above, PVCs
@@ -32,11 +30,23 @@ param(
     [string]$Tag
 )
 $ErrorActionPreference = 'Stop'
+# questions when started without switches (double-click); switches = unattended
+$Interactive = $PSBoundParameters.Count -eq 0 -and [Environment]::UserInteractive
 $OutputEncoding = New-Object System.Text.UTF8Encoding $false
 
 function Step($msg) { Write-Host "`n== $msg" -ForegroundColor Cyan }
 function Note($msg) { Write-Host "   $msg" -ForegroundColor DarkGray }
 function Fail($msg) { Write-Host "`nFAILED: $msg" -ForegroundColor Red; exit 1 }
+function Ask([string]$Question, [bool]$Default = $false) {
+    $hint = if ($Default) { '[Y/n]' } else { '[y/N]' }
+    while ($true) {
+        $a = (Read-Host "   $Question $hint").Trim()
+        if ($a -eq '') { return $Default }
+        if ($a -match '^(y|yes|c|co)$') { return $true }
+        if ($a -match '^(n|no|k|khong)$') { return $false }
+        Write-Host '   Answer y or n.' -ForegroundColor Yellow
+    }
+}
 function Native {
     param([string]$Exe, [string[]]$Arguments)
     & $Exe @Arguments
@@ -55,7 +65,10 @@ $Rendered = Join-Path $DeployDir '.rendered'
 # ---------------------------------------------------------------------------------- settings
 if (-not (Test-Path $EnvFile)) {
     Copy-Item (Join-Path $DeployDir 'deploy.env.example') $EnvFile
-    Fail "created $EnvFile from the example. Fill in the shared PostgreSQL/Redis/RabbitMQ and app-catalog settings (run with -Discover to see what the cluster has), then run again."
+    if (-not $Interactive) {
+        Fail "created $EnvFile from the example. Fill in the shared PostgreSQL/Redis/RabbitMQ and app-catalog settings (run with -Discover to see what the cluster has), then run again."
+    }
+    Note "created $EnvFile from the example; missing settings are asked below"
 }
 $cfg = @{}
 foreach ($line in Get-Content $EnvFile -Encoding UTF8) {
@@ -84,6 +97,10 @@ Step "Checking the cluster ($SshHost) - VPN must be on"
 foreach ($cmd in 'ssh', 'git') { if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { Fail "$cmd not found" } }
 try { Remote "$Kubectl get ns $Ns -o name" | Out-Null } catch { Fail "cannot reach the cluster or namespace $Ns through ssh $SshHost ($_)" }
 
+if ($Interactive) {
+    Write-Host ''
+    $Discover = Ask "Show the cluster's shared services (PostgreSQL, Redis, RabbitMQ, app catalog) first?" $false
+}
 if ($Discover) {
     Step 'Shared services in the cluster (PostgreSQL, Redis, RabbitMQ, Keycloak, app catalog, gateway)'
     Remote "$Kubectl get svc -A --no-headers | grep -iE 'postg|pgbouncer|redis|rabbit|keycloak|catalog|apisix|minio' || true"
@@ -93,15 +110,54 @@ if ($Discover) {
     Remote "$Kubectl -n $Ns get deploy,svc,ingress,pvc,job --no-headers | grep -i water-network || true"
     Step 'Ingress classes and TLS secrets'
     Remote "$Kubectl get ingressclass -o name; $Kubectl -n $Ns get secret --no-headers | grep -i tls || true"
-    exit 0
+    if (-not $Interactive) { exit 0 }
 }
 
 $required = 'REGISTRY', 'FRONTEND_HOST', 'INGRESS_CLASS', 'TLS_SECRET', 'KEYCLOAK_URL', 'KEYCLOAK_REALM', 'KEYCLOAK_CLIENT_ID',
     'JWT_AUDIENCE', 'APP_CATALOG_URL', 'APP_CODE', 'POSTGRES_HOST', 'POSTGRES_PORT', 'POSTGRES_USER', 'POSTGRES_PASSWORD',
     'REDIS_HOST', 'REDIS_PORT', 'RABBITMQ_HOST', 'RABBITMQ_PORT', 'RABBITMQ_VHOST', 'RABBITMQ_USER', 'RABBITMQ_PASSWORD',
     'MAP_LON', 'MAP_LAT', 'MAP_ZOOM'
-$missing = $required | Where-Object { -not $cfg[$_] }
+$missing = @($required | Where-Object { -not $cfg[$_] })
+if ($missing -and $Interactive) {
+    Step "Settings still missing in deploy.env ($($missing.Count)); they are saved there for next time"
+    $hints = @{
+        APP_CATALOG_URL = 'app-catalog base URL inside the cluster, e.g. http://app-catalog.platform-core.svc.cluster.local:8080/'
+        POSTGRES_HOST = 'in-cluster host, e.g. postgres.db.svc.cluster.local'
+        REDIS_HOST = 'in-cluster host, e.g. redis.db.svc.cluster.local'
+        RABBITMQ_HOST = 'in-cluster host, e.g. rabbitmq.mq.svc.cluster.local'
+    }
+    $lines = [System.Collections.Generic.List[string]](Get-Content $EnvFile -Encoding UTF8)
+    foreach ($k in $missing) {
+        if ($hints[$k]) { Note $hints[$k] }
+        if ($k -like '*PASSWORD') {
+            $sec = Read-Host "   $k" -AsSecureString
+            $v = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
+        } else { $v = (Read-Host "   $k").Trim() }
+        if (-not $v) { Fail "$k is required" }
+        $cfg[$k] = $v
+        $i = $lines.FindIndex([Predicate[string]]{ param($l) $l -match "^\s*$k\s*=" })
+        if ($i -ge 0) { $lines[$i] = "$k=$v" } else { $lines.Add("$k=$v") }
+    }
+    Set-Content $EnvFile $lines -Encoding UTF8
+    Note "saved to $EnvFile (git-ignored)"
+    $missing = @()
+}
 if ($missing) { Fail "deploy.env is missing: $($missing -join ', ') (run with -Discover to see the cluster's services)" }
+
+if ($Interactive) {
+    Write-Host ''
+    $DryRun = Ask 'Dry run only (write the manifests to deploy\dev\.rendered, change nothing)?' $false
+    if (-not $DryRun) {
+        $SkipBuild = -not (Ask 'Build and push new images of this commit (No = deploy images already pushed)?' $true)
+        if ($SkipBuild) {
+            $t = (Read-Host '   Image tag to deploy (Enter = this commit)').Trim()
+            if ($t) { $Tag = $t }
+        } else {
+            $SkipInstall = -not (Ask 'Run pnpm install for the frontend packages (No = faster, dependencies unchanged)?' $true)
+        }
+        $Seed = Ask 'After deploying, load the Vinh Thinh Dot 3 network if gis-be is empty (needs an access token)?' $false
+    }
+}
 foreach ($k in 'MENU_APP_URL', 'POSTGRES_OPTIONS', 'REDIS_PASSWORD') { if (-not $cfg.ContainsKey($k)) { $cfg[$k] = '' } }
 $Reg = $cfg['REGISTRY'].TrimEnd('/')
 
@@ -230,8 +286,8 @@ $demo = (Remote "$Kubectl -n $Ns get ingress water-network-gis-3d-demo -o jsonpa
 if ($demo -and ($demo -split '\s+') -contains $cfg['FRONTEND_HOST']) {
     Write-Host "   $($cfg['FRONTEND_HOST']) is served by the frontend-only demo (water-network-gis-3d-demo)." -ForegroundColor Yellow
     if (-not $Yes) {
-        $answer = Read-Host '   Replace it with the full system? [y/N]'
-        if ($answer -notmatch '^[yY]') { Fail 'stopped; set FRONTEND_HOST to another host in deploy.env or confirm the replacement' }
+        $replace = $Interactive -and (Ask 'Replace it with the full system?' $false)
+        if (-not $replace) { Fail 'stopped; set FRONTEND_HOST to another host in deploy.env, or confirm the replacement (unattended: -Yes)' }
     }
     Kube 'delete deployment,service,ingress,configmap -l app.kubernetes.io/name=water-network-gis-3d-demo --ignore-not-found'
 }

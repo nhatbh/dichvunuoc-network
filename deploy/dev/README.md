@@ -18,27 +18,35 @@ It uses the cluster's **shared** PostgreSQL (PostGIS), Redis and RabbitMQ and th
 
 1. VPN on; `ssh tino32` works (dev access pack; `sudo -n k3s kubectl` allowed).
 2. Docker Desktop running; `docker login registry-dev.dichvunuoc.vn` once. pnpm and git installed.
-3. Run `deploy-system.cmd -Discover`: lists the shared PostgreSQL/Redis/RabbitMQ/app-catalog
-   services and the water-network resources already in the namespace.
-4. The first run creates `deploy/dev/deploy.env` from `deploy.env.example`. Fill in the shared
-   services' hosts and credentials (in-cluster names, e.g. `postgres.db.svc.cluster.local`) and
-   the app-catalog URL. The file is git-ignored; the passwords go only into the Kubernetes secret
-   `water-network-system`.
-5. PostgreSQL: the user must be able to create the three databases and the PostGIS extension, or
+3. Double-click `deploy-system.cmd`. It first offers to list the cluster's shared
+   PostgreSQL/Redis/RabbitMQ/app-catalog services, then asks for every setting still missing
+   (in-cluster names, e.g. `postgres.db.svc.cluster.local`; passwords are typed hidden) and saves
+   them in `deploy/dev/deploy.env` (git-ignored; created from `deploy.env.example`). Passwords go
+   only into that file and the Kubernetes secret `water-network-system`.
+4. PostgreSQL: the user must be able to create the three databases and the PostGIS extension, or
    create them beforehand.
-6. Keycloak: client `water-network-gis-fe` must allow `https://FRONTEND_HOST/*` as a redirect URI
+5. Keycloak: client `water-network-gis-fe` must allow `https://FRONTEND_HOST/*` as a redirect URI
    and `https://FRONTEND_HOST` as a web origin; tokens must carry the `water-platform` audience.
-7. DNS: `FRONTEND_HOST` (default `gis3d-dev.dichvunuoc.vn`) needs an A record to the cluster
+6. DNS: `FRONTEND_HOST` (default `gis3d-dev.dichvunuoc.vn`) needs an A record to the cluster
    ingress (103.142.24.213).
 
 ## Run
 
-```
-deploy-system.cmd                 build everything, push, migrate, roll out, check
-deploy-system.cmd -DryRun         only render the manifests to deploy\dev\.rendered
-deploy-system.cmd -SkipBuild      redeploy images already pushed for this commit (or -Tag TAG)
-deploy-system.cmd -Seed           also load the Vinh Thinh Dot 3 network when gis-be is empty
-```
+Double-click `deploy-system.cmd` and answer y/n (Enter takes the default in capitals):
+
+| Question | Default |
+|---|---|
+| Show the cluster's shared services first? | n |
+| (each missing setting) | — |
+| Dry run only (write the manifests, change nothing)? | n |
+| Build and push new images of this commit? (n = deploy images already pushed, then the tag) | Y |
+| Run pnpm install for the frontend packages? | Y |
+| Replace the frontend-only demo on the same host? (only when it is there) | n |
+| After deploying, load the Vinh Thinh Dot 3 network if gis-be is empty? | n |
+
+Unattended (CI, no questions): pass the answers as switches, e.g.
+`deploy-system.cmd -SkipBuild -Tag <tag> -Yes`; `-Discover`, `-DryRun`, `-SkipInstall`, `-Seed`
+also exist. Any switch turns the questions off.
 
 Images are tagged with the commit (`<sha>`, or `<sha>-dirty-<time>` with uncommitted changes).
 If `FRONTEND_HOST` is served by the frontend-only demo, the script asks before replacing it.
