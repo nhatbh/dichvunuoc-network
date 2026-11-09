@@ -1,13 +1,38 @@
 use serde::Deserialize;
 
-/// MassTransit envelope. PascalCase on the wire; `Payload` is a JSON *string*.
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
+/// The platform's `IntegrationEventEnvelope`: `EventId`, `EventType` and a JSON *string*
+/// `Payload`. On RabbitMQ it travels inside MassTransit's message envelope
+/// (`application/vnd.masstransit+json`: `{ "messageId", …, "message": { "eventId", … } }`,
+/// camelCase); a bare PascalCase envelope is accepted too (tests, replays).
+#[derive(Debug)]
 struct Envelope {
     event_id: String,
     event_type: String,
-    #[serde(default)]
     payload: String,
+}
+
+impl Envelope {
+    fn from_bytes(bytes: &[u8]) -> Result<Envelope, serde_json::Error> {
+        let root: serde_json::Value = serde_json::from_slice(bytes)?;
+        let body = match root.get("message") {
+            Some(inner) if inner.is_object() => inner,
+            _ => &root,
+        };
+        let field = |pascal: &str, camel: &str| -> Option<String> {
+            body.get(pascal)
+                .or_else(|| body.get(camel))
+                .and_then(|v| v.as_str())
+                .map(str::to_string)
+        };
+        let missing = |name: &str| {
+            <serde_json::Error as serde::de::Error>::custom(format!("missing field `{name}`"))
+        };
+        Ok(Envelope {
+            event_id: field("EventId", "eventId").ok_or_else(|| missing("EventId"))?,
+            event_type: field("EventType", "eventType").ok_or_else(|| missing("EventType"))?,
+            payload: field("Payload", "payload").unwrap_or_default(),
+        })
+    }
 }
 
 /// The decoded `Payload` string: `{ EventType, EventVersion, ..., Data: {…} }`.
@@ -160,7 +185,7 @@ impl GraphEvent {
     /// Parse raw AMQP body. Returns `Ok(None)` for well-formed but non-topology
     /// events (filtered by `EventType`), `Err` only for malformed JSON.
     pub fn from_envelope_bytes(bytes: &[u8]) -> Result<Option<GraphEvent>, ParseError> {
-        let env: Envelope = serde_json::from_slice(bytes).map_err(ParseError::Envelope)?;
+        let env = Envelope::from_bytes(bytes).map_err(ParseError::Envelope)?;
         if !is_topology_event(&env.event_type) {
             return Ok(None);
         }
@@ -436,6 +461,44 @@ mod tests {
                 }
                 other => panic!("wrong kind: {other:?}"),
             }
+        }
+    }
+
+    #[test]
+    fn parses_the_masstransit_wire_envelope() {
+        // exactly what gis-be publishes through MassTransit (camelCase envelope, `message` body)
+        let inner = serde_json::json!({
+            "EventId": "e-mt", "EventType": "network.node.registered", "EventVersion": 2,
+            "Data": {"NodeId": "node-9", "TenantId": "t-mt", "AssetCode": "N9", "ComponentCode": "Tee",
+                     "Functions": ["connects"], "Properties": {}, "Latitude": 21.0, "Longitude": 105.0}
+        });
+        let raw = serde_json::json!({
+            "messageId": "m-1",
+            "messageType": ["urn:message:WaterPlatform.BuildingBlocks.EventBus.Integration:IntegrationEventEnvelope"],
+            "message": {
+                "eventId": "e-mt", "eventType": "network.node.registered", "eventVersion": 2,
+                "tenantId": "t-mt", "producer": "water-network-gis-be",
+                "payload": serde_json::to_string(&inner).unwrap()
+            }
+        })
+        .to_string();
+        let ev = GraphEvent::from_envelope_bytes(raw.as_bytes())
+            .unwrap()
+            .unwrap();
+        assert_eq!(ev.event_id, "e-mt");
+        assert_eq!(ev.tenant_id, "t-mt");
+        match ev.kind {
+            GraphEventKind::NodeRegistered {
+                node_id,
+                component_code,
+                ..
+            } => {
+                assert_eq!(
+                    (node_id.as_str(), component_code.as_str()),
+                    ("node-9", "Tee")
+                )
+            }
+            other => panic!("wrong kind: {other:?}"),
         }
     }
 }
