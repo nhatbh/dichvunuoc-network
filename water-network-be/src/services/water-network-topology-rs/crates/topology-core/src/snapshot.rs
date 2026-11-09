@@ -39,7 +39,8 @@ mod tests {
             kind: GraphEventKind::DeviceInstalled {
                 device_id: "d1".into(),
                 component_code: "GateValve".into(),
-                isolates: true,
+                functions: vec!["isolates".into()],
+                closed: false,
                 host_pipe_id: Some("p1".into()),
                 host_node_id: None,
                 lat: 0.0,

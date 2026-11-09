@@ -21,6 +21,8 @@ struct ExportItem {
     component_code: String,
     #[serde(default)]
     functions: Vec<String>,
+    #[serde(default)]
+    properties: std::collections::HashMap<String, String>,
     from_node_id: Option<String>,
     to_node_id: Option<String>,
     diameter_mm: Option<i32>,
@@ -98,6 +100,7 @@ fn item_to_kind(item: &ExportItem) -> Option<GraphEventKind> {
         "Node" => Some(GraphEventKind::NodeRegistered {
             node_id: item.id.clone(),
             component_code: item.component_code.clone(),
+            functions: item.functions.clone(),
             lat: 0.0,
             lng: 0.0,
         }),
@@ -112,7 +115,8 @@ fn item_to_kind(item: &ExportItem) -> Option<GraphEventKind> {
         "Device" => Some(GraphEventKind::DeviceInstalled {
             device_id: item.id.clone(),
             component_code: item.component_code.clone(),
-            isolates: item.functions.iter().any(|f| f == "isolates"),
+            functions: item.functions.clone(),
+            closed: item.properties.get("state").is_some_and(|s| s == "closed"),
             host_pipe_id: item.host_pipe_id.clone(),
             host_node_id: item.host_node_id.clone(),
             lat: 0.0,

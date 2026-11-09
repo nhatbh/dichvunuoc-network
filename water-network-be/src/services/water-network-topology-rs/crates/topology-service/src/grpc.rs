@@ -145,12 +145,14 @@ mod tests {
         tg.apply(&ev(GraphEventKind::NodeRegistered {
             node_id: "n1".into(),
             component_code: "Junction".into(),
+            functions: Vec::new(),
             lat: 0.0,
             lng: 0.0,
         }));
         tg.apply(&ev(GraphEventKind::NodeRegistered {
             node_id: "n2".into(),
             component_code: "Junction".into(),
+            functions: Vec::new(),
             lat: 0.0,
             lng: 0.0,
         }));
@@ -165,7 +167,8 @@ mod tests {
         tg.apply(&ev(GraphEventKind::DeviceInstalled {
             device_id: "v1".into(),
             component_code: "GateValve".into(),
-            isolates: true,
+            functions: vec!["isolates".into()],
+            closed: false,
             host_pipe_id: Some("p1".into()),
             host_node_id: None,
             lat: 0.0,
@@ -308,6 +311,7 @@ mod tests {
             tg.apply(&ev(GraphEventKind::NodeRegistered {
                 node_id: id.into(),
                 component_code: "Junction".into(),
+                functions: Vec::new(),
                 lat: 0.0,
                 lng: 0.0,
             }));
@@ -331,7 +335,8 @@ mod tests {
         tg.apply(&ev(GraphEventKind::DeviceInstalled {
             device_id: "v1".into(),
             component_code: "GateValve".into(),
-            isolates: true,
+            functions: vec!["isolates".into()],
+            closed: false,
             host_pipe_id: Some("p2".into()),
             host_node_id: None,
             lat: 0.0,

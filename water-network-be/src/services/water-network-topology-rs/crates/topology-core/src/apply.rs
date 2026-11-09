@@ -23,8 +23,14 @@ impl TenantGraphs {
         }
         let g = self.graphs.entry(event.tenant_id.clone()).or_default();
         match &event.kind {
-            GraphEventKind::NodeRegistered { node_id, .. } => {
+            GraphEventKind::NodeRegistered {
+                node_id,
+                component_code,
+                functions,
+                ..
+            } => {
                 g.register_node(node_id);
+                g.set_node_component(node_id, component_code, functions);
             }
             GraphEventKind::NodeRelocated { node_id, .. } => {
                 g.register_node(node_id);
@@ -46,14 +52,16 @@ impl TenantGraphs {
             GraphEventKind::DeviceInstalled {
                 device_id,
                 component_code,
-                isolates,
+                functions,
+                closed,
                 host_pipe_id,
                 host_node_id,
                 ..
             } => g.set_device(
                 device_id,
                 component_code,
-                *isolates,
+                functions,
+                *closed,
                 host_pipe_id.as_deref(),
                 host_node_id.as_deref(),
             ),
@@ -118,6 +126,7 @@ mod tests {
             GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
                 component_code: "Junction".into(),
+                functions: Vec::new(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -149,6 +158,7 @@ mod tests {
             GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
                 component_code: "Junction".into(),
+                functions: Vec::new(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -159,6 +169,7 @@ mod tests {
             GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
                 component_code: "Junction".into(),
+                functions: Vec::new(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -177,6 +188,7 @@ mod tests {
             GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
                 component_code: "Junction".into(),
+                functions: Vec::new(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -217,6 +229,7 @@ mod tests {
             0 => GraphEventKind::NodeRegistered {
                 node_id: n(i),
                 component_code: "Junction".into(),
+                functions: Vec::new(),
                 lat: 0.0,
                 lng: 0.0,
             },
@@ -238,7 +251,8 @@ mod tests {
             5 => GraphEventKind::DeviceInstalled {
                 device_id: d(i),
                 component_code: "GateValve".into(),
-                isolates: true,
+                functions: vec!["isolates".into()],
+                closed: false,
                 host_pipe_id: Some(p(i)),
                 host_node_id: None,
                 lat: 0.0,

@@ -8,7 +8,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PipeEdge {
     pub pipe_id: String,
+    /// Isolation valves hosted on the pipe (devices whose component `isolates`).
     pub valves: HashSet<String>,
+    /// Devices on the pipe installed closed (`state=closed`): they block traces.
+    #[serde(default)]
+    pub closed: HashSet<String>,
 }
 
 /// Vertex payload. `registered` is true once a NodeRegistered/NodeRelocated
@@ -19,6 +23,37 @@ pub struct NodeVertex {
     pub node_id: String,
     #[serde(default)]
     pub registered: bool,
+    /// Catalog component (decision 0028); empty for placeholder endpoints.
+    #[serde(default)]
+    pub component_code: String,
+    /// Catalog functional flags, e.g. `supplies`/`stores` for sources.
+    #[serde(default)]
+    pub functions: Vec<String>,
+}
+
+/// Where an isolation starts: a node, or a pipe (the screen's usual target).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Start<'a> {
+    Node(&'a str),
+    Pipe(&'a str),
+}
+
+/// Trace direction. Upstream follows the network back to its sources (nodes that `supplies`
+/// or `stores`); downstream is what the start feeds once that way back is cut.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Direction {
+    All,
+    Upstream,
+    Downstream,
+}
+
+/// Result of a directed trace.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Trace {
+    pub node_ids: Vec<String>,
+    pub pipe_ids: Vec<String>,
+    /// Upstream only: the sources reached.
+    pub source_node_ids: Vec<String>,
 }
 
 /// A device's placement, tracked so deletes can find and unmark the host edge.
@@ -27,9 +62,13 @@ pub struct DevicePlacement {
     /// Catalog component code (decision 0028).
     #[serde(alias = "device_type")]
     pub component_code: String,
-    /// Operable to close its host pipe; only these bound an isolation segment.
+    /// Catalog functional flags; `isolates` devices bound an isolation segment, `serves`
+    /// devices are customers affected by one.
     #[serde(default)]
-    pub isolates: bool,
+    pub functions: Vec<String>,
+    /// Installed closed (`state=closed`).
+    #[serde(default)]
+    pub closed: bool,
     pub host_pipe_id: Option<String>,
     pub host_node_id: Option<String>,
 }
@@ -66,11 +105,27 @@ pub struct NearestValve {
 
 /// The result of an isolation computation: the valves to close to isolate the
 /// incident's segment, and the nodes/pipes that become isolated.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct IsolationZone {
     pub valves_to_close: Vec<String>,
     pub isolated_nodes: Vec<String>,
     pub isolated_pipes: Vec<String>,
+    /// Pipes whose valves close the segment.
+    pub boundary_pipes: Vec<String>,
+    /// Devices that `serves` customers on the isolated pipes and nodes.
+    pub affected_services: Vec<String>,
+}
+
+impl DevicePlacement {
+    pub fn does(&self, function: &str) -> bool {
+        self.functions.iter().any(|f| f == function)
+    }
+}
+
+fn sorted<I: IntoIterator<Item = String>>(items: I) -> Vec<String> {
+    let mut v: Vec<String> = items.into_iter().collect();
+    v.sort();
+    v
 }
 
 /// One tenant's network as an undirected, stable graph.
@@ -103,7 +158,7 @@ impl NetworkGraph {
         }
         let ix = self.graph.add_node(NodeVertex {
             node_id: node_id.to_string(),
-            registered: false,
+            ..NodeVertex::default()
         });
         self.node_ix.insert(node_id.to_string(), ix);
         ix
@@ -114,6 +169,18 @@ impl NetworkGraph {
     pub fn register_node(&mut self, node_id: &str) {
         let ix = self.upsert_node(node_id);
         self.graph[ix].registered = true;
+    }
+
+    /// Record a node's catalog component (from NodeRegistered or the export).
+    pub fn set_node_component(
+        &mut self,
+        node_id: &str,
+        component_code: &str,
+        functions: &[String],
+    ) {
+        let ix = self.upsert_node(node_id);
+        self.graph[ix].component_code = component_code.to_string();
+        self.graph[ix].functions = functions.to_vec();
     }
 
     pub fn add_pipe(&mut self, pipe_id: &str, from_node_id: &str, to_node_id: &str) {
@@ -127,10 +194,21 @@ impl NetworkGraph {
             b,
             PipeEdge {
                 pipe_id: pipe_id.to_string(),
-                valves: HashSet::new(),
+                ..PipeEdge::default()
             },
         );
         self.pipe_ix.insert(pipe_id.to_string(), ix);
+        // devices may arrive before their pipe (the export is ordered by id: device- < pipe-)
+        for (id, d) in &self.devices {
+            if d.host_pipe_id.as_deref() == Some(pipe_id) {
+                if d.does("isolates") {
+                    self.graph[ix].valves.insert(id.clone());
+                }
+                if d.closed {
+                    self.graph[ix].closed.insert(id.clone());
+                }
+            }
+        }
     }
 
     pub fn remove_pipe(&mut self, pipe_id: &str) {
@@ -169,7 +247,8 @@ impl NetworkGraph {
         &mut self,
         device_id: &str,
         component_code: &str,
-        isolates: bool,
+        functions: &[String],
+        closed: bool,
         host_pipe_id: Option<&str>,
         host_node_id: Option<&str>,
     ) {
@@ -177,15 +256,17 @@ impl NetworkGraph {
         self.remove_device(device_id);
         let placement = DevicePlacement {
             component_code: component_code.to_string(),
-            isolates,
+            functions: functions.to_vec(),
+            closed,
             host_pipe_id: host_pipe_id.map(str::to_string),
             host_node_id: host_node_id.map(str::to_string),
         };
-        if isolates {
-            if let Some(pid) = host_pipe_id {
-                if let Some(&ix) = self.pipe_ix.get(pid) {
-                    self.graph[ix].valves.insert(device_id.to_string());
-                }
+        if let Some(&ix) = host_pipe_id.and_then(|pid| self.pipe_ix.get(pid)) {
+            if placement.does("isolates") {
+                self.graph[ix].valves.insert(device_id.to_string());
+            }
+            if closed {
+                self.graph[ix].closed.insert(device_id.to_string());
             }
         }
         self.devices.insert(device_id.to_string(), placement);
@@ -193,11 +274,10 @@ impl NetworkGraph {
 
     pub fn remove_device(&mut self, device_id: &str) {
         if let Some(prev) = self.devices.remove(device_id) {
-            if prev.isolates {
-                if let Some(pid) = prev.host_pipe_id {
-                    if let Some(&ix) = self.pipe_ix.get(&pid) {
-                        self.graph[ix].valves.remove(device_id);
-                    }
+            if let Some(pid) = prev.host_pipe_id {
+                if let Some(&ix) = self.pipe_ix.get(&pid) {
+                    self.graph[ix].valves.remove(device_id);
+                    self.graph[ix].closed.remove(device_id);
                 }
             }
         }
@@ -375,27 +455,56 @@ impl NetworkGraph {
         found
     }
 
-    /// Compute the valve-segment isolation zone around `start_node_id`: BFS over
-    /// valveless pipes builds the segment; every valved pipe incident to it is a
-    /// boundary whose valves must close. Empty if the start node is absent.
+    /// Isolation zone around a node (kept for the incident flow).
     pub fn compute_isolation_zone(&self, start_node_id: &str) -> IsolationZone {
+        self.compute_isolation(Start::Node(start_node_id))
+    }
+
+    /// Compute the valve-segment isolation zone around a node or a pipe: BFS over valveless
+    /// pipes builds the segment; every valved pipe incident to it is a boundary whose isolation
+    /// valves must close. A target pipe is always isolated; its own valves close too and the
+    /// segment grows from both of its ends (the break side is unknown). Only devices whose
+    /// component `isolates` count as valves (decision 0028). Empty if the start is absent.
+    pub fn compute_isolation(&self, start: Start<'_>) -> IsolationZone {
         use std::collections::VecDeque;
-        let Some(&start) = self.node_ix.get(start_node_id) else {
-            return IsolationZone {
-                valves_to_close: Vec::new(),
-                isolated_nodes: Vec::new(),
-                isolated_pipes: Vec::new(),
-            };
-        };
         let mut in_segment: HashSet<NodeIndex> = HashSet::new();
         let mut isolated_pipes: HashSet<String> = HashSet::new();
+        let mut boundary: HashSet<String> = HashSet::new();
         let mut valves: HashSet<String> = HashSet::new();
         let mut q: VecDeque<NodeIndex> = VecDeque::new();
-        in_segment.insert(start);
-        q.push_back(start);
+        match start {
+            Start::Node(id) => {
+                if let Some(&ix) = self.node_ix.get(id) {
+                    in_segment.insert(ix);
+                    q.push_back(ix);
+                }
+            }
+            Start::Pipe(id) => {
+                if let Some(&ix) = self.pipe_ix.get(id) {
+                    let w = &self.graph[ix];
+                    isolated_pipes.insert(w.pipe_id.clone());
+                    if !w.valves.is_empty() {
+                        boundary.insert(w.pipe_id.clone());
+                        valves.extend(w.valves.iter().cloned());
+                    }
+                    let (a, b) = self.graph.edge_endpoints(ix).expect("edge index is valid");
+                    for n in [a, b] {
+                        if in_segment.insert(n) {
+                            q.push_back(n);
+                        }
+                    }
+                }
+            }
+        }
+        if in_segment.is_empty() {
+            return IsolationZone::default();
+        }
         while let Some(ix) = q.pop_front() {
             for e in self.graph.edges(ix) {
                 let w = e.weight();
+                if isolated_pipes.contains(&w.pipe_id) && boundary.contains(&w.pipe_id) {
+                    continue; // the target pipe's own valves are already closing
+                }
                 if w.valves.is_empty() {
                     // valveless pipe: internal to the segment — traverse it
                     isolated_pipes.insert(w.pipe_id.clone());
@@ -409,25 +518,144 @@ impl NetworkGraph {
                     }
                 } else {
                     // valved pipe: boundary — close its valves, do not cross
-                    for v in &w.valves {
-                        valves.insert(v.clone());
-                    }
+                    boundary.insert(w.pipe_id.clone());
+                    valves.extend(w.valves.iter().cloned());
                 }
             }
         }
-        let mut isolated_nodes: Vec<String> = in_segment
+        let isolated_node_ids: HashSet<String> = in_segment
             .iter()
             .map(|&i| self.graph[i].node_id.clone())
             .collect();
-        let mut valves_to_close: Vec<String> = valves.into_iter().collect();
-        let mut isolated_pipes_vec: Vec<String> = isolated_pipes.into_iter().collect();
-        isolated_nodes.sort();
-        valves_to_close.sort();
-        isolated_pipes_vec.sort();
+        let affected: Vec<String> = self
+            .devices
+            .iter()
+            .filter(|(_, d)| d.does("serves"))
+            .filter(|(_, d)| {
+                d.host_pipe_id
+                    .as_ref()
+                    .is_some_and(|p| isolated_pipes.contains(p))
+                    || d.host_node_id
+                        .as_ref()
+                        .is_some_and(|n| isolated_node_ids.contains(n))
+            })
+            .map(|(id, _)| id.clone())
+            .collect();
         IsolationZone {
-            valves_to_close,
-            isolated_nodes,
-            isolated_pipes: isolated_pipes_vec,
+            valves_to_close: sorted(valves),
+            isolated_nodes: sorted(isolated_node_ids),
+            isolated_pipes: sorted(isolated_pipes),
+            boundary_pipes: sorted(boundary),
+            affected_services: sorted(affected),
+        }
+    }
+
+    /// Directed trace from a node. Closed devices block their pipe. `max_depth` bounds every
+    /// direction (0 = unbounded for upstream/downstream).
+    pub fn trace_directed(
+        &self,
+        start_node_id: &str,
+        direction: Direction,
+        max_depth: u32,
+    ) -> Trace {
+        use std::collections::VecDeque;
+        let Some(&start) = self.node_ix.get(start_node_id) else {
+            return Trace::default();
+        };
+        if direction == Direction::All {
+            let (node_ids, pipe_ids) = self.trace(start_node_id, max_depth);
+            return Trace {
+                node_ids,
+                pipe_ids,
+                source_node_ids: Vec::new(),
+            };
+        }
+        let limit = if max_depth == 0 { u32::MAX } else { max_depth };
+        let is_source = |ix: NodeIndex| {
+            self.graph[ix]
+                .functions
+                .iter()
+                .any(|f| f == "supplies" || f == "stores")
+        };
+        // BFS over open pipes, remembering how each node was reached
+        let mut parent: HashMap<NodeIndex, (NodeIndex, EdgeIndex)> = HashMap::new();
+        let mut depth: HashMap<NodeIndex, u32> = HashMap::from([(start, 0)]);
+        let mut q: VecDeque<NodeIndex> = VecDeque::from([start]);
+        let mut sources: Vec<NodeIndex> = Vec::new();
+        while let Some(ix) = q.pop_front() {
+            if ix != start && is_source(ix) {
+                sources.push(ix); // do not trace through a source
+                continue;
+            }
+            let d = depth[&ix];
+            if d >= limit {
+                continue;
+            }
+            for e in self.graph.edges(ix) {
+                if !e.weight().closed.is_empty() {
+                    continue;
+                }
+                let nb = if e.source() == ix {
+                    e.target()
+                } else {
+                    e.source()
+                };
+                if let std::collections::hash_map::Entry::Vacant(slot) = depth.entry(nb) {
+                    slot.insert(d + 1);
+                    parent.insert(nb, (ix, e.id()));
+                    q.push_back(nb);
+                }
+            }
+        }
+        // the way back to the sources: the shortest path to each one
+        let mut up_nodes: HashSet<NodeIndex> = HashSet::from([start]);
+        let mut up_pipes: HashSet<EdgeIndex> = HashSet::new();
+        for &src in &sources {
+            let mut at = src;
+            while let Some(&(prev, edge)) = parent.get(&at) {
+                up_nodes.insert(at);
+                up_pipes.insert(edge);
+                at = prev;
+            }
+        }
+        let name_nodes =
+            |set: &HashSet<NodeIndex>| sorted(set.iter().map(|&i| self.graph[i].node_id.clone()));
+        let name_pipes =
+            |set: &HashSet<EdgeIndex>| sorted(set.iter().map(|&i| self.graph[i].pipe_id.clone()));
+        if direction == Direction::Upstream {
+            return Trace {
+                node_ids: name_nodes(&up_nodes),
+                pipe_ids: name_pipes(&up_pipes),
+                source_node_ids: sorted(sources.iter().map(|&i| self.graph[i].node_id.clone())),
+            };
+        }
+        // downstream: reachable from the start without the pipes leading back to a source
+        let mut seen: HashSet<NodeIndex> = HashSet::from([start]);
+        let mut pipes: HashSet<EdgeIndex> = HashSet::new();
+        let mut q: VecDeque<(NodeIndex, u32)> = VecDeque::from([(start, 0)]);
+        while let Some((ix, d)) = q.pop_front() {
+            if d >= limit {
+                continue;
+            }
+            for e in self.graph.edges(ix) {
+                if up_pipes.contains(&e.id()) || !e.weight().closed.is_empty() {
+                    continue;
+                }
+                pipes.insert(e.id());
+                let nb = if e.source() == ix {
+                    e.target()
+                } else {
+                    e.source()
+                };
+                if seen.insert(nb) {
+                    q.push_back((nb, d + 1));
+                }
+            }
+        }
+        Trace {
+            node_ids: name_nodes(&seen),
+            pipe_ids: name_pipes(&pipes),
+            source_node_ids: Vec::new(),
         }
     }
 
@@ -465,6 +693,10 @@ impl NetworkGraph {
 mod tests {
     use super::*;
 
+    fn fx(functions: &[&str]) -> Vec<String> {
+        functions.iter().map(|f| f.to_string()).collect()
+    }
+
     #[test]
     fn upsert_node_is_idempotent_on_index() {
         let mut g = NetworkGraph::default();
@@ -500,7 +732,14 @@ mod tests {
     fn valve_marks_host_edge() {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2");
-        g.set_device("d1", "GateValve", true, Some("p1"), None);
+        g.set_device(
+            "d1",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p1"),
+            None,
+        );
         assert!(g.pipe_has_valve("p1"));
         g.remove_device("d1");
         assert!(!g.pipe_has_valve("p1"));
@@ -510,7 +749,7 @@ mod tests {
     fn non_valve_device_does_not_mark_edge() {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2");
-        g.set_device("d1", "PressureSensor", false, Some("p1"), None);
+        g.set_device("d1", "PressureSensor", &fx(&[]), false, Some("p1"), None);
         assert!(!g.pipe_has_valve("p1"));
     }
 
@@ -518,9 +757,16 @@ mod tests {
     fn remove_node_drops_orphaned_device_placements() {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2"); // p1 is incident to n1
-        g.set_device("d_pipe", "GateValve", true, Some("p1"), None); // hosted on p1
-        g.set_device("d_node", "Hydrant", false, None, Some("n1")); // hosted on n1
-        g.set_device("d_keep", "Hydrant", false, None, Some("n2")); // hosted on the surviving node
+        g.set_device(
+            "d_pipe",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p1"),
+            None,
+        ); // hosted on p1
+        g.set_device("d_node", "Hydrant", &fx(&[]), false, None, Some("n1")); // hosted on n1
+        g.set_device("d_keep", "Hydrant", &fx(&[]), false, None, Some("n2")); // hosted on the surviving node
 
         g.remove_node("n1");
 
@@ -623,8 +869,22 @@ mod tests {
         g.add_pipe("p1", "n1", "n2");
         g.add_pipe("p2", "n2", "n3");
         g.add_pipe("p3", "n3", "n4");
-        g.set_device("v_far", "GateValve", true, Some("p3"), None); // ~2 hops from n1
-        g.set_device("v_near", "GateValve", true, Some("p1"), None); // 0 hops from n1
+        g.set_device(
+            "v_far",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p3"),
+            None,
+        ); // ~2 hops from n1
+        g.set_device(
+            "v_near",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p1"),
+            None,
+        ); // 0 hops from n1
         let valves = g.nearest_valves("n1", 5);
         let ids: Vec<&str> = valves.iter().map(|v| v.device_id.as_str()).collect();
         assert_eq!(ids, vec!["v_near", "v_far"]);
@@ -641,10 +901,24 @@ mod tests {
         g.add_pipe("p1", "n1", "n2");
         g.add_pipe("p2", "n2", "n3");
         g.add_pipe("p3", "n3", "n4");
-        g.set_device("gate", "GateValve", true, Some("p0"), None);
-        g.set_device("check", "CheckValve", false, Some("p1"), None);
-        g.set_device("prv", "PRV", false, Some("p2"), None);
-        g.set_device("bfv", "ButterflyValve", true, Some("p3"), None);
+        g.set_device(
+            "gate",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p0"),
+            None,
+        );
+        g.set_device("check", "CheckValve", &fx(&[]), false, Some("p1"), None);
+        g.set_device("prv", "PRV", &fx(&[]), false, Some("p2"), None);
+        g.set_device(
+            "bfv",
+            "ButterflyValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p3"),
+            None,
+        );
         let zone = g.compute_isolation_zone("n2");
         assert_eq!(
             zone.valves_to_close,
@@ -656,13 +930,134 @@ mod tests {
             .all(|v| v.device_id != "check" && v.device_id != "prv"));
     }
 
+    /// reservoir R ─p0─ n1 ─p1(gate)─ n2 ─p2─ n3 ─p3(check)─ n4, service on p2, meter on n3
+    fn small_network() -> NetworkGraph {
+        let mut g = NetworkGraph::default();
+        g.add_pipe("p0", "R", "n1");
+        g.add_pipe("p1", "n1", "n2");
+        g.add_pipe("p2", "n2", "n3");
+        g.add_pipe("p3", "n3", "n4");
+        g.set_node_component("R", "Reservoir", &fx(&["stores"]));
+        g.set_device(
+            "gate",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p1"),
+            None,
+        );
+        g.set_device(
+            "check",
+            "CheckValve",
+            &fx(&["controls"]),
+            false,
+            Some("p3"),
+            None,
+        );
+        g.set_device(
+            "svc",
+            "ServiceConnection",
+            &fx(&["serves"]),
+            false,
+            None,
+            Some("n3"),
+        );
+        g
+    }
+
+    #[test]
+    fn isolation_from_a_pipe_reports_boundary_and_affected_customers() {
+        let z = small_network().compute_isolation(Start::Pipe("p2"));
+        // the check valve on p3 does not isolate, so the segment runs through to n4
+        assert_eq!(z.isolated_pipes, fx(&["p2", "p3"]));
+        assert_eq!(z.valves_to_close, fx(&["gate"]));
+        assert_eq!(z.boundary_pipes, fx(&["p1"]));
+        assert_eq!(z.affected_services, fx(&["svc"]));
+    }
+
+    #[test]
+    fn a_valve_on_the_target_pipe_is_closed_and_the_segment_grows_from_both_ends() {
+        let z = small_network().compute_isolation(Start::Pipe("p1"));
+        assert!(z.isolated_pipes.contains(&"p1".to_string()));
+        assert_eq!(z.valves_to_close, fx(&["gate"]));
+        assert!(
+            z.isolated_pipes.contains(&"p0".to_string())
+                && z.isolated_pipes.contains(&"p2".to_string())
+        );
+    }
+
+    #[test]
+    fn unknown_start_gives_an_empty_zone() {
+        assert_eq!(
+            small_network().compute_isolation(Start::Pipe("nope")),
+            IsolationZone::default()
+        );
+    }
+
+    #[test]
+    fn upstream_reaches_the_source_and_downstream_is_what_the_start_feeds() {
+        let g = small_network();
+        let up = g.trace_directed("n2", Direction::Upstream, 0);
+        assert_eq!(up.source_node_ids, fx(&["R"]));
+        assert_eq!(up.pipe_ids, fx(&["p0", "p1"]));
+        let down = g.trace_directed("n2", Direction::Downstream, 0);
+        assert_eq!(down.pipe_ids, fx(&["p2", "p3"]));
+        assert_eq!(down.node_ids, fx(&["n2", "n3", "n4"]));
+    }
+
+    #[test]
+    fn a_closed_valve_blocks_the_trace() {
+        let mut g = small_network();
+        g.set_device(
+            "gate",
+            "GateValve",
+            &fx(&["isolates"]),
+            true,
+            Some("p1"),
+            None,
+        );
+        assert!(g
+            .trace_directed("n2", Direction::Upstream, 0)
+            .source_node_ids
+            .is_empty());
+    }
+
+    #[test]
+    fn devices_installed_before_their_pipe_still_mark_it() {
+        let mut g = NetworkGraph::default();
+        g.set_device(
+            "v",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p1"),
+            None,
+        );
+        g.add_pipe("p1", "a", "b");
+        assert!(g.pipe_has_valve("p1"));
+    }
+
     #[test]
     fn nearest_valves_respects_k() {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2");
         g.add_pipe("p2", "n2", "n3");
-        g.set_device("v1", "GateValve", true, Some("p1"), None);
-        g.set_device("v2", "GateValve", true, Some("p2"), None);
+        g.set_device(
+            "v1",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p1"),
+            None,
+        );
+        g.set_device(
+            "v2",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p2"),
+            None,
+        );
         assert_eq!(g.nearest_valves("n1", 1).len(), 1);
     }
 
@@ -671,7 +1066,14 @@ mod tests {
         let mut g = NetworkGraph::default();
         g.add_pipe("p1", "n1", "n2");
         g.add_pipe("p2", "n2", "n3"); // p2 connects nodes 1 and 2 hops from n1
-        g.set_device("v_mid", "GateValve", true, Some("p2"), None);
+        g.set_device(
+            "v_mid",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p2"),
+            None,
+        );
         let valves = g.nearest_valves("n1", 5);
         assert_eq!(valves.len(), 1);
         // p2's nearer endpoint (n2) is 1 hop from n1 → distance 1, not 2.
@@ -715,7 +1117,14 @@ mod tests {
         for n in ["n1", "n2", "n3", "n4"] {
             g.register_node(n);
         }
-        g.set_device("v1", "GateValve", true, Some("p2"), None);
+        g.set_device(
+            "v1",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p2"),
+            None,
+        );
         let z = g.compute_isolation_zone("n1");
         assert_eq!(z.valves_to_close, vec!["v1"]);
         assert_eq!(z.isolated_nodes, vec!["n1", "n2"]);
@@ -728,7 +1137,14 @@ mod tests {
         g.add_pipe("p1", "n1", "n2"); // valved right at n1's edge
         g.register_node("n1");
         g.register_node("n2");
-        g.set_device("v1", "GateValve", true, Some("p1"), None);
+        g.set_device(
+            "v1",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p1"),
+            None,
+        );
         let z = g.compute_isolation_zone("n1");
         assert_eq!(z.valves_to_close, vec!["v1"]);
         assert_eq!(z.isolated_nodes, vec!["n1"]);
@@ -772,8 +1188,22 @@ mod tests {
         for n in ["n1", "n2", "n3", "n4"] {
             g.register_node(n);
         }
-        g.set_device("v1", "GateValve", true, Some("p2"), None);
-        g.set_device("v2", "GateValve", true, Some("p3"), None);
+        g.set_device(
+            "v1",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p2"),
+            None,
+        );
+        g.set_device(
+            "v2",
+            "GateValve",
+            &fx(&["isolates"]),
+            false,
+            Some("p3"),
+            None,
+        );
         let z = g.compute_isolation_zone("n1");
         assert_eq!(z.valves_to_close, vec!["v1", "v2"]);
         assert_eq!(z.isolated_nodes, vec!["n1", "n2"]);
@@ -794,7 +1224,8 @@ mod tests {
         g.set_device(
             "vend",
             "GateValve",
-            true,
+            &fx(&["isolates"]),
+            false,
             Some(&format!("p{}", n - 1)),
             None,
         );

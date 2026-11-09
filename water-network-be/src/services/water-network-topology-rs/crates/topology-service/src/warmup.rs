@@ -78,6 +78,7 @@ mod tests {
             kind: GraphEventKind::NodeRegistered {
                 node_id: "n1".into(),
                 component_code: "Junction".into(),
+                functions: Vec::new(),
                 lat: 0.0,
                 lng: 0.0,
             },

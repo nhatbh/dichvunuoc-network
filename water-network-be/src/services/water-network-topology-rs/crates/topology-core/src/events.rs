@@ -23,6 +23,8 @@ struct NodeRegisteredData {
     node_id: String,
     tenant_id: String,
     component_code: String,
+    #[serde(default)]
+    functions: Vec<String>,
     latitude: f64,
     longitude: f64,
 }
@@ -71,6 +73,9 @@ struct DeviceInstalledData {
     /// Catalog functional flags (decision 0028); `isolates` marks an isolation valve.
     #[serde(default)]
     functions: Vec<String>,
+    /// Catalog properties; `state=closed` blocks traces through the host pipe.
+    #[serde(default)]
+    properties: std::collections::HashMap<String, String>,
     host_pipe_id: Option<String>,
     host_node_id: Option<String>,
     latitude: f64,
@@ -97,6 +102,7 @@ pub enum GraphEventKind {
     NodeRegistered {
         node_id: String,
         component_code: String,
+        functions: Vec<String>,
         lat: f64,
         lng: f64,
     },
@@ -122,9 +128,11 @@ pub enum GraphEventKind {
     DeviceInstalled {
         device_id: String,
         component_code: String,
-        /// Operable to close its pipe (gate, butterfly, ball, service valves) — never a
-        /// check valve or PRV.
-        isolates: bool,
+        /// Catalog functional flags: `isolates` (gate, butterfly, ball, service valves —
+        /// never a check valve or PRV) bounds isolation; `serves` counts customers.
+        functions: Vec<String>,
+        /// Installed closed (`state=closed`).
+        closed: bool,
         host_pipe_id: Option<String>,
         host_node_id: Option<String>,
         lat: f64,
@@ -201,6 +209,7 @@ fn parse_kind(
                 GraphEventKind::NodeRegistered {
                     node_id: d.node_id,
                     component_code: d.component_code,
+                    functions: d.functions,
                     lat: d.latitude,
                     lng: d.longitude,
                 },
@@ -251,7 +260,8 @@ fn parse_kind(
                 d.tenant_id,
                 GraphEventKind::DeviceInstalled {
                     device_id: d.device_id,
-                    isolates: d.functions.iter().any(|f| f == "isolates"),
+                    closed: d.properties.get("state").is_some_and(|s| s == "closed"),
+                    functions: d.functions,
                     component_code: d.component_code,
                     host_pipe_id: d.host_pipe_id,
                     host_node_id: d.host_node_id,
@@ -385,14 +395,16 @@ mod tests {
             GraphEventKind::DeviceInstalled {
                 device_id,
                 component_code,
-                isolates,
+                functions,
+                closed,
                 host_pipe_id,
                 host_node_id,
                 ..
             } => {
                 assert_eq!(device_id, "dev-1");
                 assert_eq!(component_code, "ButterflyValve");
-                assert!(isolates);
+                assert_eq!(functions, vec!["isolates".to_string()]);
+                assert!(!closed);
                 assert_eq!(host_pipe_id.as_deref(), Some("pipe-1"));
                 assert_eq!(host_node_id, None);
             }
@@ -416,8 +428,11 @@ mod tests {
                 .unwrap()
                 .kind
             {
-                GraphEventKind::DeviceInstalled { isolates, .. } => {
-                    assert!(!isolates, "{code} must not isolate")
+                GraphEventKind::DeviceInstalled { functions, .. } => {
+                    assert!(
+                        !functions.iter().any(|f| f == "isolates"),
+                        "{code} must not isolate"
+                    )
                 }
                 other => panic!("wrong kind: {other:?}"),
             }
