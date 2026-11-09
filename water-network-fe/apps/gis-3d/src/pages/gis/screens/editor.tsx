@@ -94,7 +94,7 @@ export function EditorScreen(props: {
     <Show
       when={props.branchId}
       fallback={
-        <div class="fixed inset-0 z-40 bg-[var(--bg)]">
+        <div class="absolute inset-0 z-40 bg-[var(--bg)]">
           <EdBranchGate branches={props.branches || []} onBlank={() => makeBranch(null)} onClone={(b) => makeBranch(b)} onOpen={(b) => props.go({ name: 'editor', branch: b.id })} onExit={() => props.go({ name: 'dashboard' })} fallbackThumb={fallbackThumb()} />
         </div>
       }
@@ -819,7 +819,7 @@ function EditorWorkspace(props: {
   }
 
   return (
-    <div class="fixed inset-0 z-40 flex flex-col bg-[var(--bg)]">
+    <div class="absolute inset-0 z-40 flex flex-col bg-[var(--bg)]">
       <EdMenuBar
         menus={menus()}
         left={

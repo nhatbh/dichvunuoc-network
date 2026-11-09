@@ -20,10 +20,19 @@ public sealed class NetworkEditsEndpointModule : IEndpointModule
         app.MapGet("/api/design/network-edits", async (DesignDbContext db, ITenantContextAccessor tenants, CancellationToken ct) =>
         {
             var tenant = tenants.Current ?? throw UnauthorizedException.InvalidToken("Tenant context is required.");
-            return Results.Ok(await db.Set<DesignRevisionPersistenceModel>().AsNoTracking()
-                .Where(x => x.TenantId == tenant.TenantId && x.NetworkEditsJson != null)
-                .OrderByDescending(x => x.UpdatedAt).Take(200)
-                .Select(x => new { x.Id, x.ProjectId, x.Status, x.Version, x.UpdatedAt }).ToListAsync(ct));
+            // name = the project's; returnedReason = why a reviewer sent it back (reject → Draft)
+            var rows = from r in db.Set<DesignRevisionPersistenceModel>().AsNoTracking()
+                       join p in db.Set<DesignProjectPersistenceModel>().AsNoTracking() on r.ProjectId equals p.Id
+                       where r.TenantId == tenant.TenantId && p.TenantId == tenant.TenantId && r.NetworkEditsJson != null
+                       orderby r.UpdatedAt descending
+                       select new
+                       {
+                           r.Id, r.ProjectId, name = p.Name, r.Status, r.Version, r.CreatedAt, r.UpdatedAt,
+                           returnedReason = r.Transitions.OrderByDescending(t => t.OccurredAt)
+                               .Select(t => t.FromStatus == "Submitted" && t.ToStatus == "Draft" ? t.Reason : null)
+                               .FirstOrDefault(),
+                       };
+            return Results.Ok(await rows.Take(200).ToListAsync(ct));
         }).RequirePermission("network-design:read");
         var group = app.MapGroup("/api/design/revisions/{revisionId}/network-edits");
         group.MapGet("", async (string revisionId, IDesignRevisionRepository revisions, ITenantContextAccessor tenants, CancellationToken ct) =>

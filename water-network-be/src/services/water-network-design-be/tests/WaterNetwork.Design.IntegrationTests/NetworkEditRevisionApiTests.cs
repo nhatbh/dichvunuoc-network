@@ -47,4 +47,27 @@ public sealed class NetworkEditRevisionApiTests(PostgisFixture postgis)
         (await client.GetAsync(path)).StatusCode.Should().Be(HttpStatusCode.NotFound);
         (await client.PutAsJsonAsync(path,body)).StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
+    [Fact] public async Task List_Names_Each_Revision_By_Its_Project_And_Says_Why_It_Was_Returned()
+    {
+        using var original=new DesignApiFactory(postgis);
+        using var factory=original.WithWebHostBuilder(b=>b.ConfigureServices(s=>{s.RemoveAll<IGisLookupPort>();s.AddSingleton<IGisLookupPort,Lookup>();}));
+        using var client=factory.CreateClient();
+        string Token(params string[] permissions)=>DevJwtTokenFactory.CreateToken(new JwtOptions(),subject:"editor",tenantId:"list-tenant",permissions:permissions);
+        client.DefaultRequestHeaders.Authorization=new AuthenticationHeaderValue("Bearer",Token("network-design:read","network-design:write","network-design:approve"));
+        var project=await client.PostAsJsonAsync("/api/design/projects",new {name="Van biên khu A"});
+        var projectId=(await project.Content.ReadFromJsonAsync<JsonNode>())!["id"]!.GetValue<string>();
+        var id=(await (await client.PostAsync($"/api/design/projects/{projectId}/revisions",null)).Content.ReadFromJsonAsync<JsonNode>())!["id"]!.GetValue<string>();
+        var path=$"/api/design/revisions/{id}/network-edits";
+        var version=(await client.GetFromJsonAsync<JsonNode>(path))!["version"]!.GetValue<int>();
+        (await client.PutAsJsonAsync(path,new {expectedVersion=version,operations=new[]{new NetworkEditOperationV1("n1","Add","Node",null,null,
+            new("n1","Node","N-LIST","n1",new("Point",[[105,21]]),new Dictionary<string,string>{{"componentCode","Junction"}},null,null,null),null)}})).EnsureSuccessStatusCode();
+        (await client.PostAsync($"/api/design/revisions/{id}/validate",null)).EnsureSuccessStatusCode();
+        (await client.PostAsync($"/api/design/revisions/{id}/submit",null)).EnsureSuccessStatusCode();
+        (await client.PostAsJsonAsync($"/api/design/revisions/{id}/reject",new {reason="Thiếu van"})).EnsureSuccessStatusCode();
+        var row=(await client.GetFromJsonAsync<JsonArray>("/api/design/network-edits"))!.Single(x=>x!["id"]!.GetValue<string>()==id)!;
+        row["name"]!.GetValue<string>().Should().Be("Van biên khu A");
+        row["status"]!.GetValue<string>().Should().Be("Draft");
+        row["returnedReason"]!.GetValue<string>().Should().Be("Thiếu van");
+        row["createdAt"].Should().NotBeNull();
+    }
 }

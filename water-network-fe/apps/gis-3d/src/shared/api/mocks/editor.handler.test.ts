@@ -72,6 +72,19 @@ describe('mock design-revision service', () => {
     expect(v.errors.map((e: { code: string }) => e.code).sort()).toEqual(['DIAMETER', 'DIAMETER', 'INVALID_PROPERTIES'])
   })
 
+  it('lists saved revisions as design-be does: project name, dates, why one was returned', async () => {
+    const rev = await newRevision()
+    expect((await call('/revisions')).json).toEqual([]) // nothing saved yet
+    await call(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: segment('DRF-L') })
+    await call(`/revisions/${rev.id}/validate`, 'POST', {})
+    await call(`/revisions/${rev.id}/submit`, 'POST', {})
+    await call(`/revisions/${rev.id}/reject`, 'POST', { reason: 'Thiếu van' })
+    const [row] = (await call('/revisions')).json as unknown as Json[]
+    expect(row).toMatchObject({ id: rev.id, name: 'Test', status: 'Draft', returnedReason: 'Thiếu van' })
+    expect(row!.createdAt).toBeTruthy()
+    expect(row!.operations).toBeUndefined()
+  })
+
   it('requires a reason to reject', async () => {
     const rev = await newRevision()
     await call(`/revisions/${rev.id}`, 'PUT', { expectedVersion: rev.version, operations: segment('DRF-1') })

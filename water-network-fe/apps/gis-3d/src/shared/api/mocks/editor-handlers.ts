@@ -48,7 +48,10 @@ interface Revision {
   version: number
   status: Status
   operations: Edit[]
+  createdAt: string
   updatedAt: string
+  /** Saved at least once (design-be lists only revisions holding network edits). */
+  saved?: boolean
   reason?: string
   results?: { draftAssetId: string; gisAssetId?: string; status?: string; reason?: string }[]
 }
@@ -243,7 +246,24 @@ const find = (id: string) => revisions.get(id)
 
 export const editorHandlers = [
   http.get('*/editor/assets', () => HttpResponse.json(assets())),
-  http.get('*/editor/revisions', () => HttpResponse.json([...revisions.values()])),
+  // as design-be: revisions holding network edits, newest first, named by their project
+  http.get('*/editor/revisions', () =>
+    HttpResponse.json(
+      [...revisions.values()]
+        .filter(r => r.saved)
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        .map(r => ({
+          id: r.id,
+          projectId: r.projectId,
+          name: r.name,
+          status: r.status,
+          version: r.version,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+          returnedReason: r.status === 'Draft' ? (r.reason ?? null) : null,
+        }))
+    )
+  ),
   http.post('*/editor/projects', async ({ request }) => {
     const body = (await request.json().catch(() => ({}))) as { name?: string }
     const p = { id: `PRJ-${++seq}`, name: body.name?.trim() || 'Thiết kế' }
@@ -253,7 +273,7 @@ export const editorHandlers = [
   http.post('*/editor/projects/:pid/revisions', ({ params }) => {
     const p = projects.find(x => x.id === params.pid)
     if (!p) return problem(404, 'Không tìm thấy dự án.')
-    const r: Revision = { id: `REV-${++seq}`, projectId: p.id, name: p.name, version: 1, status: 'Draft', operations: [], updatedAt: now() }
+    const r: Revision = { id: `REV-${++seq}`, projectId: p.id, name: p.name, version: 1, status: 'Draft', operations: [], createdAt: now(), updatedAt: now() }
     revisions.set(r.id, r)
     return HttpResponse.json({ id: r.id }, { status: 201 })
   }),
@@ -273,6 +293,7 @@ export const editorHandlers = [
     const conflicts = inspection.errors.filter(e => e.code === 'TARGET_CONFLICT' || e.code === 'INVALID_OPERATION')
     if (conflicts.length) return HttpResponse.json({ errors: conflicts }, { status: 409 })
     r.operations = inspection.operations
+    r.saved = true
     r.version++
     r.status = 'Draft'
     r.updatedAt = now()
@@ -287,6 +308,7 @@ export const editorHandlers = [
         const errors = validateOperations(r.operations)
         if (!['Draft', 'Validated'].includes(r.status)) return problem(409, 'Bản nháp không ở trạng thái nháp.')
         r.status = errors.length ? 'Draft' : 'Validated'
+        if (!errors.length) delete r.reason // a new step after the return
         r.updatedAt = now()
         return HttpResponse.json({ isValid: !errors.length, errors })
       }

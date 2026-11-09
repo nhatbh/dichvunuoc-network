@@ -3,7 +3,7 @@
    toasts + ⌘K command palette + theme effects. Home route = Dashboard. */
 import { Match, Show, Switch, createEffect, createMemo, createSignal, on, onCleanup, type JSX } from 'solid-js'
 import { getOpsSource } from '@/shared/config/runtime-config'
-import { scLoadBranches, scSaveBranches, type Branch } from './lib/branch-store'
+import { createBranchSource } from './editor/branch-source'
 import { useGis } from './lib/gis-data'
 import { AssetsScreen } from './screens/assets'
 import { ConnectionsScreen } from './screens/connections'
@@ -58,13 +58,8 @@ export function GisApp() {
   const G = useGis()
   const [route, setRoute] = createSignal<Route>(initialRoute())
   const [toasts, setToasts] = createSignal<Toast[]>([])
-  const [branches, setBranches] = createSignal<Branch[]>(G.canonical ? [] : scLoadBranches())
-
-  // The legacy branch store is global and not tenant-scoped. Canonical tenants
-  // must not seed or persist data there until a tenant-aware service exists.
-  createEffect(() => {
-    if (!G.canonical) scSaveBranches(branches())
-  })
+  // demo network: the browser's branch store; live network: the tenant's design revisions
+  const { branches, setBranches } = createBranchSource(G)
 
   function initialRoute(): Route {
     // `#sensor:D-0012` / `#leaks:MK-EV-1` carry the item the ops panels open
