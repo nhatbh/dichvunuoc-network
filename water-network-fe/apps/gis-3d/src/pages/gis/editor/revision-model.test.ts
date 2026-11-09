@@ -8,7 +8,7 @@ import {
   type Asset,
   type Edit,
   type State,
-} from './model'
+} from './revision-model'
 const node = (id: string, x: number): Asset => ({
   draftAssetId: id,
   kind: 'Node',

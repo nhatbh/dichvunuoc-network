@@ -1,7 +1,7 @@
 import { authClient } from '@/shared/lib/client-auth'
 import { env } from '@/shared/config/env'
 import { importSessionScope } from '../import-workspace/api'
-import type { Edit, Issue, Revision, State } from './model'
+import type { Edit, Issue, Revision, State } from './revision-model'
 export function createNetworkEditorApi(scope: string, signal: AbortSignal) {
   async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
     if (importSessionScope(await authClient.getSession()) !== scope)

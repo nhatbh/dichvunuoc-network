@@ -10,13 +10,13 @@ describe('setFeatureFlags — runtime flag overrides', () => {
   afterEach(() => useUpdateFeatureFlags().resetFlags())
 
   it('enables a known flag from an override map', () => {
-    expect(getFeatureFlag(FEATURE_FLAGS.NEW_EDITOR)).toBe(false)
-    setFeatureFlags({ newEditor: true })
-    expect(getFeatureFlag(FEATURE_FLAGS.NEW_EDITOR)).toBe(true)
+    expect(getFeatureFlag(FEATURE_FLAGS.NEW_DASHBOARD)).toBe(false)
+    setFeatureFlags({ newDashboard: true })
+    expect(getFeatureFlag(FEATURE_FLAGS.NEW_DASHBOARD)).toBe(true)
   })
 
   it('ignores unknown flag keys without throwing', () => {
     setFeatureFlags({ someFlagThatDoesNotExist: true })
-    expect(getFeatureFlag(FEATURE_FLAGS.NEW_EDITOR)).toBe(false)
+    expect(getFeatureFlag(FEATURE_FLAGS.NEW_DASHBOARD)).toBe(false)
   })
 })

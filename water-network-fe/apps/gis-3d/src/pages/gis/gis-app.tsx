@@ -39,6 +39,7 @@ import { OpsProvider, useOpsMaybe } from './ops/ops-context'
 import { OpsMapBridge, TimeBar } from './ops/time-bar'
 import { GisShell } from './shell/gis-shell'
 import { MapStageProvider } from './shell/map-stage'
+import { canonicalRoutes } from './shell/canonical-routes'
 import { NAV, OPS_ROUTES, PANELS, TITLES } from './shell/nav'
 import { NetworkHud, TopologyBanner } from './shell/network-hud'
 import { StageMap } from './shell/stage-map'
@@ -51,20 +52,7 @@ const iconOf = (name: string): string => {
   return 'IcGridSq'
 }
 
-const CANONICAL_SUPPORTED_ROUTES = new Set([
-  'dashboard',
-  'map',
-  'layers',
-  'query',
-  'assets',
-  'import',
-  // design revisions from design-be (BFF /editor/*); #editor opens the server-native editor
-  'versions',
-  // trace and valve isolation from topology-rs (BFF /topology/*, decision 0029)
-  'trace',
-  // the operations screens run on the canonical network once /ops is live
-  ...(getOpsSource() === 'live' ? OPS_ROUTES : []),
-])
+const CANONICAL_SUPPORTED_ROUTES = canonicalRoutes(getOpsSource())
 
 export function GisApp() {
   const G = useGis()

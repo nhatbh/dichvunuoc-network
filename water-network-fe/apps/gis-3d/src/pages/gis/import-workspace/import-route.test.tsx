@@ -7,9 +7,6 @@ vi.mock('@/shared/lib/cross-app-sso', () => ({ navigateToMenuApp: vi.fn() }))
 vi.mock('../gis-home', () => ({ GisHome: () => <div>Canonical GIS home</div> }))
 vi.mock('../legacy-gis-home', () => ({ LegacyGisHome: () => <div>Legacy GIS home</div> }))
 vi.mock('../map-page', () => ({ MapPage: () => <div>Scalable GIS map</div> }))
-vi.mock('../network-editor/workspace', () => ({
-  NetworkEditor: () => <div>Published network editor</div>,
-}))
 vi.mock('../screens/import', () => ({ ImportScreen: () => <div>CAD import workspace</div> }))
 vi.mock('@/shared/config/runtime-config', () => ({
   getGisRuntimePolicy: () => ({ dataSource: 'canonical', viewerMode: 'rich' }),
@@ -29,10 +26,10 @@ describe('Import entry independent of published network', () => {
       expect(screen.queryByText('Canonical GIS home')).not.toBeInTheDocument()
     }
   )
-  it('opens the published network editor separately from CAD import', async () => {
+  it('leaves #editor to the application shell, whose editor route edits the published network', async () => {
     window.location.hash = '#editor'
     render(() => <GisRuntimePage />)
-    expect(await screen.findByText('Published network editor')).toBeInTheDocument()
+    expect(await screen.findByText('Canonical GIS home')).toBeInTheDocument()
     expect(screen.queryByText('CAD import workspace')).not.toBeInTheDocument()
   })
   it('responds to navigation into and out of import', async () => {

@@ -8,9 +8,9 @@ import { REVISION_STATUS } from '../editor/revision-sync'
 import { importSessionScope } from '../import-workspace/api'
 import { IcCheckCircle, IcClock, IcX } from '../lib/icons'
 import { cAccent, chex, tone } from '../lib/theme'
-import { createNetworkEditorApi } from '../network-editor/api'
+import { createNetworkEditorApi } from '../editor/revision-api'
 import { Badge, Btn, Card, KV, ScreenHead, Tile } from '../ui/kit'
-import type { Edit, Revision } from '../network-editor/model'
+import type { Edit, Revision } from '../editor/revision-model'
 
 export const APPROVE_PERMISSION = 'network-design:approve'
 

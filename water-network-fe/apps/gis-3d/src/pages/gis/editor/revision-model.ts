@@ -1,4 +1,4 @@
-import { LINE_TOLERANCE_M, normalizeLine, splitLine, toMapPoint } from './geometry'
+import { LINE_TOLERANCE_M, normalizeLine, splitLine, toMapPoint } from './revision-geometry'
 export type Point = [number, number]
 export type Kind = 'Node' | 'Pipe' | 'Device'
 export interface Asset {

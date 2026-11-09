@@ -2,7 +2,7 @@ import { inspectNetworkEdits, type EditState } from '@wn/contracts/network-edits
 import { describe, expect, it } from 'vitest'
 import type { Draft } from './model'
 import { draftsToOperations, operationsToDrafts, serverIssues, type Projector } from './revision-ops'
-import type { Asset } from '../network-editor/model'
+import type { Asset } from './revision-model'
 
 // 1 px = 1e-5° (~1 m) around Hanoi; exact inverse so round trips are lossless
 const proj: Projector = {

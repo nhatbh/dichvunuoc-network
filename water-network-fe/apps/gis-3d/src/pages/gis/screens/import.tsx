@@ -12,7 +12,6 @@ import type { Route } from '../shell/nav'
 
 /** Durable CAD workspace; source files and review decisions belong to the authenticated tenant. */
 export function ImportScreen(_props: {
-  editorMode?: boolean
   draftMap?: boolean
   toast?: (message: string, kind?: string) => void
   go?: (route: Route) => void
@@ -112,11 +111,7 @@ export function ImportScreen(_props: {
       <header class="import-screen-header">
         <div>
           <h1>
-            {_props.editorMode
-              ? 'Biên tập mạng lưới · Bản nháp'
-              : _props.draftMap
-                ? 'Bản đồ bản nháp'
-                : 'Import CAD lên GIS'}
+            {_props.draftMap ? 'Bản đồ bản nháp' : 'Import CAD lên GIS'}
           </h1>
           <p>
             {_props.draftMap

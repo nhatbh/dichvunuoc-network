@@ -1,5 +1,4 @@
-import { Show, type JSX } from 'solid-js'
-import { FEATURE_FLAGS, getFeatureFlag } from '@/shared/lib/feature-flags'
+import type { JSX } from 'solid-js'
 
 interface AppShellProps {
   active?: string
@@ -39,24 +38,6 @@ export function AppShell(props: AppShellProps) {
             <span>Bản đồ</span>
           </a>
 
-          <Show when={getFeatureFlag(FEATURE_FLAGS.NEW_EDITOR)}>
-            <a
-              href="/gis/editor"
-              title="Biên tập mạng lưới"
-              aria-current={props.active === 'editor' ? 'page' : undefined}
-              class="mt-1 flex flex-col items-center gap-1 rounded-lg p-2 text-xs transition-colors"
-              classList={{
-                'bg-accent text-accent-foreground': props.active === 'editor',
-                'text-muted-foreground hover:bg-accent hover:text-accent-foreground': props.active !== 'editor',
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-              </svg>
-              <span>Biên tập</span>
-            </a>
-          </Show>
 
           <a href="/gis#import" title="Import bản vẽ CAD" class="mt-1 flex flex-col items-center gap-1 rounded-lg p-2 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5" /></svg>

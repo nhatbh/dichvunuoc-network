@@ -7,9 +7,9 @@ import { useSession } from '@/entities/session/api/use-session'
 import { draftsToOperations, operationsToDrafts, serverIssues, type Projector } from './revision-ops'
 import { importSessionScope } from '../import-workspace/api'
 import { gisLonLatToPixel, gisPixelToLonLat, type GisData } from '../lib/gis-data'
-import { createNetworkEditorApi, type EditorApi } from '../network-editor/api'
+import { createNetworkEditorApi, type EditorApi } from './revision-api'
 import type { Draft, DraftKind, RuleIssue } from './model'
-import type { Issue, Revision, State } from '../network-editor/model'
+import type { Issue, Revision, State } from './revision-model'
 
 export const WRITE_PERMISSION = 'network-design:write'
 const EDITABLE = ['Draft', 'Validated', 'Rejected']

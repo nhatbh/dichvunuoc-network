@@ -12,7 +12,6 @@ import { Show } from 'solid-js'
 export const FEATURE_FLAGS = {
   NEW_DASHBOARD: 'newDashboard',
   DARK_MODE: 'darkMode',
-  NEW_EDITOR: 'newEditor',
   BETA_FEATURES: 'betaFeatures',
   EXPERIMENTAL_API: 'experimentalApi',
   PAYMENTS_V2: 'paymentsV2',
@@ -39,7 +38,6 @@ type FeatureFlags = Record<FeatureFlagKey, boolean | FeatureFlagConfig>
 const defaultFlags: FeatureFlags = {
   [FEATURE_FLAGS.NEW_DASHBOARD]: false,
   [FEATURE_FLAGS.DARK_MODE]: true,
-  [FEATURE_FLAGS.NEW_EDITOR]: false,
   [FEATURE_FLAGS.BETA_FEATURES]: false,
   [FEATURE_FLAGS.EXPERIMENTAL_API]: false,
   [FEATURE_FLAGS.PAYMENTS_V2]: false,
@@ -54,9 +52,6 @@ const defaultFlags: FeatureFlags = {
 
 function loadFlagsFromEnv(): Partial<FeatureFlags> {
   const envFlags: Partial<FeatureFlags> = {}
-  if (import.meta.env.VITE_ENABLE_NEW_EDITOR === 'true') {
-    envFlags[FEATURE_FLAGS.NEW_EDITOR] = true
-  }
   if (import.meta.env.VITE_ENABLE_BETA_FEATURES === 'true') {
     envFlags[FEATURE_FLAGS.BETA_FEATURES] = true
   }

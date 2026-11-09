@@ -18,7 +18,7 @@
 import { findComponent, pipeMaterialCode, pipeMaterialLabel } from '@wn/contracts/catalog'
 import { nearMetres, type EditState } from '@wn/contracts/network-edits'
 import type { Draft, DraftKind, Pt, RuleIssue } from './model'
-import type { Asset, Edit, Issue, Kind, Point } from '../network-editor/model'
+import type { Asset, Edit, Issue, Kind, Point } from './revision-model'
 
 export interface Projector {
   toLonLat: (x: number, y: number) => Point

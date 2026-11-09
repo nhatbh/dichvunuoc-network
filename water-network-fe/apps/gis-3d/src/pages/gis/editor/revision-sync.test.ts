@@ -1,8 +1,8 @@
 import { createRoot } from 'solid-js'
 import { describe, expect, it, vi } from 'vitest'
 import type { GisData } from '../lib/gis-data'
-import type { EditorApi } from '../network-editor/api'
-import type { Edit, Revision } from '../network-editor/model'
+import type { EditorApi } from './revision-api'
+import type { Edit, Revision } from './revision-model'
 import type { Draft } from './model'
 import { createRevisionSync } from './revision-sync'
 

@@ -9,7 +9,7 @@ import { server } from '@/shared/api/mocks/server'
 import { devToken } from '../../../../scripts/local-stack/dev-token.mjs'
 import { draftsToOperations, type Projector } from './revision-ops'
 import type { Draft } from './model'
-import type { Edit, Revision, State } from '../network-editor/model'
+import type { Edit, Revision, State } from './revision-model'
 
 const BFF = process.env.WN_LIVE_BFF?.replace(/\/$/, '')
 const proj: Projector = {

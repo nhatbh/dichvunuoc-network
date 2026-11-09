@@ -41,14 +41,14 @@ describe('applyRuntimeConfig — feature flags', () => {
   afterEach(() => useUpdateFeatureFlags().resetFlags())
 
   it('applies feature flags carried in runtime config', () => {
-    expect(getFeatureFlag(FEATURE_FLAGS.NEW_EDITOR)).toBe(false)
-    applyRuntimeConfig({ flags: { newEditor: true } })
-    expect(getFeatureFlag(FEATURE_FLAGS.NEW_EDITOR)).toBe(true)
+    expect(getFeatureFlag(FEATURE_FLAGS.NEW_DASHBOARD)).toBe(false)
+    applyRuntimeConfig({ flags: { newDashboard: true } })
+    expect(getFeatureFlag(FEATURE_FLAGS.NEW_DASHBOARD)).toBe(true)
   })
 
   it('is a no-op when no flags are present', () => {
     applyRuntimeConfig({ appName: 'X' })
-    expect(getFeatureFlag(FEATURE_FLAGS.NEW_EDITOR)).toBe(false)
+    expect(getFeatureFlag(FEATURE_FLAGS.NEW_DASHBOARD)).toBe(false)
   })
 })
 

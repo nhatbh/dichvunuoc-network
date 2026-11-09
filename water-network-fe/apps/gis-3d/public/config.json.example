@@ -12,8 +12,5 @@
     "allowLegacyTenantIdFallback": false
   },
   "menuAppUrl": "https://menu.example.com",
-  "appName": "Frontend Sample",
-  "flags": {
-    "newEditor": false
-  }
+  "appName": "Frontend Sample"
 }

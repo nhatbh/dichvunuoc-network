@@ -10,8 +10,5 @@
     "allowLegacyTenantIdFallback": false
   },
   "menuAppUrl": "https://apps-dev.dichvunuoc.vn",
-  "appName": "Bản đồ GIS — Mạng lưới cấp nước",
-  "flags": {
-    "newEditor": false
-  }
+  "appName": "Bản đồ GIS — Mạng lưới cấp nước"
 }
