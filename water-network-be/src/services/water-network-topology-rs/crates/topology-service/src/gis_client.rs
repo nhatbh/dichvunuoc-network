@@ -1,8 +1,6 @@
 use serde::Deserialize;
-use topology_core::{GraphEvent, GraphEventKind, TenantGraphs};
+use topology_core::{GraphEvent, GraphEventKind};
 
-// wired in TOP-2 full-rebuild path
-#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct ExportPage {
     items: Vec<ExportItem>,
@@ -10,8 +8,7 @@ struct ExportPage {
     next_cursor: Option<String>,
 }
 
-// wired in TOP-2 full-rebuild path
-#[allow(dead_code)]
+#[allow(dead_code)] // kind/id/geometry fields are kept for diagnostics
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")] // gis-be serializes responses camelCase (ASP.NET default)
 struct ExportItem {
@@ -32,44 +29,41 @@ struct ExportItem {
     host_node_id: Option<String>,
 }
 
-// wired in TOP-2 full-rebuild path
-#[allow(dead_code)]
+/// Rebuilds a tenant's graph from gis-be's export (`/api/network/assets/export`), with the
+/// caller's bearer token so gis-be scopes the export to the caller's tenant (decision 0029).
 pub struct GisRebuildClient {
     base_url: String,
-    token: String,
     page_size: usize,
     http: reqwest::Client,
 }
 
-// wired in TOP-2 full-rebuild path
-#[allow(dead_code)]
 impl GisRebuildClient {
-    pub fn new(base_url: String, token: String, page_size: usize) -> Self {
+    pub fn new(base_url: String, page_size: usize) -> Self {
         GisRebuildClient {
             base_url,
-            token,
             page_size,
             http: reqwest::Client::new(),
         }
     }
 
-    /// Page the export endpoint for one tenant and apply every item into `tg`.
-    /// Synthesizes deterministic event ids (`rebuild:<tenant>:<id>`) so a later
-    /// live event with the real `event_id` is never deduped against the rebuild.
-    pub async fn rebuild_tenant(
+    /// Page the export for one tenant into graph events. Synthesizes deterministic event ids
+    /// (`rebuild:<tenant>:<id>`) so a later live event with the real `event_id` is never
+    /// deduped against the rebuild.
+    pub async fn fetch_tenant(
         &self,
         tenant_id: &str,
-        tg: &mut TenantGraphs,
-    ) -> Result<(), anyhow::Error> {
+        bearer: &str,
+    ) -> Result<Vec<GraphEvent>, anyhow::Error> {
         let mut cursor: Option<String> = None;
+        let mut events = Vec::new();
         loop {
             let mut req = self
                 .http
                 .get(format!("{}/api/network/assets/export", self.base_url))
                 .query(&[("limit", self.page_size.to_string())])
                 .header("X-Tenant-Id", tenant_id);
-            if !self.token.is_empty() {
-                req = req.bearer_auth(&self.token);
+            if !bearer.is_empty() {
+                req = req.bearer_auth(bearer);
             }
             if let Some(c) = &cursor {
                 req = req.query(&[("cursor", c)]);
@@ -77,7 +71,7 @@ impl GisRebuildClient {
             let page: ExportPage = req.send().await?.error_for_status()?.json().await?;
             for item in &page.items {
                 if let Some(kind) = item_to_kind(item) {
-                    tg.apply(&GraphEvent {
+                    events.push(GraphEvent {
                         event_id: format!("rebuild:{tenant_id}:{}", item.id),
                         tenant_id: tenant_id.to_string(),
                         kind,
@@ -89,12 +83,25 @@ impl GisRebuildClient {
                 None => break,
             }
         }
+        Ok(events)
+    }
+
+    /// Fetch and apply (tests).
+    #[cfg(test)]
+    pub async fn rebuild_tenant(
+        &self,
+        tenant_id: &str,
+        bearer: &str,
+        tg: &mut topology_core::TenantGraphs,
+    ) -> Result<(), anyhow::Error> {
+        for e in self.fetch_tenant(tenant_id, bearer).await? {
+            tg.apply(&e);
+        }
+        tg.ensure_tenant(tenant_id);
         Ok(())
     }
 }
 
-// wired in TOP-2 full-rebuild path
-#[allow(dead_code)]
 fn item_to_kind(item: &ExportItem) -> Option<GraphEventKind> {
     match item.kind.as_str() {
         "Node" => Some(GraphEventKind::NodeRegistered {
@@ -160,10 +167,10 @@ mod tests {
             .mount(&server)
             .await;
 
-        let client = GisRebuildClient::new(server.uri(), "dev-token".into(), 2);
+        let client = GisRebuildClient::new(server.uri(), 2);
         let mut tg = TenantGraphs::default();
         client
-            .rebuild_tenant("t1", &mut tg)
+            .rebuild_tenant("t1", "dev-token", &mut tg)
             .await
             .expect("rebuild ok");
 

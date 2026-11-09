@@ -51,10 +51,26 @@ async fn main() -> anyhow::Result<()> {
     // gRPC server (+ standard gRPC health) — shares the same graph state.
     let grpc_state = shared.clone();
     let grpc_bind = cfg.grpc_bind.clone();
+    let grpc_cfg = cfg.clone();
     tokio::spawn(async move {
         use crate::proto::topology_service_server::TopologyServiceServer;
         let addr = grpc_bind.parse().expect("valid TOPOLOGY_GRPC_BIND");
-        let topology = TopologyServiceServer::new(crate::grpc::TopologyGrpc::new(grpc_state));
+        let service = if grpc_cfg.gis_base_url.is_empty() {
+            crate::grpc::TopologyGrpc::new(grpc_state)
+        } else {
+            let client = crate::gis_client::GisRebuildClient::new(
+                grpc_cfg.gis_base_url.clone(),
+                grpc_cfg.export_page_size,
+            );
+            crate::grpc::TopologyGrpc::with_rebuild(
+                grpc_state,
+                std::sync::Arc::new(crate::grpc::Rebuilder::new(
+                    client,
+                    grpc_cfg.gis_token.clone(),
+                )),
+            )
+        };
+        let topology = TopologyServiceServer::new(service);
 
         let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
         health_reporter

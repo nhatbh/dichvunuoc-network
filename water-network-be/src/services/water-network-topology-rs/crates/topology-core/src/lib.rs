@@ -8,7 +8,7 @@ pub mod snapshot;
 pub use apply::TenantGraphs;
 pub use events::{GraphEvent, GraphEventKind, ParseError};
 pub use graph::{
-    CanonicalGraph, DevicePlacement, IsolationZone, IssueKind, NearestValve, NetworkGraph,
-    NodeVertex, PipeEdge, TopologyIssue,
+    CanonicalGraph, DevicePlacement, Direction, IsolationZone, IssueKind, NearestValve,
+    NetworkGraph, NodeVertex, PipeEdge, Start, TopologyIssue, Trace,
 };
 pub use snapshot::{from_bytes, to_bytes};

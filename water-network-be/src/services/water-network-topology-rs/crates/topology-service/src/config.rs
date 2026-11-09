@@ -4,17 +4,14 @@ pub struct Config {
     pub amqp_url: String,
     pub queue_name: String,
     pub exchange_name: String,
-    // wired in TOP-2 full-rebuild path
-    #[allow(dead_code)]
+    /// gis-be base URL for rebuilding a tenant's graph from its export; empty disables rebuilds.
     pub gis_base_url: String,
-    // wired in TOP-2 full-rebuild path
-    #[allow(dead_code)]
+    /// Fallback bearer for rebuilds when the caller forwards none (empty: rebuild only with a
+    /// forwarded token).
     pub gis_token: String,
     pub snapshot_path: String,
     pub http_bind: String,
     pub grpc_bind: String,
-    // wired in TOP-2 full-rebuild path
-    #[allow(dead_code)]
     pub export_page_size: usize,
 }
 

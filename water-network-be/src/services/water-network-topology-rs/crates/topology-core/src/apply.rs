@@ -74,6 +74,11 @@ impl TenantGraphs {
         true
     }
 
+    /// Make sure a tenant has a graph (possibly empty), e.g. after a rebuild of an empty network.
+    pub fn ensure_tenant(&mut self, tenant_id: &str) {
+        self.graphs.entry(tenant_id.to_string()).or_default();
+    }
+
     pub fn tenant(&self, tenant_id: &str) -> Option<&NetworkGraph> {
         self.graphs.get(tenant_id)
     }
