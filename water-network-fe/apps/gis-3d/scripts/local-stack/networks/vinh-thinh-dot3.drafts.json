@@ -1,0 +1,4307 @@
+{
+ "assets": [
+  {
+   "kind": "Node",
+   "assetCode": "N-e37ba20d09fcbfba7a9f",
+   "clientRef": "N-e37ba20d09fcbfba7a9f",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4936953540264,
+      21.193297347459286
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-node",
+    "sourceFeatureId": "a3939718d03638c78ade8c97",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1709",
+    "sourceBlockPath": "1709",
+    "sourceBlockName": "con",
+    "sourceCount": "1",
+    "componentCode": "Reducer",
+    "dn": "110",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-5ab1d4c9cef8b5c3543c",
+   "clientRef": "N-5ab1d4c9cef8b5c3543c",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49325538549752,
+      21.19316569544915
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-node",
+    "sourceFeatureId": "5cef328d49915083bbbc6c69",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "17A5",
+    "sourceBlockPath": "17A5",
+    "sourceBlockName": "con",
+    "sourceCount": "1",
+    "componentCode": "Reducer",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-6408f56c06b429a179d0",
+   "clientRef": "N-6408f56c06b429a179d0",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4930178259824,
+      21.191971381486944
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-node",
+    "sourceFeatureId": "86ba5f9cb0c3c5622f4689b2",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1955",
+    "sourceBlockPath": "1955",
+    "sourceBlockName": "con",
+    "sourceCount": "1",
+    "componentCode": "Reducer",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-393f3767cbd036036244",
+   "clientRef": "N-393f3767cbd036036244",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49238163957587,
+      21.190660356361764
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-node",
+    "sourceFeatureId": "c2567e2706bd8ec420e6d173",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "0",
+    "sourceHandle": "1B98",
+    "sourceBlockPath": "1B98",
+    "sourceBlockName": "cut1",
+    "sourceCount": "1",
+    "componentCode": "Bend",
+    "dn": "90",
+    "material": "HDPE",
+    "angle": "96.6"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-5aafb66680778bd8a841",
+   "clientRef": "N-5aafb66680778bd8a841",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49873876946236,
+      21.183180832941275
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-node",
+    "sourceFeatureId": "d755d09457a8d1d3d634895c",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1E43",
+    "sourceBlockPath": "1E43",
+    "sourceBlockName": "con",
+    "sourceCount": "1",
+    "componentCode": "Reducer",
+    "dn": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-0938c20b802531cad900",
+   "clientRef": "N-0938c20b802531cad900",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.5012532718791,
+      21.180837461028908
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-node",
+    "sourceFeatureId": "24b522db9463eea9a7829d3e",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "0",
+    "sourceHandle": "1E6D",
+    "sourceBlockPath": "1E6D",
+    "sourceBlockName": "cut1",
+    "sourceCount": "1",
+    "componentCode": "Bend",
+    "dn": "90",
+    "material": "HDPE",
+    "angle": "20.2"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-2dc05c0bd17e640264e8",
+   "clientRef": "N-2dc05c0bd17e640264e8",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.500119911522,
+      21.18590745569183
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-node",
+    "sourceFeatureId": "3145d24fe326f8dcf27515bf",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "0",
+    "sourceHandle": "1ED9",
+    "sourceBlockPath": "1ED9",
+    "sourceBlockName": "cut1",
+    "sourceCount": "1",
+    "componentCode": "Bend",
+    "dn": "90",
+    "material": "HDPE",
+    "angle": "0"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-3dd817911afd5a5b0273",
+   "clientRef": "N-3dd817911afd5a5b0273",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48790602123246,
+      21.168384492609867
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-node",
+    "sourceFeatureId": "831732317e74e40b09b06ffc",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "0",
+    "sourceHandle": "21C3",
+    "sourceBlockPath": "21C3",
+    "sourceBlockName": "cut1",
+    "sourceCount": "1",
+    "componentCode": "Bend",
+    "dn": "90",
+    "material": "HDPE",
+    "angle": "0"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-f6722ef5a5009102d65d",
+   "clientRef": "N-f6722ef5a5009102d65d",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49605338149172,
+      21.165524210785186
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-node",
+    "sourceFeatureId": "ccc9f0f8ab33c28bde03d9fe",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "0",
+    "sourceHandle": "223A",
+    "sourceBlockPath": "223A",
+    "sourceBlockName": "cut1",
+    "sourceCount": "1",
+    "componentCode": "Bend",
+    "dn": "110",
+    "material": "HDPE",
+    "angle": "0"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-bf9bc3364301f90f9839",
+   "clientRef": "N-bf9bc3364301f90f9839",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49094738200398,
+      21.187276863552906
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "0a44ec8a02afb75ab146f455",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "315",
+    "sourceHandle": "1C22",
+    "sourceBlockPath": "1C22",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "315",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-5a65b29b80e1e65f6885",
+   "clientRef": "N-5a65b29b80e1e65f6885",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49035472979288,
+      21.185495224005038
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "0a44ec8a02afb75ab146f455",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "315",
+    "sourceHandle": "1C22",
+    "sourceBlockPath": "1C22",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "315",
+    "dn2": "160",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-a680caeb5ef99bb52fc8",
+   "clientRef": "N-a680caeb5ef99bb52fc8",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49402518960123,
+      21.184234621275554
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "1031dbdd841f1f31ac0c5b41",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "160",
+    "sourceHandle": "607",
+    "sourceBlockPath": "607",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "160",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-ead7f898b849416b281e",
+   "clientRef": "N-ead7f898b849416b281e",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.50105025921656,
+      21.16410167514979
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "153026b317532fd206f726c9",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "AD6",
+    "sourceBlockPath": "AD6",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "225",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-834a13b992fd817b90f9",
+   "clientRef": "N-834a13b992fd817b90f9",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.5051463837632,
+      21.164303772828866
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "153026b317532fd206f726c9",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "AD6",
+    "sourceBlockPath": "AD6",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-40232ff4715d045409c7",
+   "clientRef": "N-40232ff4715d045409c7",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48815522269975,
+      21.173909791768935
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "15b3598d89162f49159b3ae2",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "211E",
+    "sourceBlockPath": "211E",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "225",
+    "dn2": "110",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-68c54b356cb6b89d6601",
+   "clientRef": "N-68c54b356cb6b89d6601",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48739289130283,
+      21.169519731298983
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "15b3598d89162f49159b3ae2",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "211E",
+    "sourceBlockPath": "211E",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "225",
+    "dn2": "160",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-580652fe25960c922d4c",
+   "clientRef": "N-580652fe25960c922d4c",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49311074875962,
+      21.19216710635018
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "169a0f641260210a0a75a9a6",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "E9A",
+    "sourceBlockPath": "E9A",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "160",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-e6cf2178600e9bf19ab9",
+   "clientRef": "N-e6cf2178600e9bf19ab9",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49630465577624,
+      21.19113891432955
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "169a0f641260210a0a75a9a6",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "E9A",
+    "sourceBlockPath": "E9A",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-990318f7402aa5f31178",
+   "clientRef": "N-990318f7402aa5f31178",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49345375267646,
+      21.193248589483037
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "1bbb089fb9f31133fa5edc60",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "315",
+    "sourceHandle": "1981",
+    "sourceBlockPath": "1981",
+    "sourceCount": "1",
+    "componentCode": "Cross",
+    "componentFrom": "geometry",
+    "dn": "315",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-1aa84e7b16343f8cc619",
+   "clientRef": "N-1aa84e7b16343f8cc619",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4923447821966,
+      21.1907455805833
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "1bbb089fb9f31133fa5edc60",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "315",
+    "sourceHandle": "1981",
+    "sourceBlockPath": "1981",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "315",
+    "dn2": "110",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-709e8ef18c74809c52c0",
+   "clientRef": "N-709e8ef18c74809c52c0",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49567565886345,
+      21.182977263564705
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "1bdba4661eefbbf88dca135a",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "7B8",
+    "sourceBlockPath": "7B8",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-eefcebc767d1d15ad023",
+   "clientRef": "N-eefcebc767d1d15ad023",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.493424904575,
+      21.19610041176082
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "22cb2b7d3c37e8d2829756e5",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "315",
+    "sourceHandle": "240",
+    "sourceBlockPath": "240",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "315"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-be7709eea0b75b47ddde",
+   "clientRef": "N-be7709eea0b75b47ddde",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48826235268986,
+      21.174498613911975
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "28947bc4bbffd763e133583e",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "8BD",
+    "sourceBlockPath": "8BD",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "225",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-dba84e43928e7588ced6",
+   "clientRef": "N-dba84e43928e7588ced6",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49179640971035,
+      21.173910758142366
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "28947bc4bbffd763e133583e",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "8BD",
+    "sourceBlockPath": "8BD",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-c95101206a5f8eb2a18c",
+   "clientRef": "N-c95101206a5f8eb2a18c",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49856525801339,
+      21.183347023481282
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "F-96093a1e6aaa52ceec1f",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "E98",
+    "sourceBlockPath": "E98",
+    "sourceOriginalFeatureId": "309eac3ea53982a556acffd7",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "160",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-8aa14ec669c14f595131",
+   "clientRef": "N-8aa14ec669c14f595131",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.50543994754351,
+      21.179207902201053
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "F-46ce56c02382a437d21a",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "E98",
+    "sourceBlockPath": "E98",
+    "sourceOriginalFeatureId": "309eac3ea53982a556acffd7",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-3bbbb38c644c90976475",
+   "clientRef": "N-3bbbb38c644c90976475",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49351444035617,
+      21.193260837002114
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "36fe63ee6a44cad26f308305",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "160",
+    "sourceHandle": "3F9",
+    "sourceBlockPath": "3F9",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "160",
+    "dn2": "110",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-76e59e704af4c1290e0b",
+   "clientRef": "N-76e59e704af4c1290e0b",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4876968279,
+      21.16743328946027
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "3992d8a2d0d4af7ce0ca03db",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "213D",
+    "sourceBlockPath": "213D",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "225",
+    "dn2": "90",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-8ccac787d6caf8a85392",
+   "clientRef": "N-8ccac787d6caf8a85392",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4959698748256,
+      21.164757929113854
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "3992d8a2d0d4af7ce0ca03db",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "213D",
+    "sourceBlockPath": "213D",
+    "sourceCount": "1",
+    "componentCode": "ReducingTee",
+    "componentFrom": "geometry",
+    "dn": "225",
+    "dn2": "110",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-526cacce114c0ecaa40a",
+   "clientRef": "N-526cacce114c0ecaa40a",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4805724752054,
+      21.175799973074202
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "4e435bee0ceafe3a6461cfb0",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "96B",
+    "sourceBlockPath": "96B",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "110"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-be1a7a0d93107d987537",
+   "clientRef": "N-be1a7a0d93107d987537",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48841263341565,
+      21.1878207994091
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "5ec2d5e75090e1ec8be1dee0",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "5AF",
+    "sourceBlockPath": "5AF",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-fdd42698e995cc14abb0",
+   "clientRef": "N-fdd42698e995cc14abb0",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48675534945221,
+      21.167901419992763
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "5f0b95fed3e1e329ab7c2575",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "A7B",
+    "sourceBlockPath": "A7B",
+    "sourceCount": "1",
+    "componentCode": "Bend",
+    "componentFrom": "geometry",
+    "dn": "225",
+    "material": "HDPE",
+    "angle": "92"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-d80295aeffd2bebef805",
+   "clientRef": "N-d80295aeffd2bebef805",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48094594035116,
+      21.17231684424534
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "6736bf895884340b1e42ee87",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "160",
+    "sourceHandle": "9C6",
+    "sourceBlockPath": "9C6",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "160"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-acfab6da8b7b09b94dbb",
+   "clientRef": "N-acfab6da8b7b09b94dbb",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49031410059077,
+      21.185373082206134
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-0",
+    "sourceFeatureId": "71208b01794ae3ff4c316dcb",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "E41",
+    "sourceBlockPath": "E41",
+    "sourceCount": "1",
+    "componentCode": "Tee",
+    "componentFrom": "geometry",
+    "dn": "225",
+    "material": "HDPE"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-9a8e0243a77e082244df",
+   "clientRef": "N-9a8e0243a77e082244df",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.50184986880777,
+      21.165058923970673
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "F-bda972ec0675cb8f71a3",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "AD4",
+    "sourceBlockPath": "AD4",
+    "sourceOriginalFeatureId": "7241877c9c30ba9f61714202",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "110"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-0a55b6139d1bec175a67",
+   "clientRef": "N-0a55b6139d1bec175a67",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49389851131694,
+      21.19013872520254
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "95617b5f6e1ce59fd70dd9e0",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "195E",
+    "sourceBlockPath": "195E",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-7ad5103b07858292070a",
+   "clientRef": "N-7ad5103b07858292070a",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48344100075815,
+      21.188096738648973
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "9d0bdd9ef56ec6fd94dd4d75",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "5B0",
+    "sourceBlockPath": "5B0",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "225"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-5766e847f96f421191ba",
+   "clientRef": "N-5766e847f96f421191ba",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.50729534454017,
+      21.16245960482752
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "a1181e9209fd42a382086862",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "2227",
+    "sourceBlockPath": "2227",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "225"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-d99a146b294ccbe8c5f3",
+   "clientRef": "N-d99a146b294ccbe8c5f3",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48737688142525,
+      21.188069023397436
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "a9b1b6b39d09cec715cb591d",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "7A17E",
+    "sourceBlockPath": "7A17E",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-89c2ecb2263ba658e901",
+   "clientRef": "N-89c2ecb2263ba658e901",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4974380023732,
+      21.193146834911587
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "F-0b75dd8bbc60560c4e0d",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "E99",
+    "sourceBlockPath": "E99",
+    "sourceOriginalFeatureId": "ad5834f13de9b61930160877",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "110"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-68e8dc719deb567ef9d5",
+   "clientRef": "N-68e8dc719deb567ef9d5",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.50159517764638,
+      21.18476141322929
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "F-11d7aab1881cfb6e0541",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "65E",
+    "sourceBlockPath": "65E",
+    "sourceOriginalFeatureId": "c4a63fba16ac54647086d747",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-7ef2b181f794ee518ccf",
+   "clientRef": "N-7ef2b181f794ee518ccf",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49161212050043,
+      21.1926076798401
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "F-bc92e3288c97b3451595",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "557",
+    "sourceBlockPath": "557",
+    "sourceOriginalFeatureId": "c5e33913df1651645f2ab9ae",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-79fc848f7cd167936b21",
+   "clientRef": "N-79fc848f7cd167936b21",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48711345484195,
+      21.19074541763454
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "f1cc243f7296b11de12cfeff",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "558",
+    "sourceBlockPath": "558",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "110"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Node",
+   "assetCode": "N-07e850277b4fa3a01066",
+   "clientRef": "N-07e850277b4fa3a01066",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49060280714053,
+      21.167669651208573
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe-endpoint-1",
+    "sourceFeatureId": "F-03fa8f6592855706d38f",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "B35",
+    "sourceBlockPath": "B35",
+    "sourceOriginalFeatureId": "fab7bb999ab80b945e203cad",
+    "sourceCount": "1",
+    "componentCode": "Junction",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-264b11a44181adfa7413",
+   "clientRef": "P-264b11a44181adfa7413",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49094738200398,
+      21.187276863552906
+     ],
+     [
+      105.49035472979288,
+      21.185495224005038
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "0a44ec8a02afb75ab146f455",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "315",
+    "sourceHandle": "1C22",
+    "sourceBlockPath": "1C22",
+    "sourceCount": "1",
+    "diameterMm": "315",
+    "material": "HDPE",
+    "lengthM": "206.639092"
+   },
+   "fromRef": "N-bf9bc3364301f90f9839",
+   "toRef": "N-5a65b29b80e1e65f6885",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-45747a7efd6af9490669",
+   "clientRef": "P-45747a7efd6af9490669",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49035472979288,
+      21.185495224005038
+     ],
+     [
+      105.49125946115258,
+      21.18508850530969
+     ],
+     [
+      105.49180796761429,
+      21.184880538660703
+     ],
+     [
+      105.49233445262777,
+      21.18469760014041
+     ],
+     [
+      105.49299457974064,
+      21.184364114708195
+     ],
+     [
+      105.49320738418984,
+      21.184309072255072
+     ],
+     [
+      105.49358486196593,
+      21.18426129982725
+     ],
+     [
+      105.49402518960123,
+      21.184234621275554
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "1031dbdd841f1f31ac0c5b41",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "160",
+    "sourceHandle": "607",
+    "sourceBlockPath": "607",
+    "sourceCount": "1",
+    "diameterMm": "160",
+    "material": "HDPE",
+    "lengthM": "410.079379"
+   },
+   "fromRef": "N-5a65b29b80e1e65f6885",
+   "toRef": "N-a680caeb5ef99bb52fc8",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-e211f0c7b8fae2646f4b",
+   "clientRef": "P-e211f0c7b8fae2646f4b",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.50105025921656,
+      21.16410167514979
+     ],
+     [
+      105.5010668907839,
+      21.164135705667995
+     ],
+     [
+      105.50122570341533,
+      21.164145916833462
+     ],
+     [
+      105.50143500934219,
+      21.164159030084704
+     ],
+     [
+      105.50261854362628,
+      21.16410730821325
+     ],
+     [
+      105.50340600211509,
+      21.164137505077797
+     ],
+     [
+      105.5051463837632,
+      21.164303772828866
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "153026b317532fd206f726c9",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "AD6",
+    "sourceBlockPath": "AD6",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "429.049704"
+   },
+   "fromRef": "N-ead7f898b849416b281e",
+   "toRef": "N-834a13b992fd817b90f9",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-3381b3bc526703c2b15a",
+   "clientRef": "P-3381b3bc526703c2b15a",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.48815522269975,
+      21.173909791768935
+     ],
+     [
+      105.48814021749081,
+      21.17382731773397
+     ],
+     [
+      105.48791430840845,
+      21.172707814868936
+     ],
+     [
+      105.48766657025716,
+      21.17139895687477
+     ],
+     [
+      105.4877062814392,
+      21.171166897753668
+     ],
+     [
+      105.48750779589385,
+      21.170027617517672
+     ],
+     [
+      105.48739289130283,
+      21.169519731298983
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "15b3598d89162f49159b3ae2",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "211E",
+    "sourceBlockPath": "211E",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "493.917307"
+   },
+   "fromRef": "N-40232ff4715d045409c7",
+   "toRef": "N-68c54b356cb6b89d6601",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-3808e78e0b45874e8b2f",
+   "clientRef": "P-3808e78e0b45874e8b2f",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49311074875962,
+      21.19216710635018
+     ],
+     [
+      105.49372628940216,
+      21.192114822779693
+     ],
+     [
+      105.4941845438619,
+      21.192102230875847
+     ],
+     [
+      105.49438391719384,
+      21.192089739136275
+     ],
+     [
+      105.49490803859442,
+      21.191847326046414
+     ],
+     [
+      105.49544792128361,
+      21.191529895079295
+     ],
+     [
+      105.49630465577624,
+      21.19113891432955
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "169a0f641260210a0a75a9a6",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "E9A",
+    "sourceBlockPath": "E9A",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "358.311837"
+   },
+   "fromRef": "N-580652fe25960c922d4c",
+   "toRef": "N-e6cf2178600e9bf19ab9",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-e5b66bed744632dc5a25",
+   "clientRef": "P-e5b66bed744632dc5a25",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49345375267646,
+      21.193248589483037
+     ],
+     [
+      105.49343272275514,
+      21.193093643487668
+     ],
+     [
+      105.49337850909696,
+      21.19292510513884
+     ],
+     [
+      105.49309418421879,
+      21.192305427663246
+     ],
+     [
+      105.49245434294072,
+      21.190934302251303
+     ],
+     [
+      105.4923447821966,
+      21.1907455805833
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "1bbb089fb9f31133fa5edc60",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "315",
+    "sourceHandle": "1981",
+    "sourceBlockPath": "1981",
+    "sourceCount": "1",
+    "diameterMm": "315",
+    "material": "HDPE",
+    "lengthM": "300.981608"
+   },
+   "fromRef": "N-990318f7402aa5f31178",
+   "toRef": "N-1aa84e7b16343f8cc619",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-deddeaf5ba00edb57f45",
+   "clientRef": "P-deddeaf5ba00edb57f45",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49402518960123,
+      21.184234621275554
+     ],
+     [
+      105.49395192162163,
+      21.1839073972267
+     ],
+     [
+      105.49481911149869,
+      21.183455048613347
+     ],
+     [
+      105.49545866657849,
+      21.18305174311841
+     ],
+     [
+      105.49567565886345,
+      21.182977263564705
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "1bdba4661eefbbf88dca135a",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "7B8",
+    "sourceBlockPath": "7B8",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "244.086127"
+   },
+   "fromRef": "N-a680caeb5ef99bb52fc8",
+   "toRef": "N-709e8ef18c74809c52c0",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-47259cc909f049d8e44d",
+   "clientRef": "P-47259cc909f049d8e44d",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.493424904575,
+      21.19610041176082
+     ],
+     [
+      105.49343338756849,
+      21.195787230697935
+     ],
+     [
+      105.49336878968086,
+      21.195687846181233
+     ],
+     [
+      105.49339764215159,
+      21.194927929460714
+     ],
+     [
+      105.49344752258199,
+      21.19345023244904
+     ],
+     [
+      105.49345375267646,
+      21.193248589483037
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "22cb2b7d3c37e8d2829756e5",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "315",
+    "sourceHandle": "240",
+    "sourceBlockPath": "240",
+    "sourceCount": "1",
+    "diameterMm": "315",
+    "material": "HDPE",
+    "lengthM": "317.791524"
+   },
+   "fromRef": "N-eefcebc767d1d15ad023",
+   "toRef": "N-990318f7402aa5f31178",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-acd5b73905010dd253ba",
+   "clientRef": "P-acd5b73905010dd253ba",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.48826235268986,
+      21.174498613911975
+     ],
+     [
+      105.4893464451867,
+      21.174295480178245
+     ],
+     [
+      105.48993027620224,
+      21.17419306487494
+     ],
+     [
+      105.4900067167878,
+      21.174193402899522
+     ],
+     [
+      105.49036050302588,
+      21.17417724289336
+     ],
+     [
+      105.49098279180254,
+      21.17407167471091
+     ],
+     [
+      105.49179640971035,
+      21.173910758142366
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "28947bc4bbffd763e133583e",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "8BD",
+    "sourceBlockPath": "8BD",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "373.235244"
+   },
+   "fromRef": "N-be7709eea0b75b47ddde",
+   "toRef": "N-dba84e43928e7588ced6",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-d3a9e06e6f3fc2ddf86b",
+   "clientRef": "P-d3a9e06e6f3fc2ddf86b",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49856525801339,
+      21.183347023481282
+     ],
+     [
+      105.49873876946236,
+      21.183180832941275
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-96093a1e6aaa52ceec1f",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "E98",
+    "sourceBlockPath": "E98",
+    "sourceOriginalFeatureId": "309eac3ea53982a556acffd7",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "25.753163"
+   },
+   "fromRef": "N-c95101206a5f8eb2a18c",
+   "toRef": "N-5aafb66680778bd8a841",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-be4d1642315eaec3f3ae",
+   "clientRef": "P-be4d1642315eaec3f3ae",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49873876946236,
+      21.183180832941275
+     ],
+     [
+      105.50049755787464,
+      21.181496221289184
+     ],
+     [
+      105.5012532718791,
+      21.180837461028908
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-157b3f6996e7cc41cf08",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "E98",
+    "sourceBlockPath": "E98",
+    "sourceOriginalFeatureId": "309eac3ea53982a556acffd7",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "368.186280"
+   },
+   "fromRef": "N-5aafb66680778bd8a841",
+   "toRef": "N-0938c20b802531cad900",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-b618f2aff089560765bf",
+   "clientRef": "P-b618f2aff089560765bf",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.5012532718791,
+      21.180837461028908
+     ],
+     [
+      105.50369525737082,
+      21.179878740029853
+     ],
+     [
+      105.50543994754351,
+      21.179207902201053
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-46ce56c02382a437d21a",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "E98",
+    "sourceBlockPath": "E98",
+    "sourceOriginalFeatureId": "309eac3ea53982a556acffd7",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "470.720054"
+   },
+   "fromRef": "N-0938c20b802531cad900",
+   "toRef": "N-8aa14ec669c14f595131",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-ca1c4ee726a0d8bbd7c3",
+   "clientRef": "P-ca1c4ee726a0d8bbd7c3",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49351444035617,
+      21.193260837002114
+     ],
+     [
+      105.49348877333897,
+      21.1930187092804
+     ],
+     [
+      105.49335805103419,
+      21.192695718020637
+     ],
+     [
+      105.4932388691767,
+      21.19245548430038
+     ],
+     [
+      105.49315230558517,
+      21.192258256421443
+     ],
+     [
+      105.49311074875962,
+      21.19216710635018
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "36fe63ee6a44cad26f308305",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "160",
+    "sourceHandle": "3F9",
+    "sourceBlockPath": "3F9",
+    "sourceCount": "1",
+    "diameterMm": "160",
+    "material": "HDPE",
+    "lengthM": "129.118289"
+   },
+   "fromRef": "N-3bbbb38c644c90976475",
+   "toRef": "N-580652fe25960c922d4c",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-5cd5ca527460deadd7d6",
+   "clientRef": "P-5cd5ca527460deadd7d6",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.4876968279,
+      21.16743328946027
+     ],
+     [
+      105.48786373020125,
+      21.16735342326612
+     ],
+     [
+      105.4881913107205,
+      21.167227205134726
+     ],
+     [
+      105.48856157157701,
+      21.167104777413208
+     ],
+     [
+      105.48957176582928,
+      21.16682199430591
+     ],
+     [
+      105.4915094675597,
+      21.166269612374172
+     ],
+     [
+      105.49224151551999,
+      21.16605458514051
+     ],
+     [
+      105.49345630769771,
+      21.165524382926396
+     ],
+     [
+      105.4937231802522,
+      21.16542526794078
+     ],
+     [
+      105.49396070396674,
+      21.165376772436375
+     ],
+     [
+      105.49429584161656,
+      21.165333369857375
+     ],
+     [
+      105.49468016024585,
+      21.165253413224352
+     ],
+     [
+      105.49500401759519,
+      21.165158938671738
+     ],
+     [
+      105.49569002403432,
+      21.164883958765834
+     ],
+     [
+      105.4959698748256,
+      21.164757929113854
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "3992d8a2d0d4af7ce0ca03db",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "213D",
+    "sourceBlockPath": "213D",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "911.658408"
+   },
+   "fromRef": "N-76e59e704af4c1290e0b",
+   "toRef": "N-8ccac787d6caf8a85392",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-a550d482d76c9ff7cb35",
+   "clientRef": "P-a550d482d76c9ff7cb35",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49345375267646,
+      21.193248589483037
+     ],
+     [
+      105.49351444035617,
+      21.193260837002114
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "3d25639250ceeb7968db0c80",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "160",
+    "sourceHandle": "3F7",
+    "sourceBlockPath": "3F7",
+    "sourceCount": "1",
+    "diameterMm": "160",
+    "material": "HDPE",
+    "lengthM": "6.445818"
+   },
+   "fromRef": "N-990318f7402aa5f31178",
+   "toRef": "N-3bbbb38c644c90976475",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-09161f4b8a9661632e01",
+   "clientRef": "P-09161f4b8a9661632e01",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.48815522269975,
+      21.173909791768935
+     ],
+     [
+      105.48639419699589,
+      21.174057563965096
+     ],
+     [
+      105.48497009562217,
+      21.174125748381577
+     ],
+     [
+      105.48472374450378,
+      21.174164884594465
+     ],
+     [
+      105.48380648845587,
+      21.17435369211069
+     ],
+     [
+      105.48342791072668,
+      21.174504927269105
+     ],
+     [
+      105.48242849048692,
+      21.174940243935925
+     ],
+     [
+      105.48208691413011,
+      21.175177569382964
+     ],
+     [
+      105.48201103085081,
+      21.175269458267795
+     ],
+     [
+      105.48194661216296,
+      21.17531956218894
+     ],
+     [
+      105.4811892784312,
+      21.175567984008605
+     ],
+     [
+      105.4805724752054,
+      21.175799973074202
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "4e435bee0ceafe3a6461cfb0",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "96B",
+    "sourceBlockPath": "96B",
+    "sourceCount": "1",
+    "diameterMm": "110",
+    "material": "HDPE",
+    "lengthM": "830.368671"
+   },
+   "fromRef": "N-40232ff4715d045409c7",
+   "toRef": "N-526cacce114c0ecaa40a",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-c55c7ab5b59c8470f228",
+   "clientRef": "P-c55c7ab5b59c8470f228",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.4959698748256,
+      21.164757929113854
+     ],
+     [
+      105.49615965533127,
+      21.16467246186159
+     ],
+     [
+      105.49637199748008,
+      21.164596203986093
+     ],
+     [
+      105.49660078205017,
+      21.16453077873593
+     ],
+     [
+      105.49705867963229,
+      21.16443252016523
+     ],
+     [
+      105.49724734098015,
+      21.16441086336744
+     ],
+     [
+      105.49771949660486,
+      21.16439381278671
+     ],
+     [
+      105.49820458655144,
+      21.164390928471754
+     ],
+     [
+      105.49912931850488,
+      21.164343503075916
+     ],
+     [
+      105.49932080714547,
+      21.16432766250992
+     ],
+     [
+      105.49985193705776,
+      21.164258717518415
+     ],
+     [
+      105.50059019127671,
+      21.164212498091796
+     ],
+     [
+      105.5007106972628,
+      21.164203921778476
+     ],
+     [
+      105.50088687181878,
+      21.164167757702202
+     ],
+     [
+      105.50105025921656,
+      21.16410167514979
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "5323488b28b971aa73f6d6f8",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "2225",
+    "sourceBlockPath": "2225",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "536.731842"
+   },
+   "fromRef": "N-8ccac787d6caf8a85392",
+   "toRef": "N-ead7f898b849416b281e",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-11c6f8151c4a64517dfa",
+   "clientRef": "P-11c6f8151c4a64517dfa",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49094738200398,
+      21.187276863552906
+     ],
+     [
+      105.48930552618141,
+      21.18769209253055
+     ],
+     [
+      105.48841263341565,
+      21.1878207994091
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "5ec2d5e75090e1ec8be1dee0",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "5AF",
+    "sourceBlockPath": "5AF",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "270.386713"
+   },
+   "fromRef": "N-bf9bc3364301f90f9839",
+   "toRef": "N-be1a7a0d93107d987537",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-969ff5f80478d8902f19",
+   "clientRef": "P-969ff5f80478d8902f19",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.48739289130283,
+      21.169519731298983
+     ],
+     [
+      105.48726022925194,
+      21.16881644228157
+     ],
+     [
+      105.48717637683527,
+      21.168565153181536
+     ],
+     [
+      105.4870714146932,
+      21.168372616938804
+     ],
+     [
+      105.48675534945221,
+      21.167901419992763
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "5f0b95fed3e1e329ab7c2575",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "A7B",
+    "sourceBlockPath": "A7B",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "193.811179"
+   },
+   "fromRef": "N-68c54b356cb6b89d6601",
+   "toRef": "N-fdd42698e995cc14abb0",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-79e7f26634c4278367f5",
+   "clientRef": "P-79e7f26634c4278367f5",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.48739289130283,
+      21.169519731298983
+     ],
+     [
+      105.48628964475874,
+      21.169966891230143
+     ],
+     [
+      105.48534545718353,
+      21.170335262222103
+     ],
+     [
+      105.4842945842219,
+      21.170765766576892
+     ],
+     [
+      105.48329362668721,
+      21.171231513654767
+     ],
+     [
+      105.48249274623491,
+      21.171607058893763
+     ],
+     [
+      105.4819959249289,
+      21.1718403584588
+     ],
+     [
+      105.48094594035116,
+      21.17231684424534
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "6736bf895884340b1e42ee87",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "160",
+    "sourceHandle": "9C6",
+    "sourceBlockPath": "9C6",
+    "sourceCount": "1",
+    "diameterMm": "160",
+    "material": "HDPE",
+    "lengthM": "737.963187"
+   },
+   "fromRef": "N-68c54b356cb6b89d6601",
+   "toRef": "N-d80295aeffd2bebef805",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-977ab4ec7e54df8a9948",
+   "clientRef": "P-977ab4ec7e54df8a9948",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49031410059077,
+      21.185373082206134
+     ],
+     [
+      105.49029799554214,
+      21.18532466623983
+     ],
+     [
+      105.49014191094318,
+      21.18485683639325
+     ],
+     [
+      105.48936137781408,
+      21.180363779906845
+     ],
+     [
+      105.48922342111571,
+      21.179570997367193
+     ],
+     [
+      105.48914295038873,
+      21.179561640332288
+     ],
+     [
+      105.4887175899684,
+      21.177070483141236
+     ],
+     [
+      105.48846860052168,
+      21.17563220651171
+     ],
+     [
+      105.48826235268986,
+      21.174498613911975
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "71208b01794ae3ff4c316dcb",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "E41",
+    "sourceBlockPath": "E41",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "1229.266166"
+   },
+   "fromRef": "N-acfab6da8b7b09b94dbb",
+   "toRef": "N-be7709eea0b75b47ddde",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-a16c2dd260a6faa6fffb",
+   "clientRef": "P-a16c2dd260a6faa6fffb",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49035472979288,
+      21.185495224005038
+     ],
+     [
+      105.49031410059077,
+      21.185373082206134
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "71318529fd01cd33f76d5dea",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "20F4",
+    "sourceBlockPath": "20F4",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "14.166306"
+   },
+   "fromRef": "N-5a65b29b80e1e65f6885",
+   "toRef": "N-acfab6da8b7b09b94dbb",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-894a12de0b7114851eb3",
+   "clientRef": "P-894a12de0b7114851eb3",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.4959698748256,
+      21.164757929113854
+     ],
+     [
+      105.49605101976013,
+      21.165524373820894
+     ],
+     [
+      105.49605338149172,
+      21.165524210785186
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-25502451f138c58ecefe",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "AD4",
+    "sourceBlockPath": "AD4",
+    "sourceOriginalFeatureId": "7241877c9c30ba9f61714202",
+    "sourceCount": "1",
+    "diameterMm": "110",
+    "material": "HDPE",
+    "lengthM": "85.523500"
+   },
+   "fromRef": "N-8ccac787d6caf8a85392",
+   "toRef": "N-f6722ef5a5009102d65d",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-df09cd69a1814405da87",
+   "clientRef": "P-df09cd69a1814405da87",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49605338149172,
+      21.165524210785186
+     ],
+     [
+      105.49690851464764,
+      21.165465176806997
+     ],
+     [
+      105.49793383832441,
+      21.165414034623677
+     ],
+     [
+      105.49933427548896,
+      21.165371180196356
+     ],
+     [
+      105.49985983599449,
+      21.165335356735
+     ],
+     [
+      105.49991535140201,
+      21.165287660671744
+     ],
+     [
+      105.50104344820289,
+      21.165139120989807
+     ],
+     [
+      105.50160316250262,
+      21.165066435881073
+     ],
+     [
+      105.50184986880777,
+      21.165058923970673
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-bda972ec0675cb8f71a3",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "AD4",
+    "sourceBlockPath": "AD4",
+    "sourceOriginalFeatureId": "7241877c9c30ba9f61714202",
+    "sourceCount": "1",
+    "diameterMm": "110",
+    "material": "HDPE",
+    "lengthM": "606.378447"
+   },
+   "fromRef": "N-f6722ef5a5009102d65d",
+   "toRef": "N-9a8e0243a77e082244df",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-b918ef25a807db7018ff",
+   "clientRef": "P-b918ef25a807db7018ff",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49238163957587,
+      21.190660356361764
+     ],
+     [
+      105.49304452190218,
+      21.190451347715676
+     ],
+     [
+      105.49389851131694,
+      21.19013872520254
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "95617b5f6e1ce59fd70dd9e0",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "195E",
+    "sourceBlockPath": "195E",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "167.810793"
+   },
+   "fromRef": "N-393f3767cbd036036244",
+   "toRef": "N-0a55b6139d1bec175a67",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-3a17b45af0a32599c55f",
+   "clientRef": "P-3a17b45af0a32599c55f",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49031410059077,
+      21.185373082206134
+     ],
+     [
+      105.48975125971982,
+      21.185513429728147
+     ],
+     [
+      105.48905092489663,
+      21.185807025800784
+     ],
+     [
+      105.48836697630544,
+      21.186138091447894
+     ],
+     [
+      105.48764522824862,
+      21.186489273443833
+     ],
+     [
+      105.48739286326229,
+      21.186545674076655
+     ],
+     [
+      105.487075792712,
+      21.18668362693824
+     ],
+     [
+      105.48683131427053,
+      21.186825080068115
+     ],
+     [
+      105.48361477040469,
+      21.18803679854189
+     ],
+     [
+      105.48344100075815,
+      21.188096738648973
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "9d0bdd9ef56ec6fd94dd4d75",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "5B0",
+    "sourceBlockPath": "5B0",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "776.723969"
+   },
+   "fromRef": "N-acfab6da8b7b09b94dbb",
+   "toRef": "N-7ad5103b07858292070a",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-bb80a7ae0b64e0cb5777",
+   "clientRef": "P-bb80a7ae0b64e0cb5777",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.50105025921656,
+      21.16410167514979
+     ],
+     [
+      105.5012530544014,
+      21.16401965369323
+     ],
+     [
+      105.50261991934372,
+      21.163426067090175
+     ],
+     [
+      105.5031849322435,
+      21.163205443784456
+     ],
+     [
+      105.50484980449468,
+      21.16255368254496
+     ],
+     [
+      105.50495485954843,
+      21.162526229241614
+     ],
+     [
+      105.50662148837283,
+      21.16231344889595
+     ],
+     [
+      105.50667131592077,
+      21.162315273775345
+     ],
+     [
+      105.50671377815111,
+      21.162323011935158
+     ],
+     [
+      105.50712720531095,
+      21.162450054280935
+     ],
+     [
+      105.50727030766457,
+      21.16245967989722
+     ],
+     [
+      105.50729534454017,
+      21.16245960482752
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "a1181e9209fd42a382086862",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "2227",
+    "sourceBlockPath": "2227",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "688.662946"
+   },
+   "fromRef": "N-ead7f898b849416b281e",
+   "toRef": "N-5766e847f96f421191ba",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-622b78e023e7bfce98b7",
+   "clientRef": "P-622b78e023e7bfce98b7",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.48841263341565,
+      21.1878207994091
+     ],
+     [
+      105.48737688142525,
+      21.188069023397436
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "a9b1b6b39d09cec715cb591d",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "7A17E",
+    "sourceBlockPath": "7A17E",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "111.008093"
+   },
+   "fromRef": "N-be1a7a0d93107d987537",
+   "toRef": "N-d99a146b294ccbe8c5f3",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-4096b833b2b6b887f9f8",
+   "clientRef": "P-4096b833b2b6b887f9f8",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49351444035617,
+      21.193260837002114
+     ],
+     [
+      105.4936953540264,
+      21.193297347459286
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-ae6419a57fe5c16ee32b",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "E99",
+    "sourceBlockPath": "E99",
+    "sourceOriginalFeatureId": "ad5834f13de9b61930160877",
+    "sourceCount": "1",
+    "diameterMm": "110",
+    "material": "HDPE",
+    "lengthM": "19.215368"
+   },
+   "fromRef": "N-3bbbb38c644c90976475",
+   "toRef": "N-e37ba20d09fcbfba7a9f",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-d15ead1ffd8b236ccbb9",
+   "clientRef": "P-d15ead1ffd8b236ccbb9",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.4936953540264,
+      21.193297347459286
+     ],
+     [
+      105.49415238916352,
+      21.19338958145797
+     ],
+     [
+      105.49473975992268,
+      21.193458317731423
+     ],
+     [
+      105.49517556216674,
+      21.19361729996611
+     ],
+     [
+      105.49531047810879,
+      21.193668145794437
+     ],
+     [
+      105.49548011889509,
+      21.193686391772292
+     ],
+     [
+      105.49594745507359,
+      21.193630284824653
+     ],
+     [
+      105.49663941481397,
+      21.193429395390847
+     ],
+     [
+      105.49728462527085,
+      21.193202987843733
+     ],
+     [
+      105.4974380023732,
+      21.193146834911587
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-0b75dd8bbc60560c4e0d",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "E99",
+    "sourceBlockPath": "E99",
+    "sourceOriginalFeatureId": "ad5834f13de9b61930160877",
+    "sourceCount": "1",
+    "diameterMm": "110",
+    "material": "HDPE",
+    "lengthM": "404.154385"
+   },
+   "fromRef": "N-e37ba20d09fcbfba7a9f",
+   "toRef": "N-89c2ecb2263ba658e901",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-c20b22796a9c646efce0",
+   "clientRef": "P-c20b22796a9c646efce0",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.48826235268986,
+      21.174498613911975
+     ],
+     [
+      105.48815522269975,
+      21.173909791768935
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "b43346a5200c82616004df09",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "20F8",
+    "sourceBlockPath": "20F8",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "66.136437"
+   },
+   "fromRef": "N-be7709eea0b75b47ddde",
+   "toRef": "N-40232ff4715d045409c7",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-e446de5bbb6904280cb3",
+   "clientRef": "P-e446de5bbb6904280cb3",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.48675534945221,
+      21.167901419992763
+     ],
+     [
+      105.48701680567243,
+      21.16775869155045
+     ],
+     [
+      105.4876968279,
+      21.16743328946027
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "b73f0631cc86c07a44ef4c20",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "225",
+    "sourceHandle": "213B",
+    "sourceBlockPath": "213B",
+    "sourceCount": "1",
+    "diameterMm": "225",
+    "material": "HDPE",
+    "lengthM": "110.698961"
+   },
+   "fromRef": "N-fdd42698e995cc14abb0",
+   "toRef": "N-76e59e704af4c1290e0b",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-2830980341c750213a64",
+   "clientRef": "P-2830980341c750213a64",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.4923447821966,
+      21.1907455805833
+     ],
+     [
+      105.49195447920339,
+      21.190073267368284
+     ],
+     [
+      105.49188223161353,
+      21.189940108162467
+     ],
+     [
+      105.49097855589325,
+      21.187370577651272
+     ],
+     [
+      105.49094738200398,
+      21.187276863552906
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "c3d52a993b2eb60e7f97a427",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "315",
+    "sourceHandle": "1982",
+    "sourceBlockPath": "1982",
+    "sourceCount": "1",
+    "diameterMm": "315",
+    "material": "HDPE",
+    "lengthM": "411.740493"
+   },
+   "fromRef": "N-1aa84e7b16343f8cc619",
+   "toRef": "N-bf9bc3364301f90f9839",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-a29d7f00dfc263311331",
+   "clientRef": "P-a29d7f00dfc263311331",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49856525801339,
+      21.183347023481282
+     ],
+     [
+      105.499604433246,
+      21.185119251432795
+     ],
+     [
+      105.49985222580028,
+      21.18553047507793
+     ],
+     [
+      105.500119911522,
+      21.18590745569183
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-1123cc73d9f112e8b3c5",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "65E",
+    "sourceBlockPath": "65E",
+    "sourceOriginalFeatureId": "c4a63fba16ac54647086d747",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "326.381406"
+   },
+   "fromRef": "N-c95101206a5f8eb2a18c",
+   "toRef": "N-2dc05c0bd17e640264e8",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-ebe72e349c2664365df3",
+   "clientRef": "P-ebe72e349c2664365df3",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.500119911522,
+      21.18590745569183
+     ],
+     [
+      105.50012001392005,
+      21.185907599898105
+     ],
+     [
+      105.50049928777585,
+      21.185650286210258
+     ],
+     [
+      105.50089895871878,
+      21.18526439786954
+     ],
+     [
+      105.50096271155095,
+      21.18524080741664
+     ],
+     [
+      105.5013769005447,
+      21.18498170963858
+     ],
+     [
+      105.50159517764638,
+      21.18476141322929
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-11d7aab1881cfb6e0541",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "65E",
+    "sourceBlockPath": "65E",
+    "sourceOriginalFeatureId": "c4a63fba16ac54647086d747",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "200.304975"
+   },
+   "fromRef": "N-2dc05c0bd17e640264e8",
+   "toRef": "N-68e8dc719deb567ef9d5",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-8d91d98ac6beaabf8821",
+   "clientRef": "P-8d91d98ac6beaabf8821",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49345375267646,
+      21.193248589483037
+     ],
+     [
+      105.49325538549752,
+      21.19316569544915
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-70d205b84b085382c91d",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "557",
+    "sourceBlockPath": "557",
+    "sourceOriginalFeatureId": "c5e33913df1651645f2ab9ae",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "22.549922"
+   },
+   "fromRef": "N-990318f7402aa5f31178",
+   "toRef": "N-5ab1d4c9cef8b5c3543c",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-7cdccf7d520652bc2a52",
+   "clientRef": "P-7cdccf7d520652bc2a52",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49325538549752,
+      21.19316569544915
+     ],
+     [
+      105.49288328645555,
+      21.193010201152273
+     ],
+     [
+      105.49272288943935,
+      21.192947763010494
+     ],
+     [
+      105.49214929343242,
+      21.19281889269241
+     ],
+     [
+      105.49161212050043,
+      21.1926076798401
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-bc92e3288c97b3451595",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "557",
+    "sourceBlockPath": "557",
+    "sourceOriginalFeatureId": "c5e33913df1651645f2ab9ae",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "182.059502"
+   },
+   "fromRef": "N-5ab1d4c9cef8b5c3543c",
+   "toRef": "N-7ef2b181f794ee518ccf",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-92b8f5fd1b998cd3e95c",
+   "clientRef": "P-92b8f5fd1b998cd3e95c",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49311074875962,
+      21.19216710635018
+     ],
+     [
+      105.4930178259824,
+      21.191971381486944
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-852833293a787908ec53",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "4A6",
+    "sourceBlockPath": "4A6",
+    "sourceOriginalFeatureId": "d31d31694465aae8d98f2545",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "23.721569"
+   },
+   "fromRef": "N-580652fe25960c922d4c",
+   "toRef": "N-6408f56c06b429a179d0",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-ccd4d1d3bd213a5d3319",
+   "clientRef": "P-ccd4d1d3bd213a5d3319",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.4930178259824,
+      21.191971381486944
+     ],
+     [
+      105.49264097256724,
+      21.19117760272559
+     ],
+     [
+      105.49238163957587,
+      21.190660356361764
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-448cbae5072836e79900",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "4A6",
+    "sourceBlockPath": "4A6",
+    "sourceOriginalFeatureId": "d31d31694465aae8d98f2545",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "159.489155"
+   },
+   "fromRef": "N-6408f56c06b429a179d0",
+   "toRef": "N-393f3767cbd036036244",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-1d2ed706d61ba2c11dd7",
+   "clientRef": "P-1d2ed706d61ba2c11dd7",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.49402518960123,
+      21.184234621275554
+     ],
+     [
+      105.4948431660034,
+      21.18418505869062
+     ],
+     [
+      105.4953398371102,
+      21.18413465735438
+     ],
+     [
+      105.49593144251877,
+      21.18417158499846
+     ],
+     [
+      105.49678824297933,
+      21.183988030149568
+     ],
+     [
+      105.49804230879822,
+      21.183655711488484
+     ],
+     [
+      105.498358311889,
+      21.18354523733284
+     ],
+     [
+      105.49856525801339,
+      21.183347023481282
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "d622bbccf2a6058aad717c35",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "160",
+    "sourceHandle": "1DBF",
+    "sourceBlockPath": "1DBF",
+    "sourceCount": "1",
+    "diameterMm": "160",
+    "material": "HDPE",
+    "lengthM": "490.886848"
+   },
+   "fromRef": "N-a680caeb5ef99bb52fc8",
+   "toRef": "N-c95101206a5f8eb2a18c",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-c7bbba34a6257e578d03",
+   "clientRef": "P-c7bbba34a6257e578d03",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.4923447821966,
+      21.1907455805833
+     ],
+     [
+      105.49121657693681,
+      21.19114348887012
+     ],
+     [
+      105.48978832775532,
+      21.19164516998413
+     ],
+     [
+      105.4885780230587,
+      21.191977200430696
+     ],
+     [
+      105.48807643820435,
+      21.192050061131024
+     ],
+     [
+      105.48781118974604,
+      21.19199072755665
+     ],
+     [
+      105.48735641221309,
+      21.19190344450352
+     ],
+     [
+      105.48735641221309,
+      21.19190344450352
+     ],
+     [
+      105.48720702971768,
+      21.191753954459355
+     ],
+     [
+      105.48716875240059,
+      21.191539686886117
+     ],
+     [
+      105.48712420333877,
+      21.190970611478583
+     ],
+     [
+      105.48711345484195,
+      21.19074541763454
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "f1cc243f7296b11de12cfeff",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "110",
+    "sourceHandle": "558",
+    "sourceBlockPath": "558",
+    "sourceCount": "1",
+    "diameterMm": "110",
+    "material": "HDPE",
+    "lengthM": "678.561792"
+   },
+   "fromRef": "N-1aa84e7b16343f8cc619",
+   "toRef": "N-79fc848f7cd167936b21",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-f9fdfb6387b0d43b41e7",
+   "clientRef": "P-f9fdfb6387b0d43b41e7",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.4876968279,
+      21.16743328946027
+     ],
+     [
+      105.487826706494,
+      21.168036302254254
+     ],
+     [
+      105.48790244660677,
+      21.168385445483917
+     ],
+     [
+      105.48790602123246,
+      21.168384492609867
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-df3f0b0a3c8c18265977",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "B35",
+    "sourceBlockPath": "B35",
+    "sourceOriginalFeatureId": "fab7bb999ab80b945e203cad",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "107.948947"
+   },
+   "fromRef": "N-76e59e704af4c1290e0b",
+   "toRef": "N-3dd817911afd5a5b0273",
+   "hostRef": null
+  },
+  {
+   "kind": "Pipe",
+   "assetCode": "P-093345be24179b4f07d8",
+   "clientRef": "P-093345be24179b4f07d8",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      105.48790602123246,
+      21.168384492609867
+     ],
+     [
+      105.48917818084905,
+      21.168045372391326
+     ],
+     [
+      105.48989956882006,
+      21.16785144810308
+     ],
+     [
+      105.49060280714053,
+      21.167669651208573
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "pipe",
+    "sourceFeatureId": "F-03fa8f6592855706d38f",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "90",
+    "sourceHandle": "B35",
+    "sourceBlockPath": "B35",
+    "sourceOriginalFeatureId": "fab7bb999ab80b945e203cad",
+    "sourceCount": "1",
+    "diameterMm": "90",
+    "material": "HDPE",
+    "lengthM": "291.041651"
+   },
+   "fromRef": "N-3dd817911afd5a5b0273",
+   "toRef": "N-07e850277b4fa3a01066",
+   "hostRef": null
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-6c51ca41c4902639b4bc",
+   "clientRef": "D-6c51ca41c4902639b4bc",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49383606395114,
+      21.19332583552265
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "d65734753a1221f711b79988",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "16C1",
+    "sourceBlockPath": "16C1",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "110"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-d15ead1ffd8b236ccbb9"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-4d9dfd50e02692b63b88",
+   "clientRef": "D-4d9dfd50e02692b63b88",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49312862783454,
+      21.193110090249387
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "28bab0059c9c16b4620ce14a",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "17A7",
+    "sourceBlockPath": "17A7",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-7cdccf7d520652bc2a52"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-ec0dda4e67bfa564fdbc",
+   "clientRef": "D-ec0dda4e67bfa564fdbc",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.493493830449,
+      21.193052665561655
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "0e376f121b6c3dc694a10bb3",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1806",
+    "sourceBlockPath": "1806",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "160"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-ca1c4ee726a0d8bbd7c3"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-d404d39ef7b52dad50e1",
+   "clientRef": "D-d404d39ef7b52dad50e1",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49340710861784,
+      21.19305730757338
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "3ac6f53b85a95327608112a4",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1808",
+    "sourceBlockPath": "1808",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "315"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-e5b66bed744632dc5a25"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-6fc58089f28d6105857a",
+   "clientRef": "D-6fc58089f28d6105857a",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49333296140686,
+      21.19214980582729
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "4474f96e37963c4b0a310fd9",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "194B",
+    "sourceBlockPath": "194B",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-3808e78e0b45874e8b2f"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-ef332e795a2ee419caae",
+   "clientRef": "D-ef332e795a2ee419caae",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49296170668022,
+      21.191847019694727
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "fe45cbc4f9a986bc3a623fe6",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1957",
+    "sourceBlockPath": "1957",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-ccd4d1d3bd213a5d3319"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-9bd9317b58c8b1c210e8",
+   "clientRef": "D-9bd9317b58c8b1c210e8",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49225372454997,
+      21.19058734027279
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "8216fc518127474a198329a3",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1985",
+    "sourceBlockPath": "1985",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "315"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-2830980341c750213a64"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-856d460625f1ee404d8d",
+   "clientRef": "D-856d460625f1ee404d8d",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49206555240792,
+      21.190846190230932
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "b729879a5ac4674ac7e780c1",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "19DF",
+    "sourceBlockPath": "19DF",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "110"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-c7bbba34a6257e578d03"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-2f0b5255008c7d365a0e",
+   "clientRef": "D-2f0b5255008c7d365a0e",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49088969792012,
+      21.18710351140907
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "7bba3f5b2a992dd2ec8181f2",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1C7C",
+    "sourceBlockPath": "1C7C",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "315"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-264b11a44181adfa7413"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-c3be91dc9c8ab0dd3a78",
+   "clientRef": "D-c3be91dc9c8ab0dd3a78",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4907324759951,
+      21.187334424191647
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "b2692ec4da25fbd60ead54e2",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1C7E",
+    "sourceBlockPath": "1C7E",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-11c6f8151c4a64517dfa"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-a9272a640398566cd314",
+   "clientRef": "D-a9272a640398566cd314",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4905383279282,
+      21.185412348278536
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "034a5b914a95baccba7cd785",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1D46",
+    "sourceBlockPath": "1D46",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "160"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-45747a7efd6af9490669"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-be9d94005bbeb8086dcf",
+   "clientRef": "D-be9d94005bbeb8086dcf",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49400703631053,
+      21.184156396344182
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "d8b5f4c1ff081ad7209f0dd8",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1DCA",
+    "sourceBlockPath": "1DCA",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-deddeaf5ba00edb57f45"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-d645f9d6e8fbe740327f",
+   "clientRef": "D-d645f9d6e8fbe740327f",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49422015000535,
+      21.18422404379366
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "a794d702172226a903b2314b",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1E35",
+    "sourceBlockPath": "1E35",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "160"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-1d2ed706d61ba2c11dd7"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-fa4d5c4d656bd407ce10",
+   "clientRef": "D-fa4d5c4d656bd407ce10",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49884329780377,
+      21.18308785342849
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "95bff94a68caf544d5115086",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1E45",
+    "sourceBlockPath": "1E45",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-be4d1642315eaec3f3ae"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-22a0c98c6ae608c62576",
+   "clientRef": "D-22a0c98c6ae608c62576",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4986717360962,
+      21.18352589675459
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "dcc4201b1c6faea6a44dfd3c",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1EDB",
+    "sourceBlockPath": "1EDB",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-a29d7f00dfc263311331"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-a79b9dcb0d992ae93138",
+   "clientRef": "D-a79b9dcb0d992ae93138",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49025189351632,
+      21.185187888228096
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "d5e295ecc9c3d23e2afa5e3e",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1EEA",
+    "sourceBlockPath": "1EEA",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "225"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-977ab4ec7e54df8a9948"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-d23695fcfe325317128a",
+   "clientRef": "D-d23695fcfe325317128a",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49008658973665,
+      21.185432046729332
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "099826ab2a76e3a1974ac180",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "1EF0",
+    "sourceBlockPath": "1EF0",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "225"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-3a17b45af0a32599c55f"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-87d0644d7f7b83c949ad",
+   "clientRef": "D-87d0644d7f7b83c949ad",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.4884777274972,
+      21.17445824238631
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "0db261dabe6903c86d22ca02",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "20EA",
+    "sourceBlockPath": "20EA",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-acd5b73905010dd253ba"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-1a51d4288fab949bc1e4",
+   "clientRef": "D-1a51d4288fab949bc1e4",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48796065369365,
+      21.173928792639575
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "ca6a4d447f81d243745f3d09",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "2110",
+    "sourceBlockPath": "2110",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "110"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-09161f4b8a9661632e01"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-30fdd2c1e8f25181014a",
+   "clientRef": "D-30fdd2c1e8f25181014a",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48719447932534,
+      21.169602799399453
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "53c062e1531b43ea6d811f8d",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "2131",
+    "sourceBlockPath": "2131",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "160"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-79e7f26634c4278367f5"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-58fc56ffcf6774cd83aa",
+   "clientRef": "D-58fc56ffcf6774cd83aa",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48785848935488,
+      21.16736130895138
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "d789fc01c98846400adbd815",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "2151",
+    "sourceBlockPath": "2151",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "225"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-5cd5ca527460deadd7d6"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-05e3099c3c80075de9cb",
+   "clientRef": "D-05e3099c3c80075de9cb",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49613152922643,
+      21.164685940810585
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "118d520f2405c146e6ce28d6",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "2229",
+    "sourceBlockPath": "2229",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "225"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-c55c7ab5b59c8470f228"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-1b3ef9ab97a15d5e6896",
+   "clientRef": "D-1b3ef9ab97a15d5e6896",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.48774642468214,
+      21.167656475118683
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "aa6b60099ebbc77acd313071",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "2233",
+    "sourceBlockPath": "2233",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-f9fdfb6387b0d43b41e7"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-06d1d2f463f54d60d5bc",
+   "clientRef": "D-06d1d2f463f54d60d5bc",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49599139603768,
+      21.164962768079075
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "e3539582394bd4e6a018a9a2",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "2237",
+    "sourceBlockPath": "2237",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "110"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-894a12de0b7114851eb3"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-bf72678e39300d82a7bd",
+   "clientRef": "D-bf72678e39300d82a7bd",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.50121191034542,
+      21.16402968204883
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "2db7ecce3275b5da55d0200c",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "2249",
+    "sourceBlockPath": "2249",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "225"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-bb80a7ae0b64e0cb5777"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-cd996384386636970248",
+   "clientRef": "D-cd996384386636970248",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.50124836433254,
+      21.164149041668093
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "9541bcce6f6c9397717cdb14",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "2252",
+    "sourceBlockPath": "2252",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "90"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-e211f0c7b8fae2646f4b"
+  },
+  {
+   "kind": "Device",
+   "assetCode": "D-5a2cbee3332e004e2893",
+   "clientRef": "D-5a2cbee3332e004e2893",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     [
+      105.49342167859997,
+      21.195923203939408
+     ]
+    ]
+   },
+   "attributes": {
+    "source": "cad-import",
+    "generatedFrom": "explicit-block-device",
+    "sourceFeatureId": "5d6de66c9f0ba5a4d68c989d",
+    "sourceFileId": "fd913a6346e8896c59a08e8a",
+    "sourceLayer": "Trac doc",
+    "sourceHandle": "22CD",
+    "sourceBlockPath": "22CD",
+    "sourceBlockName": "Vanmoinoi",
+    "sourceCount": "1",
+    "componentCode": "GateValve",
+    "dn": "315"
+   },
+   "fromRef": null,
+   "toRef": null,
+   "hostRef": "P-47259cc909f049d8e44d"
+  }
+ ]
+}

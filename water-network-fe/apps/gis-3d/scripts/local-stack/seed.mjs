@@ -2,12 +2,13 @@
 // real network to load from the BFF.
 //
 //   node scripts/local-stack/seed.mjs [--gis http://localhost:8081] [--force]
-//        [--network networks/vinh-thinh-dot3.json | --demo]
+//        [--network <draft-assets.json> | --demo]
 //
-// Default: the Vĩnh Thịnh Đợt 3 network (networks/vinh-thinh-dot3.json), built from the reviewed
-// CAD drawing by networks/build_network.py — pipes, valves, bends and reducers from the drawing,
-// the remaining fittings, source, meter, caps, washouts and hydrants completed by the rules in that
-// script. Every asset is registered exactly as in the file (component, host, properties).
+// Default: the Vĩnh Thịnh Đợt 3 network — the CAD import service's own output for the drawing
+// "1.MB-PP-Vinh Thinh - Dot 3.dwg" with networks/vinh-thinh-dot3.review.json
+// (networks/vinh-thinh-dot3.drafts.json; see networks/README.md to regenerate it). Every draft
+// is registered as the importer produced it: its component, host, and the catalog properties
+// among its attributes. Nothing is added.
 //
 // --demo: the canonical mock's demo network (54 nodes, 93 pipes, valves, hydrants, plant,
 // reservoirs and pump stations), mapped as follows.
@@ -19,7 +20,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 // the built package itself, not the app's installed copy of it (pnpm copies file: packages at install)
-import { pipeMaterialCode } from '../../../../packages/contracts/dist/catalog/index.js'
+import { pipeMaterialCode, propertiesIn } from '../../../../packages/contracts/dist/catalog/index.js'
 import { devToken } from './dev-token.mjs'
 
 const arg = (name, fallback) => {
@@ -30,7 +31,7 @@ const GIS = (arg('gis', process.env.WN_GIS_URL ?? 'http://localhost:8081')).repl
 const FORCE = process.argv.includes('--force')
 const TOKEN = devToken()
 const DEMO = process.argv.includes('--demo')
-const NETWORK = arg('network', fileURLToPath(new URL('./networks/vinh-thinh-dot3.json', import.meta.url)))
+const NETWORK = arg('network', fileURLToPath(new URL('./networks/vinh-thinh-dot3.drafts.json', import.meta.url)))
 
 const M_PER_DEG = 111_320
 const metres = (a, b) => {
@@ -161,44 +162,54 @@ async function main() {
   console.log(JSON.stringify({ seeded: stats, gisCounts: after?.counts }, null, 2))
 }
 
-// A network dataset (networks/*.json): nodes, pipes between node refs, devices hosted by ref.
-async function seedNetwork(net) {
-  const id = new Map() // dataset ref → gis-be id
-  for (const n of net.nodes) {
+// The CAD import's draft assets (draft-assets.json): nodes, pipes between node refs, devices on a
+// pipe or node ref, all named by catalog component (decision 0028).
+async function seedNetwork({ assets }) {
+  const id = new Map() // draft clientRef → gis-be id
+  const props = (code, attrs) => {
+    const p = propertiesIn(code, attrs)
+    return Object.keys(p).length ? p : undefined
+  }
+  for (const a of assets.filter((x) => x.kind === 'Node')) {
+    const [lon, lat] = a.geometry.coordinates[0]
+    const code = a.attributes.componentCode
     const r = await call('POST', '/api/network/nodes', {
-      assetCode: n.assetCode, componentCode: n.componentCode, latitude: n.lat, longitude: n.lon, properties: n.properties,
+      assetCode: a.assetCode, componentCode: code, latitude: lat, longitude: lon, properties: props(code, a.attributes),
     })
-    id.set(n.ref, r.id)
+    id.set(a.clientRef, r.id)
     stats.nodes++
   }
-  for (const p of net.pipes) {
+  for (const a of assets.filter((x) => x.kind === 'Pipe')) {
     const r = await call('POST', '/api/network/pipes', {
-      assetCode: p.assetCode,
-      fromNodeId: id.get(p.from),
-      toNodeId: id.get(p.to),
-      points: p.coordinates.map(([lng, lat]) => ({ lat, lng })),
-      diameterMm: p.diameterMm,
-      material: p.material,
-      lengthM: p.lengthM,
-      properties: p.properties,
+      assetCode: a.assetCode,
+      fromNodeId: id.get(a.fromRef),
+      toNodeId: id.get(a.toRef),
+      points: a.geometry.coordinates.map(([lng, lat]) => ({ lat, lng })),
+      diameterMm: Number(a.attributes.diameterMm),
+      material: a.attributes.material,
+      lengthM: Number(a.attributes.lengthM),
+      properties: props('Pipe', a.attributes),
     })
-    id.set(p.ref, r.id)
+    id.set(a.clientRef, r.id)
     stats.pipes++
   }
-  for (const d of net.devices) {
+  for (const a of assets.filter((x) => x.kind === 'Device')) {
+    const [lon, lat] = a.geometry.coordinates[0]
+    const code = a.attributes.componentCode
+    const onPipe = assets.some((x) => x.kind === 'Pipe' && x.clientRef === a.hostRef)
     await call('POST', '/api/network/devices', {
-      assetCode: d.assetCode,
-      componentCode: d.componentCode,
-      hostPipeId: d.hostPipe ? id.get(d.hostPipe) : null,
-      hostNodeId: d.hostNode ? id.get(d.hostNode) : null,
-      latitude: d.lat,
-      longitude: d.lon,
-      properties: d.properties,
+      assetCode: a.assetCode,
+      componentCode: code,
+      hostPipeId: onPipe ? id.get(a.hostRef) : null,
+      hostNodeId: onPipe ? null : id.get(a.hostRef),
+      latitude: lat,
+      longitude: lon,
+      properties: props(code, a.attributes),
     })
     stats.devices++
   }
   const after = await call('GET', '/api/network/assets/bootstrap')
-  console.log(JSON.stringify({ network: net.name, seeded: stats, gisCounts: after?.counts }, null, 2))
+  console.log(JSON.stringify({ network: NETWORK, seeded: stats, gisCounts: after?.counts }, null, 2))
 }
 
 main().catch((e) => {
