@@ -130,6 +130,57 @@ function Save-Settings([hashtable]$Values) {
     Set-Content $EnvFile $lines -Encoding UTF8
 }
 
+<# User/password pairs for PostgreSQL in the secrets of a namespace, each key paired with its own
+   partner: POSTGRES_USER+POSTGRES_PASSWORD (postgres image), username+password (Bitnami custom user,
+   CloudNativePG), postgres+postgres-password (Bitnami superuser). #>
+function Get-PostgresCredentials([string]$Namespace) {
+    $items = (Remote "$Kubectl -n $Namespace get secret -o json" | Out-String | ConvertFrom-Json).items |
+        Where-Object { ($_.type -eq 'Opaque' -or $_.type -eq 'kubernetes.io/basic-auth') -and $_.metadata.name -match 'postg|pg|cnpg|superuser|timescale|db' }
+    $dec = { param($raw) if ($raw) { [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($raw)) } }
+    $out = @()
+    foreach ($s in $items) {
+        $d = $s.data
+        $from = "$Namespace/$($s.metadata.name)"
+        foreach ($pair in @(@('POSTGRES_USER', 'POSTGRES_PASSWORD'), @('username', 'password'), @('user', 'password'), @('postgres-user', 'postgres-password'))) {
+            $u = & $dec $d.($pair[0]); $pw = & $dec $d.($pair[1])
+            if ($u -and $pw) { $out += @{ User = $u; Password = $pw; From = "$from`:$($pair[0])+$($pair[1])" } }
+        }
+        foreach ($k in 'postgres-password', 'postgresql-password', 'POSTGRES_PASSWORD') {
+            $pw = & $dec $d.$k
+            if ($pw) { $out += @{ User = 'postgres'; Password = $pw; From = "$from`:$k (superuser)" } }
+        }
+    }
+    # the same pair from several keys or secrets once
+    $seen = @{}
+    $out | Where-Object { $key = "$($_.User)`n$($_.Password)"; if ($seen[$key]) { $false } else { $seen[$key] = $true; $true } }
+}
+
+<# Logs in to PostgreSQL as the service sees it: from inside a running pod behind the service, over
+   TCP to the service name (so the password is checked), the password passed on stdin.
+   Returns ok-create (may create databases), ok-nocreate, bad (wrong user/password) or unknown. #>
+function Test-PostgresLogin([string]$User, [string]$Password) {
+    if ($cfg['POSTGRES_HOST'] -notmatch '^([^.]+)\.([^.]+)\.svc') { return @{ Result = 'unknown'; Detail = 'host is not an in-cluster service name' } }
+    $svcName = $Matches[1]; $svcNs = $Matches[2]
+    try {
+        $svc = Remote "$Kubectl -n $svcNs get svc $svcName -o json" | Out-String | ConvertFrom-Json
+        $sel = ($svc.spec.selector.PSObject.Properties | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join ','
+        if (-not $sel) { return @{ Result = 'unknown'; Detail = 'the service has no pod selector' } }
+        $pod = @(Remote "$Kubectl -n $svcNs get pods -l $sel --field-selector=status.phase=Running -o name") | Select-Object -First 1
+        if (-not $pod) { return @{ Result = 'unknown'; Detail = 'no running pod behind the service' } }
+        $sq = { param($v) "'" + $v.Replace("'", "'\''") + "'" }
+        $script = "PGPASSWORD=$(& $sq $Password); export PGPASSWORD`n" +
+            "command -v psql >/dev/null 2>&1 || { echo NO_PSQL; exit 0; }`n" +
+            "psql -h $(& $sq $cfg['POSTGRES_HOST']) -p $($cfg['POSTGRES_PORT']) -U $(& $sq $User) -d postgres -tAc " +
+            "`"select case when rolsuper or rolcreatedb then 'CAN_CREATE' else 'NO_CREATE' end from pg_roles where rolname = current_user`" 2>&1; true`n"
+        $out = (Remote "$Kubectl -n $svcNs exec -i $pod -- sh -s" $script | Out-String)
+    } catch { return @{ Result = 'unknown'; Detail = "$_" } }
+    if ($out -match 'CAN_CREATE') { return @{ Result = 'ok-create' } }
+    if ($out -match 'NO_CREATE') { return @{ Result = 'ok-nocreate' } }
+    if ($out -match 'NO_PSQL') { return @{ Result = 'unknown'; Detail = 'no psql in the database pod' } }
+    if ($out -match 'password authentication failed|no pg_hba.conf entry|role .* does not exist') { return @{ Result = 'bad'; Detail = $out.Trim() } }
+    return @{ Result = 'unknown'; Detail = $out.Trim() }
+}
+
 <# Finds the shared services' settings in the cluster: the PostgreSQL, Redis, RabbitMQ and app-catalog
    services, and the credentials in their secrets (Bitnami chart keys, CloudNativePG / RabbitMQ
    operator secrets, or plain username/password keys). Returns only what it found. #>
@@ -168,16 +219,10 @@ function Find-ClusterSettings {
     if ($pg) {
         $found.POSTGRES_HOST = @{ Value = (& $hostOf $pg); From = 'service' }
         $found.POSTGRES_PORT = @{ Value = '5432'; From = 'service' }
-        $sec = & $secret $pg.metadata.namespace 'postg|pg|cnpg|superuser|timescale'
-        $super = & $value $sec @('postgres-password', 'POSTGRES_PASSWORD', 'postgresql-password')
-        if ($super) {
-            $found.POSTGRES_PASSWORD = $super
-            $u = & $value $sec @('POSTGRES_USER', 'postgres-user')
-            $found.POSTGRES_USER = if ($u) { $u } else { @{ Value = 'postgres'; From = 'chart default' } }
-        } else {
-            $u = & $value $sec @('username', 'user')
-            $pw = & $value $sec @('password')
-            if ($u -and $pw) { $found.POSTGRES_USER = $u; $found.POSTGRES_PASSWORD = $pw }
+        $first = @(Get-PostgresCredentials $pg.metadata.namespace) | Select-Object -First 1
+        if ($first) {
+            $found.POSTGRES_USER = @{ Value = $first.User; From = $first.From }
+            $found.POSTGRES_PASSWORD = @{ Value = $first.Password; From = $first.From }
         }
     }
     $redis = & $pick 'redis|valkey|dragonfly' 6379
@@ -212,7 +257,7 @@ if ($missing -and $autoFill) {
     Step 'Looking for the shared services and their credentials in the cluster'
     try { $found = Find-ClusterSettings } catch { $found = @{}; Write-Host "   could not read the cluster: $_" -ForegroundColor Yellow }
     $use = @{}
-    # the Redis password is optional, so it is not "missing" — but take it when the cluster has one
+    # the Redis password is optional, so it is not "missing" - but take it when the cluster has one
     foreach ($k in @($missing) + @(@('REDIS_PASSWORD') | Where-Object { -not $cfg[$_] })) {
         if (-not $found.ContainsKey($k)) { continue }
         $shown = if ($k -like '*PASSWORD') { '********' } else { $found[$k].Value }
@@ -270,6 +315,43 @@ if ($Interactive) {
 foreach ($k in 'MENU_APP_URL', 'POSTGRES_OPTIONS', 'REDIS_PASSWORD') { if (-not $cfg.ContainsKey($k)) { $cfg[$k] = '' } }
 $Reg = $cfg['REGISTRY'].TrimEnd('/')
 
+# ----------------------------------------------------------------------- PostgreSQL login check
+if (-not $DryRun) {
+    Step "Checking the PostgreSQL login ($($cfg['POSTGRES_USER']) @ $($cfg['POSTGRES_HOST']))"
+    $login = Test-PostgresLogin $cfg['POSTGRES_USER'] $cfg['POSTGRES_PASSWORD']
+    if ($login.Result -eq 'bad') {
+        Write-Host "   refused: $($login.Detail)" -ForegroundColor Yellow
+        # try every user/password pair the database's secrets hold, then ask
+        $svcNs = if ($cfg['POSTGRES_HOST'] -match '^[^.]+\.([^.]+)\.svc') { $Matches[1] } else { $Ns }
+        $tried = @{ "$($cfg['POSTGRES_USER'])`n$($cfg['POSTGRES_PASSWORD'])" = $true }
+        foreach ($c in @(Get-PostgresCredentials $svcNs)) {
+            if ($tried["$($c.User)`n$($c.Password)"]) { continue }
+            $tried["$($c.User)`n$($c.Password)"] = $true
+            Note "trying $($c.User) from $($c.From)"
+            $r = Test-PostgresLogin $c.User $c.Password
+            if ($r.Result -like 'ok-*' -or $r.Result -eq 'unknown') { $login = $r; $cfg['POSTGRES_USER'] = $c.User; $cfg['POSTGRES_PASSWORD'] = $c.Password; break }
+        }
+        while ($login.Result -eq 'bad' -and $Interactive) {
+            Write-Host '   No user/password in the cluster secrets logs in. Type the ones to use (saved to deploy.env).' -ForegroundColor Yellow
+            $cfg['POSTGRES_USER'] = (Read-Host '   POSTGRES_USER').Trim()
+            $sec = Read-Host '   POSTGRES_PASSWORD' -AsSecureString
+            $cfg['POSTGRES_PASSWORD'] = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
+            $login = Test-PostgresLogin $cfg['POSTGRES_USER'] $cfg['POSTGRES_PASSWORD']
+            if ($login.Result -eq 'bad') { Write-Host "   refused: $($login.Detail)" -ForegroundColor Yellow }
+        }
+        if ($login.Result -eq 'bad') { Fail "PostgreSQL refused $($cfg['POSTGRES_USER']); set POSTGRES_USER/POSTGRES_PASSWORD in deploy.env" }
+        Save-Settings @{ POSTGRES_USER = $cfg['POSTGRES_USER']; POSTGRES_PASSWORD = $cfg['POSTGRES_PASSWORD'] }
+        Note "saved the working login ($($cfg['POSTGRES_USER'])) to deploy.env"
+    }
+    switch ($login.Result) {
+        'ok-create' { Note "logged in as $($cfg['POSTGRES_USER']); it may create the databases" }
+        'ok-nocreate' {
+            Write-Host "   $($cfg['POSTGRES_USER']) logs in but may not create databases: wn_gis, wn_asset and wn_design (with PostGIS) must exist." -ForegroundColor Yellow
+        }
+        'unknown' { Note "could not check the login ($($login.Detail)); the migrations will tell" }
+    }
+}
+
 # ---------------------------------------------------------------------------------- image tag
 Push-Location $Root
 try {
@@ -286,6 +368,8 @@ Note "image tag: $Tag"
 $q = { param($v) if ($v -match "[;'= ]") { "'" + $v.Replace("'", "''") + "'" } else { $v } }
 $pg = "Host=$($cfg['POSTGRES_HOST']);Port=$($cfg['POSTGRES_PORT']);Username=$(& $q $cfg['POSTGRES_USER']);Password=$(& $q $cfg['POSTGRES_PASSWORD'])"
 if ($cfg['POSTGRES_OPTIONS']) { $pg = "$pg;$($cfg['POSTGRES_OPTIONS'].TrimStart(';'))" }
+# the images have no Kerberos library; without this Npgsql logs "Cannot load library libgssapi_krb5"
+if ($pg -notmatch 'GSS Encryption Mode') { $pg = "$pg;GSS Encryption Mode=Disable" }
 $redis = "$($cfg['REDIS_HOST']):$($cfg['REDIS_PORT']),abortConnect=false"
 if ($cfg['REDIS_PASSWORD']) { $redis = "$redis,password=$($cfg['REDIS_PASSWORD'])" }
 $enc = { param($s) [Uri]::EscapeDataString($s) }
