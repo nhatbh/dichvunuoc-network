@@ -133,6 +133,59 @@ function Save-Settings([hashtable]$Values) {
 <# User/password pairs for PostgreSQL in the secrets of a namespace, each key paired with its own
    partner: POSTGRES_USER+POSTGRES_PASSWORD (postgres image), username+password (Bitnami custom user,
    CloudNativePG), postgres+postgres-password (Bitnami superuser). #>
+<# The running pod behind the database service (POSTGRES_HOST = <service>.<namespace>.svc...). #>
+function Get-DbPod {
+    if ($cfg['POSTGRES_HOST'] -notmatch '^([^.]+)\.([^.]+)\.svc') { return $null }
+    $svcName = $Matches[1]; $svcNs = $Matches[2]
+    $svc = Remote "$Kubectl -n $svcNs get svc $svcName -o json" | Out-String | ConvertFrom-Json
+    $sel = ($svc.spec.selector.PSObject.Properties | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join ','
+    if (-not $sel) { return $null }
+    $pods = (Remote "$Kubectl -n $svcNs get pods -l $sel --field-selector=status.phase=Running -o json" | Out-String | ConvertFrom-Json).items
+    $pod = @($pods) | Select-Object -First 1
+    if (-not $pod) { return $null }
+    @{ Ns = $svcNs; Name = "pod/$($pod.metadata.name)"; Spec = $pod.spec }
+}
+
+<# The user/password the database server itself was started with: the env of its pod (postgres image
+   POSTGRES_USER/POSTGRES_PASSWORD, Bitnami POSTGRESQL_USERNAME/POSTGRESQL_PASSWORD and the
+   superuser's POSTGRES(QL)_POSTGRES_PASSWORD), values or secret references. #>
+function Get-DbPodCredentials {
+    $db = Get-DbPod
+    if (-not $db) { return @() }
+    $env = @{}
+    $secrets = @{}
+    $read = {
+        param([string]$name, [string]$key)
+        if (-not $secrets.ContainsKey($name)) { $secrets[$name] = Remote "$Kubectl -n $($db.Ns) get secret $name -o json --ignore-not-found" | Out-String | ConvertFrom-Json }
+        $raw = $secrets[$name].data.$key
+        if ($raw) { [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($raw)) }
+    }
+    foreach ($c in @($db.Spec.containers)) {
+        foreach ($ef in @($c.envFrom)) {
+            if ($ef.secretRef.name) {
+                $sec = Remote "$Kubectl -n $($db.Ns) get secret $($ef.secretRef.name) -o json --ignore-not-found" | Out-String | ConvertFrom-Json
+                foreach ($prop in @($sec.data.PSObject.Properties)) { $env[$prop.Name] = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($prop.Value)) }
+            }
+        }
+        foreach ($e in @($c.env)) {
+            if ($null -ne $e.value) { $env[$e.name] = $e.value }
+            elseif ($e.valueFrom.secretKeyRef) { $v = & $read $e.valueFrom.secretKeyRef.name $e.valueFrom.secretKeyRef.key; if ($v) { $env[$e.name] = $v } }
+        }
+    }
+    $out = @()
+    $from = "$($db.Ns)/$($db.Name.Substring(4)) env"
+    foreach ($pair in @(@('POSTGRES_USER', 'POSTGRES_PASSWORD'), @('POSTGRESQL_USERNAME', 'POSTGRESQL_PASSWORD'))) {
+        if ($env[$pair[1]]) {
+            $u = if ($env[$pair[0]]) { $env[$pair[0]] } else { 'postgres' }
+            $out += @{ User = $u; Password = $env[$pair[1]]; From = "$from`:$($pair[0])+$($pair[1])" }
+        }
+    }
+    foreach ($k in 'POSTGRES_POSTGRES_PASSWORD', 'POSTGRESQL_POSTGRES_PASSWORD') {
+        if ($env[$k]) { $out += @{ User = 'postgres'; Password = $env[$k]; From = "$from`:$k (superuser)" } }
+    }
+    $out
+}
+
 function Get-PostgresCredentials([string]$Namespace) {
     $items = (Remote "$Kubectl -n $Namespace get secret -o json" | Out-String | ConvertFrom-Json).items |
         Where-Object { ($_.type -eq 'Opaque' -or $_.type -eq 'kubernetes.io/basic-auth') -and $_.metadata.name -match 'postg|pg|cnpg|superuser|timescale|db' }
@@ -159,14 +212,10 @@ function Get-PostgresCredentials([string]$Namespace) {
    TCP to the service name (so the password is checked), the password passed on stdin.
    Returns ok-create (may create databases), ok-nocreate, bad (wrong user/password) or unknown. #>
 function Test-PostgresLogin([string]$User, [string]$Password) {
-    if ($cfg['POSTGRES_HOST'] -notmatch '^([^.]+)\.([^.]+)\.svc') { return @{ Result = 'unknown'; Detail = 'host is not an in-cluster service name' } }
-    $svcName = $Matches[1]; $svcNs = $Matches[2]
     try {
-        $svc = Remote "$Kubectl -n $svcNs get svc $svcName -o json" | Out-String | ConvertFrom-Json
-        $sel = ($svc.spec.selector.PSObject.Properties | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join ','
-        if (-not $sel) { return @{ Result = 'unknown'; Detail = 'the service has no pod selector' } }
-        $pod = @(Remote "$Kubectl -n $svcNs get pods -l $sel --field-selector=status.phase=Running -o name") | Select-Object -First 1
-        if (-not $pod) { return @{ Result = 'unknown'; Detail = 'no running pod behind the service' } }
+        $db = Get-DbPod
+        if (-not $db) { return @{ Result = 'unknown'; Detail = 'no running database pod found behind POSTGRES_HOST' } }
+        $svcNs = $db.Ns; $pod = $db.Name
         $sq = { param($v) "'" + $v.Replace("'", "'\''") + "'" }
         $script = "PGPASSWORD=$(& $sq $Password); export PGPASSWORD`n" +
             "command -v psql >/dev/null 2>&1 || { echo NO_PSQL; exit 0; }`n" +
@@ -324,7 +373,7 @@ if (-not $DryRun) {
         # try every user/password pair the database's secrets hold, then ask
         $svcNs = if ($cfg['POSTGRES_HOST'] -match '^[^.]+\.([^.]+)\.svc') { $Matches[1] } else { $Ns }
         $tried = @{ "$($cfg['POSTGRES_USER'])`n$($cfg['POSTGRES_PASSWORD'])" = $true }
-        foreach ($c in @(Get-PostgresCredentials $svcNs)) {
+        foreach ($c in @(Get-DbPodCredentials) + @(Get-PostgresCredentials $svcNs)) {
             if ($tried["$($c.User)`n$($c.Password)"]) { continue }
             $tried["$($c.User)`n$($c.Password)"] = $true
             Note "trying $($c.User) from $($c.From)"
@@ -348,7 +397,10 @@ if (-not $DryRun) {
         'ok-nocreate' {
             Write-Host "   $($cfg['POSTGRES_USER']) logs in but may not create databases: wn_gis, wn_asset and wn_design (with PostGIS) must exist." -ForegroundColor Yellow
         }
-        'unknown' { Note "could not check the login ($($login.Detail)); the migrations will tell" }
+        'unknown' {
+            Write-Host "   could not check the login: $($login.Detail)" -ForegroundColor Yellow
+            if ($Interactive -and -not (Ask 'Run the migrations with this login anyway?' $true)) { Fail 'stopped before migrating; check POSTGRES_USER/POSTGRES_PASSWORD in deploy.env' }
+        }
     }
 }
 
@@ -510,12 +562,20 @@ Step 'Migrating the databases (wn_gis, wn_asset, wn_design)'
 Kube 'delete job -l water-network/migration=true --ignore-not-found'
 Kube 'apply -f -' $migrateYaml
 $jobs = 'water-network-gis-be', 'water-network-asset-be', 'water-network-design-be' | ForEach-Object { "$_-migrate-$($vars['JOB_SUFFIX'])" }
-foreach ($job in $jobs) {
-    try { Kube "wait --for=condition=complete job/$job --timeout=300s" }
-    catch {
-        try { Remote "$Kubectl -n $Ns logs job/$job --tail=60" } catch { }
-        Fail "migration $job did not complete (logs above). Check the PostgreSQL settings and that the user may create databases/extensions."
+# all three run at once; stop at the first failure instead of waiting out the timeout
+$deadline = (Get-Date).AddMinutes(5)
+$pending = [System.Collections.Generic.List[string]]$jobs
+while ($pending.Count) {
+    foreach ($job in @($pending)) {
+        $st = (Remote "$Kubectl -n $Ns get job $job -o jsonpath='{.status.succeeded}/{.status.failed}'" | Out-String).Trim()
+        $ok, $bad = $st.Split('/')
+        if ([int]('0' + $ok) -ge 1) { Note "$job done"; [void]$pending.Remove($job); continue }
+        if ([int]('0' + $bad) -ge 1 -or (Get-Date) -gt $deadline) {
+            try { Remote "$Kubectl -n $Ns logs job/$job --tail=60" } catch { }
+            Fail "migration $job did not complete (logs above). Check the PostgreSQL settings and that the user may create databases/extensions."
+        }
     }
+    if ($pending.Count) { Start-Sleep -Seconds 5 }
 }
 
 Step 'Rolling out the services'
