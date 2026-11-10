@@ -76,6 +76,18 @@ If `FRONTEND_HOST` is served by the frontend-only demo, the script asks before r
 any `/api/gis` request (without `Bearer `) and paste it. The network is registered through gis-be's
 API over an ssh port-forward, exactly as the local stack seeds it.
 
+## Replace the current GIS frontend
+
+`replace-gis-fe.cmd` serves SYSTEM 3D at the current GIS frontend's address (deployment
+`water-network-gis`, e.g. `https://gis-dev.dichvunuoc.vn`) instead of a separate host. It reads
+that deployment, its service and ingress, saves them to `deploy/dev/.backup/gis-fe-<time>/`, and
+replaces the deployment's pods with the SYSTEM 3D web image (nginx serving `/config.json` from
+configmap `water-network-gis-3d` and proxying `/api/gis/` to `water-network-bff`). The service,
+ingress, host and TLS certificate stay; the service's target port becomes 8080 if it was
+another. Keycloak needs no change: client `water-network-gis-fe` already allows that host. It
+then offers to remove the separate `gis3d-dev` copy. Each later `deploy-system.cmd` moves the GIS
+frontend to the new image too. Run it again to put the previous frontend back.
+
 ## Roll back / remove
 
 - Roll back: `deploy-system.cmd -SkipBuild -Tag <previous tag>` (migrations only move forward).

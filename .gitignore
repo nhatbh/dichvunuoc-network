@@ -91,3 +91,5 @@ desktop.ini
 # ── deploy/dev: shared-service passwords and rendered manifests ──
 /deploy/dev/deploy.env
 /deploy/dev/.rendered/
+
+/deploy/dev/.backup/

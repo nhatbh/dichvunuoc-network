@@ -593,6 +593,13 @@ foreach ($d in $deployments) {
         try { Remote "$Kubectl -n $Ns logs deployment/$d --tail=40" } catch { }
     }
 }
+# SYSTEM 3D also serving the GIS frontend (replace-gis-fe.cmd): move it to this image too
+$gisFe = Remote "$Kubectl -n $Ns get deploy water-network-gis -o jsonpath='{.spec.template.metadata.annotations.water-network/frontend}' --ignore-not-found"
+if ("$gisFe".Trim() -eq 'system-3d') {
+    Step 'Updating the GIS frontend (water-network-gis serves SYSTEM 3D)'
+    Kube "set image deployment/water-network-gis web=$Reg/water-network-gis-3d:$Tag"
+    try { Kube 'rollout status deployment/water-network-gis --timeout=300s' } catch { $failed += 'water-network-gis' }
+}
 if ($failed) { Fail "not ready: $($failed -join ', ')" }
 
 Step 'Checking'
