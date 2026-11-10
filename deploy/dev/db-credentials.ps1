@@ -88,6 +88,9 @@ $container = @($pod.spec.containers) | Where-Object { $_.image -match 'postg|tim
 if (-not $container) { $container = @($pod.spec.containers)[0] }
 $podRef = "pod/$($pod.metadata.name)"
 $exec = "$Kubectl -n $dbNs exec -i $podRef -c $($container.name) -- sh -s"
+<# Runs a shell script in the database container. Windows PowerShell ends piped text with CRLF; the
+   final `exit 0` keeps sh from running that stray CR as a command. #>
+function Sh([string]$Script) { (Remote $exec ($Script.Replace("`r", '') + "`nexit 0`n") | Out-String).Trim() }
 Note "service $svcName.${dbNs}:$port -> $podRef, container $($container.name) ($($container.image))"
 
 # ------------------------------------------------------------------- how the database was started
@@ -149,7 +152,7 @@ function Test-Login([string]$User, [string]$Password) {
         "command -v psql >/dev/null 2>&1 || { echo NO_PSQL; exit 0; }`n" +
         "psql -h $(& $sq $cfg['POSTGRES_HOST']) -p $port -U $(& $sq $User) -d postgres -tAc " +
         "`"select case when rolsuper then 'SUPERUSER' when rolcreatedb then 'CREATEDB' else 'PLAIN' end from pg_roles where rolname = current_user`" 2>&1; true`n"
-    (Remote $exec $script | Out-String).Trim()
+    try { Sh $script } catch { "could not run psql in the database container: $_" }
 }
 Step "Testing $($cands.Count) candidate logins over TCP to $svcName (as the services connect)"
 $working = $null
@@ -170,7 +173,7 @@ foreach ($c in $cands) {
 }
 
 # ---------------------------------------------------------------------------- PostGIS available?
-$postgis = (Remote $exec "psql -U postgres -d postgres -tAc `"select coalesce(max(default_version), 'none') from pg_available_extensions where name = 'postgis'`" 2>/dev/null || echo unknown`n" | Out-String).Trim()
+$postgis = try { Sh "psql -U postgres -d postgres -tAc `"select coalesce(max(default_version), 'none') from pg_available_extensions where name = 'postgis'`" 2>/dev/null || echo unknown" } catch { 'unknown' }
 if ($postgis -match 'none') { Write-Host '   PostGIS is NOT available on this server; gis-be and design-be need it (use a postgis image).' -ForegroundColor Yellow }
 elseif ($postgis -match '^\d') { Note "PostGIS $postgis available" }
 
@@ -188,7 +191,7 @@ if ($working) {
 
 # --------------------------------------------- none works: a dedicated login via the local admin
 Step 'No candidate logs in. Trying the database container''s local admin (its own socket)'
-$admin = (Remote $exec "psql -U postgres -d postgres -tAc `"select 'ADMIN_OK'`" 2>&1; true`n" | Out-String).Trim()
+$admin = try { Sh "psql -U postgres -d postgres -tAc `"select 'ADMIN_OK'`" 2>&1; true" } catch { "$_" }
 if ($admin -notmatch 'ADMIN_OK') {
     Fail "the local admin is not allowed either ($(($admin -split "`n")[0])). Ask the owner of $svcName for a login with CREATEDB (or the three databases with PostGIS), then put it in deploy.env."
 }
@@ -203,6 +206,7 @@ $bytes = New-Object byte[] 28
 $rng.GetBytes($bytes)
 $newPw = -join ($bytes | ForEach-Object { $chars[$_ % $chars.Length] })
 $sql = @"
+set -e
 psql -v ON_ERROR_STOP=1 -U postgres -d postgres <<'SQL'
 DO `$`$ BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'water_network') THEN
@@ -218,7 +222,7 @@ for db in wn_gis wn_asset wn_design; do
 done
 echo CREATED_OK
 "@
-$out = (Remote $exec "$($sql.Replace("`r", ''))`n" | Out-String)
+$out = try { Sh $sql } catch { "$_" }
 Write-Host ($out.Trim() -replace "(?m)^", '   ')
 if ($out -notmatch 'CREATED_OK') { Fail 'creating the login failed (output above)' }
 $check = Test-Login 'water_network' $newPw

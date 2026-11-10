@@ -221,7 +221,8 @@ function Test-PostgresLogin([string]$User, [string]$Password) {
             "command -v psql >/dev/null 2>&1 || { echo NO_PSQL; exit 0; }`n" +
             "psql -h $(& $sq $cfg['POSTGRES_HOST']) -p $($cfg['POSTGRES_PORT']) -U $(& $sq $User) -d postgres -tAc " +
             "`"select case when rolsuper or rolcreatedb then 'CAN_CREATE' else 'NO_CREATE' end from pg_roles where rolname = current_user`" 2>&1; true`n"
-        $out = (Remote "$Kubectl -n $svcNs exec -i $pod -- sh -s" $script | Out-String)
+        # Windows PowerShell ends piped text with CRLF: the final exit keeps sh from running the stray CR
+        $out = (Remote "$Kubectl -n $svcNs exec -i $pod -- sh -s" ($script.Replace("`r", '') + "exit 0`n") | Out-String)
     } catch { return @{ Result = 'unknown'; Detail = "$_" } }
     if ($out -match 'CAN_CREATE') { return @{ Result = 'ok-create' } }
     if ($out -match 'NO_CREATE') { return @{ Result = 'ok-nocreate' } }
