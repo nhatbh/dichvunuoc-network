@@ -403,7 +403,23 @@ if ($demo -and ($demo -split '\s+') -contains $cfg['FRONTEND_HOST']) {
 
 Step 'Applying the shared settings (secret water-network-system, configmaps)'
 Kube 'apply -f -' $secretYaml
-$configOnly = ($systemYaml -split "(?m)^---\s*$") | Where-Object { $_ -match 'kind: ConfigMap' -or $_ -match 'kind: PersistentVolumeClaim' }
+# Volume claims are created once and then left alone: a bound claim's spec cannot change (the
+# cluster fills in its storage class), so applying it again fails. Everything else is applied.
+function Split-Yaml([string]$Yaml) {
+    $docs = @($Yaml -split "(?m)^---\s*$" | Where-Object { $_ -match '(?m)^kind:' })
+    @{
+        Claims = @($docs | Where-Object { $_ -match '(?m)^kind: PersistentVolumeClaim' })
+        Rest = (@($docs | Where-Object { $_ -notmatch '(?m)^kind: PersistentVolumeClaim' }) -join "`n---`n")
+    }
+}
+$system = Split-Yaml $systemYaml
+$import = Split-Yaml $importYaml
+foreach ($claim in @($system.Claims) + @($import.Claims)) {
+    $name = [regex]::Match($claim, 'name:\s*([A-Za-z0-9.-]+)').Groups[1].Value
+    if (Remote "$Kubectl -n $Ns get pvc $name --ignore-not-found -o name") { Note "volume claim $name exists (kept)"; continue }
+    Kube 'create -f -' $claim
+}
+$configOnly = ($system.Rest -split "(?m)^---\s*$") | Where-Object { $_ -match '(?m)^kind: ConfigMap' }
 Kube 'apply -f -' ($configOnly -join "`n---`n")
 
 Step 'Migrating the databases (wn_gis, wn_asset, wn_design)'
@@ -419,8 +435,8 @@ foreach ($job in $jobs) {
 }
 
 Step 'Rolling out the services'
-Kube 'apply -f -' $importYaml
-Kube 'apply -f -' $systemYaml
+Kube 'apply -f -' $import.Rest
+Kube 'apply -f -' $system.Rest
 $deployments = 'water-network-gis-be', 'water-network-asset-be', 'water-network-design-be', 'water-network-topology-rs',
     'water-network-import', 'water-network-bff', 'water-network-gis-3d'
 $failed = @()
