@@ -35,6 +35,19 @@ It uses the cluster's **shared** PostgreSQL (PostGIS), Redis and RabbitMQ and th
 6. DNS: `FRONTEND_HOST` (default `gis3d-dev.dichvunuoc.vn`) needs an A record to the cluster
    ingress (103.142.24.213).
 
+## Database login
+
+If the migrations fail with `password authentication failed`, double-click `db-credentials.cmd`
+(repository root). Through `ssh tino32` it finds the pod behind `POSTGRES_HOST`, shows the
+user/password settings the database was started with (passwords masked unless you ask), tests
+every candidate login the way the services connect (deploy.env, the database pod, the namespace's
+secrets) and saves a working one to `deploy.env`. It also says whether PostGIS is available.
+
+When none logs in but the database container's local admin is allowed, it offers to create a
+dedicated login `water_network` (generated password, CREATEDB) with the databases `wn_gis`,
+`wn_asset`, `wn_design` owned by it and PostGIS in them. Nothing else on the server is changed, and
+it asks first. If even the local admin is refused, ask the database's owner for a login.
+
 ## Run
 
 Double-click `deploy-system.cmd` and answer y/n (Enter takes the default in capitals):
