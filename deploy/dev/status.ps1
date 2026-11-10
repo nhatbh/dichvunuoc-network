@@ -25,7 +25,7 @@ function Json([string]$Command) {
     $out | Out-String | ConvertFrom-Json
 }
 
-$names = 'water-network-gis-be', 'water-network-asset-be', 'water-network-design-be', 'water-network-topology-rs',
+$names = 'water-network-gis', 'water-network-gis-be', 'water-network-asset-be', 'water-network-design-be', 'water-network-topology-rs',
     'water-network-import', 'water-network-bff', 'water-network-gis-3d'
 Write-Host "Reading namespace $Ns on $SshHost (VPN must be on)..." -ForegroundColor Cyan
 $deps = (Json "$K get deploy -o json").items
@@ -77,5 +77,27 @@ foreach ($n in $names) {
     }
     $envNames = (($d.spec.template.spec.containers | Select-Object -First 1).env | ForEach-Object { $_.name }) -join ', '
     Write-Host "   env: $envNames" -ForegroundColor DarkGray
+}
+
+# ------------------------------------------------------------------- the path browser -> BFF
+Write-Host "`n== Path: web address -> frontend pod -> /api/gis -> BFF" -ForegroundColor Cyan
+$ings = (Json "$K get ingress -o json").items
+foreach ($i in $ings | Where-Object { $_.spec.rules.http.paths.backend.service.name -match 'water-network-gis' }) {
+    foreach ($r in $i.spec.rules) {
+        foreach ($p in $r.http.paths) { Write-Host ("   ingress {0,-24} https://{1}{2} -> service {3}:{4}" -f $i.metadata.name, $r.host, $p.path, $p.backend.service.name, $p.backend.service.port.number) }
+    }
+}
+$eps = Json "$K get endpoints water-network-bff -o json --ignore-not-found"
+$ready = @($eps.subsets | ForEach-Object { $_.addresses } | Where-Object { $_ }).Count
+$notReady = @($eps.subsets | ForEach-Object { $_.notReadyAddresses } | Where-Object { $_ }).Count
+$col = if ($ready) { 'Green' } else { 'Yellow' }
+Write-Host "   service water-network-bff: $ready ready endpoint(s), $notReady not ready" -ForegroundColor $col
+foreach ($web in 'water-network-gis', 'water-network-gis-3d') {
+    $podName = & ssh -o ConnectTimeout=15 $SshHost "$K get pods -l app=$web --field-selector=status.phase=Running -o name" | Select-Object -First 1
+    if (-not $podName) { continue }
+    Write-Host "   from $podName :" -ForegroundColor Cyan
+    $out = "wget -S -T 8 -O - http://water-network-bff:8080/health 2>&1 | head -5; echo; wget -S -T 8 -O /dev/null http://water-network-bff:8080/api/gis/bootstrap 2>&1 | grep -i 'HTTP/' | head -2`nexit 0`n" |
+        & ssh -o ConnectTimeout=15 $SshHost "$K exec -i $podName -- sh -s"
+    $out | ForEach-Object { Write-Host "      $_" }
 }
 Write-Host ''
