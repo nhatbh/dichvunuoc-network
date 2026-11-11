@@ -202,6 +202,9 @@ spec:
             - { name: AppEntitlement__BaseUrl, value: "${APP_CATALOG_URL}" }
             - { name: AppEntitlement__AppCode, value: "${APP_CODE}" }
             - { name: AppEntitlement__Enabled, value: "${APP_ENTITLEMENT_ENABLED}" }
+            # the BFF does not use RabbitMQ; the shared ConfigMap's host would add a RabbitMQ health
+            # check without credentials (guest), failing readiness with 503
+            - { name: MassTransit__RabbitMq__Host, value: "" }
           readinessProbe: { httpGet: { path: /health, port: 8080 }, initialDelaySeconds: 10, periodSeconds: 10 }
           livenessProbe: { tcpSocket: { port: 8080 }, initialDelaySeconds: 30, periodSeconds: 20 }
           resources: { requests: { cpu: 50m, memory: 128Mi }, limits: { cpu: "1", memory: 512Mi } }
