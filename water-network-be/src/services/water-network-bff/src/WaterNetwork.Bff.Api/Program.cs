@@ -24,7 +24,9 @@ builder.Services.AddOptions<DownstreamOptions>()
     .ValidateOnStart();
 builder.Services.AddOptions<AppEntitlementOptions>()
     .Bind(builder.Configuration.GetSection(AppEntitlementOptions.SectionName))
-    .Validate(options =>
+    .Validate(options => options.Enabled || !builder.Environment.IsProduction(),
+        "AppEntitlement:Enabled=false is refused in Production.")
+    .Validate(options => !options.Enabled ||
         Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out var uri)
         && uri.Scheme is "http" or "https",
         "AppEntitlement:BaseUrl must be an absolute HTTP(S) URL.")
@@ -79,6 +81,9 @@ builder.Services.AddHttpClient("cad-import", client => client.Timeout = Timeout.
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false });
 
 var app = builder.Build();
+if (!app.Services.GetRequiredService<IOptions<AppEntitlementOptions>>().Value.Enabled)
+    LoggerMessage.Define(LogLevel.Warning, new EventId(3101, "AppEntitlementDisabled"),
+        "AppEntitlement:Enabled=false: the app-catalog gate is OFF (decision 0031). Token and permission checks still apply.")(app.Logger, null);
 
 app.UsePlatformWebApi();
 app.UseMiddleware<TenantAppEntitlementMiddleware>();

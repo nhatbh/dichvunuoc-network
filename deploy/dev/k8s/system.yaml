@@ -201,6 +201,7 @@ spec:
             - { name: Downstream__Topology__BaseUrl, value: "http://water-network-topology-rs:50051" }
             - { name: AppEntitlement__BaseUrl, value: "${APP_CATALOG_URL}" }
             - { name: AppEntitlement__AppCode, value: "${APP_CODE}" }
+            - { name: AppEntitlement__Enabled, value: "${APP_ENTITLEMENT_ENABLED}" }
           readinessProbe: { httpGet: { path: /health, port: 8080 }, initialDelaySeconds: 10, periodSeconds: 10 }
           livenessProbe: { tcpSocket: { port: 8080 }, initialDelaySeconds: 30, periodSeconds: 20 }
           resources: { requests: { cpu: 50m, memory: 128Mi }, limits: { cpu: "1", memory: 512Mi } }

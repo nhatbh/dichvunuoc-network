@@ -363,10 +363,16 @@ if ($Interactive) {
         } else {
             $SkipInstall = -not (Ask 'Run pnpm install for the frontend packages (No = faster, dependencies unchanged)?' $true)
         }
+        $gateOn = $cfg['APP_ENTITLEMENT_ENABLED'] -ne 'false'
+        $gate = Ask "Check app-catalog access in the BFF (No = skip it, dev only; sign-in and permissions still checked)? now: $(if ($gateOn) { 'on' } else { 'off' })" $gateOn
+        $cfg['APP_ENTITLEMENT_ENABLED'] = if ($gate) { 'true' } else { 'false' }
+        Save-Settings @{ APP_ENTITLEMENT_ENABLED = $cfg['APP_ENTITLEMENT_ENABLED'] }
         $Seed = Ask 'After deploying, load the Vinh Thinh Dot 3 network if gis-be is empty (needs an access token)?' $false
     }
 }
 foreach ($k in 'MENU_APP_URL', 'POSTGRES_OPTIONS', 'REDIS_PASSWORD') { if (-not $cfg.ContainsKey($k)) { $cfg[$k] = '' } }
+$cfg['APP_ENTITLEMENT_ENABLED'] = if ($cfg['APP_ENTITLEMENT_ENABLED'] -eq 'false') { 'false' } else { 'true' }
+if ($cfg['APP_ENTITLEMENT_ENABLED'] -eq 'false') { Write-Host '   app-catalog check in the BFF: OFF (APP_ENTITLEMENT_ENABLED=false, dev only)' -ForegroundColor Yellow }
 $Reg = $cfg['REGISTRY'].TrimEnd('/')
 
 # ----------------------------------------------------------------------- PostgreSQL login check

@@ -21,8 +21,11 @@ public sealed class BffApiFactory : WebApplicationFactory<Program>
     /// <summary>Replaces the topology-rs client (decision 0029) when set.</summary>
     public ITopologyClient? Topology { get; set; }
 
-    public BffApiFactory()
+    private readonly IReadOnlyDictionary<string, string?> _overrides;
+
+    public BffApiFactory(IReadOnlyDictionary<string, string?>? overrides = null)
     {
+        _overrides = overrides ?? new Dictionary<string, string?>();
         AllowTenantApp();
     }
 
@@ -50,7 +53,7 @@ public sealed class BffApiFactory : WebApplicationFactory<Program>
             ["AppEntitlement:AppCode"] = "ml-0",
             ["AppEntitlement:CacheTtlSeconds"] = "5",
             ["Jwt:Mode"] = "Mock"
-        }));
+        }.Concat(_overrides).GroupBy(kv => kv.Key).ToDictionary(g => g.Key, g => g.Last().Value)));
         return base.CreateHost(builder);
     }
 

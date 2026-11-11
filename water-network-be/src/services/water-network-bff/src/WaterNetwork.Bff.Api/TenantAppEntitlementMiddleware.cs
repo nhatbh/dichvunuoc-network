@@ -24,7 +24,8 @@ public sealed class TenantAppEntitlementMiddleware(RequestDelegate next)
         IMemoryCache cache,
         IOptions<AppEntitlementOptions> options)
     {
-        if (!IsProtectedPath(context.Request.Path) || context.User.Identity?.IsAuthenticated != true)
+        if (!options.Value.Enabled
+            || !IsProtectedPath(context.Request.Path) || context.User.Identity?.IsAuthenticated != true)
         {
             await next(context);
             return;

@@ -28,6 +28,19 @@ public sealed class TenantAppEntitlementTests
     }
 
     [Fact]
+    public async Task Disabled_gate_skips_the_catalog_but_keeps_authentication()
+    {
+        using var factory = new BffApiFactory(new Dictionary<string, string?> { ["AppEntitlement:Enabled"] = "false" });
+        StubEntitlement(factory, HttpStatusCode.Forbidden);
+        StubBootstrap(factory);
+        using var client = AuthedClient(factory);
+
+        (await client.GetAsync("/api/gis/bootstrap")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await factory.CreateClient().GetAsync("/api/gis/bootstrap")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        factory.AppCatalog.LogEntries.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task Catalog_outage_fails_closed_as_503_without_calling_gis()
     {
         using var factory = new BffApiFactory();

@@ -76,6 +76,14 @@ If `FRONTEND_HOST` is served by the frontend-only demo, the script asks before r
 any `/api/gis` request (without `Bearer `) and paste it. The network is registered through gis-be's
 API over an ssh port-forward, exactly as the local stack seeds it.
 
+## 403 on /api/gis (app-catalog check)
+
+The BFF asks app-catalog whether the user's tenant has the GIS app (`APP_CODE`). `check-access.cmd`
+shows the answer and the app codes the catalog lists for the user. While the catalog has no record
+for the app, answer **n** to "Check app-catalog access in the BFF?" in `deploy-system.cmd` (saved as
+`APP_ENTITLEMENT_ENABLED=false`, decision 0031): sign-in and permissions are still checked. The new
+BFF image is needed for this switch, so build once. Turn it back on when the catalog lists the app.
+
 ## Replace the current GIS frontend
 
 `replace-gis-fe.cmd` serves SYSTEM 3D at the current GIS frontend's address (deployment
