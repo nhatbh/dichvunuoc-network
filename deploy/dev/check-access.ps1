@@ -120,8 +120,8 @@ try {
     Remote "$K apply -f -" $manifest | Out-Null
     Remote "$K wait --for=jsonpath={.status.phase}=Running pod/$probe --timeout=90s" | Out-Null
     $script = @"
-echo '--- apps listed for this user'
-wget -q -T 10 -O - --header "Authorization: Bearer `$T" '$base/api/platform/app-catalog/me/apps' 2>&1 | head -c 3000; echo
+echo '--- apps listed for this user (/me)'
+wget -q -T 10 -O - --header "Authorization: Bearer `$T" '$base/api/platform/app-catalog/me' 2>&1 | head -c 4000; echo
 echo '--- access to $code'
 wget -S -T 10 -O /dev/null --header "Authorization: Bearer `$T" '$base/api/platform/app-catalog/me/apps/$code/access' 2>&1 | grep -E 'HTTP/|wget:' | head -3
 echo '--- /api/gis/bootstrap through the BFF'
@@ -135,6 +135,7 @@ $out | ForEach-Object { Write-Host "        $_" }
 $joined = ($out | Out-String)
 if ($joined -match "access to [^\n]*\n[^\n]*HTTP/\S+ 204") { Good "the catalog allows app '$code' for this user" }
 elseif ($joined -match "access to [^\n]*\n[^\n]*HTTP/\S+ 403") { Bad "the catalog denies app '$code' for this user: check the code in the list above (APP_CODE in deploy.env) or give the user's organization the app" }
+if (-not $claims.organization) { Note 'the token has no organization claim: the catalog checks the signed selected Organization, so a flat tenant_id is likely why it refuses (Keycloak: make the user a member of the organization and add the organization scope to the client)' }
 if ($joined -match 'bootstrap[^\n]*\n[^\n]*HTTP/\S+ 200') { Good '/api/gis/bootstrap answers 200 with this token' }
 
 # the earlier BFF ran with other app-catalog settings: offer them
