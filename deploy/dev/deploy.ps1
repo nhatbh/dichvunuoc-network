@@ -367,11 +367,17 @@ if ($Interactive) {
         $gate = Ask "Check app-catalog access in the BFF (No = skip it, dev only; sign-in and permissions still checked)? now: $(if ($gateOn) { 'on' } else { 'off' })" $gateOn
         $cfg['APP_ENTITLEMENT_ENABLED'] = if ($gate) { 'true' } else { 'false' }
         Save-Settings @{ APP_ENTITLEMENT_ENABLED = $cfg['APP_ENTITLEMENT_ENABLED'] }
+        $flatOn = $cfg['ALLOW_FLAT_TENANT'] -eq 'true'
+        $flat = Ask "Accept the flat tenant_id claim for CAD import and the editor (dev, users without a Keycloak Organization)? now: $(if ($flatOn) { 'on' } else { 'off' })" $flatOn
+        $cfg['ALLOW_FLAT_TENANT'] = if ($flat) { 'true' } else { 'false' }
+        Save-Settings @{ ALLOW_FLAT_TENANT = $cfg['ALLOW_FLAT_TENANT'] }
         $Seed = Ask 'After deploying, load the Vinh Thinh Dot 3 network if gis-be is empty (needs an access token)?' $false
     }
 }
 foreach ($k in 'MENU_APP_URL', 'POSTGRES_OPTIONS', 'REDIS_PASSWORD') { if (-not $cfg.ContainsKey($k)) { $cfg[$k] = '' } }
 $cfg['APP_ENTITLEMENT_ENABLED'] = if ($cfg['APP_ENTITLEMENT_ENABLED'] -eq 'false') { 'false' } else { 'true' }
+$cfg['ALLOW_FLAT_TENANT'] = if ($cfg['ALLOW_FLAT_TENANT'] -eq 'true') { 'true' } else { 'false' }
+if ($cfg['ALLOW_FLAT_TENANT'] -eq 'true') { Write-Host '   flat tenant_id accepted for CAD import and the editor (ALLOW_FLAT_TENANT=true, dev only)' -ForegroundColor Yellow }
 if ($cfg['APP_ENTITLEMENT_ENABLED'] -eq 'false') { Write-Host '   app-catalog check in the BFF: OFF (APP_ENTITLEMENT_ENABLED=false, dev only)' -ForegroundColor Yellow }
 $Reg = $cfg['REGISTRY'].TrimEnd('/')
 
@@ -449,6 +455,7 @@ $vars = @{} + $cfg
 $vars['NAMESPACE'] = $Ns
 $vars['REGISTRY'] = $Reg
 $vars['TAG'] = $Tag
+$vars['FE_ORGANIZATION'] = if ($cfg['ALLOW_FLAT_TENANT'] -eq 'true') { '{ "context": "optional", "allowLegacyTenantIdFallback": true }' } else { '{ "context": "optional" }' }
 $vars['JOB_SUFFIX'] = ($Tag.ToLower() -replace '[^a-z0-9-]', '-').Substring(0, [Math]::Min(30, $Tag.Length)).TrimEnd('-')
 $sha256 = [Security.Cryptography.SHA256]::Create()
 $vars['CONFIG_HASH'] = ([BitConverter]::ToString($sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes(($cfg.GetEnumerator() | Sort-Object Name | Out-String)))) -replace '-', '').Substring(0, 16)
@@ -473,6 +480,7 @@ $importYaml = $importYaml -replace 'namespace: platform-core', "namespace: $Ns"
 $importYaml = $importYaml -replace 'IMPORT_JWT_ISSUER: .*', "IMPORT_JWT_ISSUER: $($cfg['KEYCLOAK_URL'])/realms/$($cfg['KEYCLOAK_REALM'])"
 $importYaml = $importYaml -replace 'IMPORT_JWT_AUDIENCE: .*', "IMPORT_JWT_AUDIENCE: $($cfg['JWT_AUDIENCE'])"
 $importYaml = $importYaml -replace 'IMPORT_ALLOWED_CLIENTS: .*', "IMPORT_ALLOWED_CLIENTS: $($cfg['KEYCLOAK_CLIENT_ID'])"
+$importYaml = $importYaml -replace 'IMPORT_ALLOW_FLAT_TENANT: .*', "IMPORT_ALLOW_FLAT_TENANT: `"$($cfg['ALLOW_FLAT_TENANT'])`""
 Set-Content (Join-Path $Rendered 'system.yaml') $systemYaml -Encoding UTF8
 Set-Content (Join-Path $Rendered 'migrate.yaml') $migrateYaml -Encoding UTF8
 Set-Content (Join-Path $Rendered 'import.yaml') $importYaml -Encoding UTF8
@@ -608,6 +616,8 @@ $gisFe = Remote "$Kubectl -n $Ns get deploy water-network-gis -o jsonpath='{.spe
 if ("$gisFe".Trim() -eq 'system-3d') {
     Step 'Updating the GIS frontend (water-network-gis serves SYSTEM 3D)'
     Kube "set image deployment/water-network-gis web=$Reg/water-network-gis-3d:$Tag"
+    # config.json is mounted with subPath (never refreshed in a running pod): restart on a settings change
+    Kube "set env deployment/water-network-gis -c web WN_CONFIG_HASH=$($vars['CONFIG_HASH'])"
     try { Kube 'rollout status deployment/water-network-gis --timeout=300s' } catch { $failed += 'water-network-gis' }
 }
 if ($failed) { Fail "not ready: $($failed -join ', ')" }

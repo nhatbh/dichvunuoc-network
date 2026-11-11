@@ -84,6 +84,12 @@ for the app, answer **n** to "Check app-catalog access in the BFF?" in `deploy-s
 `APP_ENTITLEMENT_ENABLED=false`, decision 0031): sign-in and permissions are still checked. The new
 BFF image is needed for this switch, so build once. Turn it back on when the catalog lists the app.
 
+## "Cần đăng nhập và chọn đơn vị để quản lý hồ sơ import"
+
+CAD import and the editor need the user's unit (tenant). Users without a Keycloak Organization only
+have a flat `tenant_id`; answer **y** to "Accept the flat tenant_id claim..." in `deploy-system.cmd`
+(saved as `ALLOW_FLAT_TENANT=true`, dev only). It needs a frontend image with this support, so build once.
+
 ## Replace the current GIS frontend
 
 `replace-gis-fe.cmd` serves SYSTEM 3D at the current GIS frontend's address (deployment

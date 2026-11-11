@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { env } from '@/shared/config/env'
+import { getRuntimeOrganizationPolicy } from '@/shared/config/runtime-config'
 import { authClient, type AuthSessionData } from '@/shared/lib/client-auth'
 import { capabilitiesSchema, featuresSchema, jobSchema, type ReviewConfig } from './types'
 
@@ -15,8 +16,14 @@ export class ImportApiError extends Error {
 /** A request belongs to one user and tenant for its entire lifetime. */
 export function importSessionScope(session: AuthSessionData | null): string {
   // The CAD worker requires an explicitly selected Organization. A legacy
-  // session may continue using the existing GIS, but cannot open CAD jobs.
-  if (session?.user.tenantContextSource === 'legacy-tenant-id') return ''
+  // session may continue using the existing GIS, but cannot open CAD jobs -
+  // unless the deployment opted into the flat tenant_id (dev; decision 0031,
+  // with IMPORT_ALLOW_FLAT_TENANT on the import service).
+  if (
+    session?.user.tenantContextSource === 'legacy-tenant-id' &&
+    !getRuntimeOrganizationPolicy().allowLegacyTenantIdFallback
+  )
+    return ''
   const tenant = session?.user.tenantId ?? session?.user.organizationAlias
   return session?.user.id && tenant ? `${session.user.id}:${tenant}` : ''
 }

@@ -1,8 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library'
-import { createSignal, type Accessor, type Setter } from 'solid-js'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMapInstance } from '@wn/map-runtime-3d'
 import { createFakePort } from '@wn/map-runtime-3d/testing'
+import { createSignal, type Accessor, type Setter } from 'solid-js'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { applyRuntimeConfig } from '@/shared/config/runtime-config'
 import type { AuthSessionData } from '@/shared/lib/client-auth'
 import { createImportApi, ImportApiError } from './api'
 import { reviewForJob, type ImportJob, type ReviewConfig } from './types'
@@ -434,6 +435,21 @@ describe('CAD import workspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tạo hồ sơ mới' }))
     expect(screen.getByLabelText('Bản vẽ DWG / DXF')).toBeEnabled()
     expect(screen.queryByText(/Liên hệ quản trị để chọn đơn vị/)).not.toBeInTheDocument()
+  })
+
+  it('lets legacy tenant sessions import where the deployment allows the flat tenant_id', async () => {
+    applyRuntimeConfig({ organization: { context: 'optional', allowLegacyTenantIdFallback: true } })
+    try {
+      const legacy = identity('tnt_hawaco')
+      legacy.user.tenantContextSource = 'legacy-tenant-id'
+      setSession(legacy)
+      render(() => <ImportScreen />)
+      await screen.findByRole('application')
+      expect(screen.queryByText(/Liên hệ quản trị để chọn đơn vị/)).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Tải lại' })).toBeEnabled()
+    } finally {
+      applyRuntimeConfig({})
+    }
   })
 
   it('removes and restores a saved CAD file with explicit draft persistence', async () => {

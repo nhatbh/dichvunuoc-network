@@ -1,4 +1,4 @@
-# 0031 — The BFF's app-catalog gate can be switched off outside Production
+# 0031 — Dev switches: the BFF's app-catalog gate, and the flat tenant_id for CAD import
 
 Date: 2026-11-11. Status: Accepted (user, 2026-11-11).
 
@@ -25,3 +25,14 @@ it interactively.
   whether or not their tenant has the app. Acceptable on dev/staging only.
 - Turn it back on (`APP_ENTITLEMENT_ENABLED=true`) once the catalog lists the app for the tenant;
   `deploy/dev/check-access.ps1` shows whether it does.
+
+## Addendum (2026-11-12): flat tenant_id for CAD import and the editor
+
+Dev users have a flat `tenant_id` claim and no Keycloak Organization. The map works (the .NET
+services allow the flat claim), but the frontend refused CAD import and the editor's design
+revisions for such a "legacy" session, and the import service refuses it unless
+`IMPORT_ALLOW_FLAT_TENANT=true`. The frontend now allows the legacy session there when the runtime
+config sets `organization.allowLegacyTenantIdFallback: true` — the same flag that makes it resolve
+the flat claim at all. The dev deploy sets both from one setting, `ALLOW_FLAT_TENANT` in
+`deploy.env` (default false). Production keeps the Organization-only rule: leave the flag unset
+and give users an Organization.
