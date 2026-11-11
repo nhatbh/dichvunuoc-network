@@ -14,6 +14,7 @@
 #>
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = New-Object System.Text.UTF8Encoding $false
+try { [Console]::OutputEncoding = $OutputEncoding } catch { }
 function Step($msg) { Write-Host "`n== $msg" -ForegroundColor Cyan }
 function Good($msg) { Write-Host "   OK   $msg" -ForegroundColor Green }
 function Bad($msg) { Write-Host "   FAIL $msg" -ForegroundColor Red }
@@ -121,7 +122,10 @@ try {
     Remote "$K wait --for=jsonpath={.status.phase}=Running pod/$probe --timeout=90s" | Out-Null
     $script = @"
 echo '--- apps listed for this user (/me)'
-wget -q -T 10 -O - --header "Authorization: Bearer `$T" '$base/api/platform/app-catalog/me' 2>&1 | head -c 4000; echo
+wget -q -T 10 -O /tmp/me.json --header "Authorization: Bearer `$T" '$base/api/platform/app-catalog/me' 2>&1
+echo "all app codes: `$(grep -o '"code":"[^"]*"' /tmp/me.json | cut -d'"' -f4 | tr '\n' ' ')"
+echo 'apps in the network block (ml):'
+grep -o '{"code":"ml-[^}]*}' /tmp/me.json | sed -e 's/"desc":"[^"]*",//' -e 's/"ai":[^,]*,//'
 echo '--- access to $code'
 wget -S -T 10 -O /dev/null --header "Authorization: Bearer `$T" '$base/api/platform/app-catalog/me/apps/$code/access' 2>&1 | grep -E 'HTTP/|wget:' | head -3
 echo '--- /api/gis/bootstrap through the BFF'
