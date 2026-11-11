@@ -90,10 +90,36 @@ foreach ($rs in $rsList) {
     elseif ($rsEnv['AppEntitlement__AppCode'] -and -not $earlier) { $earlier = @{ Code = $rsEnv['AppEntitlement__AppCode']; Url = $rsEnv['AppEntitlement__BaseUrl'] } }
 }
 if (-not $catalog) { $catalog = $cfg['APP_CATALOG_URL']; $code = $cfg['APP_CODE'] }
-$pod = @(Remote "$K get pods -l app=water-network-gis-3d --field-selector=status.phase=Running -o name") + @(Remote "$K get pods -l app=water-network-gis --field-selector=status.phase=Running -o name") | Where-Object { $_ } | Select-Object -First 1
-if (-not $pod) { Bad 'no running web pod to ask from'; exit 1 }
+# The app catalog only accepts the BFF (network policies), and the BFF image has no HTTP client.
+# A short-lived probe pod with the BFF's app label asks it instead: the web image (busybox wget),
+# a readiness probe that never passes so the BFF service never sends it traffic, removed after.
+$web = Json "$K get deploy water-network-gis-3d -o json --ignore-not-found"
+if (-not $web) { $web = Json "$K get deploy water-network-gis -o json" }
+$image = ($web.spec.template.spec.containers | Select-Object -First 1).image
+$probe = 'water-network-bff-access-probe'
+$manifest = @"
+apiVersion: v1
+kind: Pod
+metadata:
+  name: $probe
+  namespace: $Ns
+  labels: { app: water-network-bff, app.kubernetes.io/part-of: water-network-system, water-network/probe: "true" }
+spec:
+  restartPolicy: Never
+  activeDeadlineSeconds: 300
+  containers:
+    - name: probe
+      image: $image
+      command: ["sh", "-c", "sleep 240"]
+      readinessProbe: { exec: { command: ["false"] }, periodSeconds: 60 }
+"@
 $base = $catalog.TrimEnd('/')
-$script = @"
+$out = @()
+try {
+    Remote "$K delete pod $probe --ignore-not-found --wait=true" | Out-Null
+    Remote "$K apply -f -" $manifest | Out-Null
+    Remote "$K wait --for=jsonpath={.status.phase}=Running pod/$probe --timeout=90s" | Out-Null
+    $script = @"
 echo '--- apps listed for this user'
 wget -q -T 10 -O - --header "Authorization: Bearer `$T" '$base/api/platform/app-catalog/me/apps' 2>&1 | head -c 3000; echo
 echo '--- access to $code'
@@ -101,8 +127,10 @@ wget -S -T 10 -O /dev/null --header "Authorization: Bearer `$T" '$base/api/platf
 echo '--- /api/gis/bootstrap through the BFF'
 wget -S -T 15 -O - --header "Authorization: Bearer `$T" 'http://water-network-bff:8080/api/gis/bootstrap' 2>&1 | grep -E 'HTTP/|wget:|schemaVersion|hasData' | head -4
 "@
-# the token goes on stdin first, then the script reads it (never on a command line)
-$out = Remote "$K exec -i $pod -- sh -c 'read -r T; export T; sh -s'" ($token + "`n" + $script.Replace("`r", '') + "`nexit 0`n")
+    # the token goes on stdin first, read into T (never on a command line)
+    $out = Remote "$K exec -i pod/$probe -- sh -c 'read -r T; export T; sh -s'" ($token + "`n" + $script.Replace("`r", '') + "`nexit 0`n")
+} catch { $out = @("could not run the probe pod: $_") }
+finally { try { Remote "$K delete pod $probe --ignore-not-found --wait=false" | Out-Null } catch { } }
 $out | ForEach-Object { Write-Host "        $_" }
 $joined = ($out | Out-String)
 if ($joined -match "access to [^\n]*\n[^\n]*HTTP/\S+ 204") { Good "the catalog allows app '$code' for this user" }
