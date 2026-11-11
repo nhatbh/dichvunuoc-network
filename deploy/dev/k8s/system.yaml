@@ -315,3 +315,74 @@ spec:
           - path: /
             pathType: Prefix
             backend: { service: { name: water-network-gis-3d, port: { number: 8080 } } }
+---
+# ------------------------------------------------------------------------- network policies
+# The namespace denies traffic by default per app (<app>-default-deny + <app>-allow policies of
+# the earlier deployment, which still select these pods by their app label). Policies only add
+# allowed paths, so these open what SYSTEM 3D needs on top: the web pods to the BFF, the BFF to
+# topology-rs, topology-rs to gis-be and RabbitMQ, and the services to the shared PostgreSQL /
+# Redis / RabbitMQ ports and to Keycloak (HTTPS, token keys). DNS for all of them.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: water-network-system-web-to-bff, namespace: ${NAMESPACE}, labels: { app.kubernetes.io/part-of: water-network-system } }
+spec:
+  podSelector: { matchExpressions: [{ key: app, operator: In, values: [water-network-gis, water-network-gis-3d] }] }
+  policyTypes: [Egress]
+  egress:
+    - to: [{ podSelector: { matchLabels: { app: water-network-bff } } }]
+      ports: [{ protocol: TCP, port: 8080 }]
+    - to: [{ namespaceSelector: {}, podSelector: { matchLabels: { k8s-app: kube-dns } } }]
+      ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: water-network-system-bff-from-web, namespace: ${NAMESPACE}, labels: { app.kubernetes.io/part-of: water-network-system } }
+spec:
+  podSelector: { matchLabels: { app: water-network-bff } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from: [{ podSelector: { matchExpressions: [{ key: app, operator: In, values: [water-network-gis, water-network-gis-3d] }] } }]
+      ports: [{ protocol: TCP, port: 8080 }]
+  egress:
+    - to: [{ podSelector: { matchLabels: { app: water-network-topology-rs } } }]
+      ports: [{ protocol: TCP, port: 50051 }]
+    - to: [{ podSelector: { matchExpressions: [{ key: app, operator: In, values: [water-network-gis-be, water-network-asset-be, water-network-design-be, water-network-import] }] } }]
+      ports: [{ protocol: TCP, port: 8080 }, { protocol: TCP, port: 8090 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: water-network-system-topology, namespace: ${NAMESPACE}, labels: { app.kubernetes.io/part-of: water-network-system } }
+spec:
+  podSelector: { matchLabels: { app: water-network-topology-rs } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from: [{ podSelector: { matchLabels: { app: water-network-bff } } }]
+      ports: [{ protocol: TCP, port: 50051 }, { protocol: TCP, port: 8080 }]
+  egress:
+    - to: [{ podSelector: { matchLabels: { app: water-network-gis-be } } }]
+      ports: [{ protocol: TCP, port: 8080 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: water-network-system-gis-from-topology, namespace: ${NAMESPACE}, labels: { app.kubernetes.io/part-of: water-network-system } }
+spec:
+  podSelector: { matchLabels: { app: water-network-gis-be } }
+  policyTypes: [Ingress]
+  ingress:
+    - from: [{ podSelector: { matchExpressions: [{ key: app, operator: In, values: [water-network-topology-rs, water-network-bff, water-network-design-be] }] } }]
+      ports: [{ protocol: TCP, port: 8080 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: water-network-system-infra-egress, namespace: ${NAMESPACE}, labels: { app.kubernetes.io/part-of: water-network-system } }
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/part-of: water-network-system } }
+  policyTypes: [Egress]
+  egress:
+    # the shared PostgreSQL, Redis and RabbitMQ, wherever they run in the cluster
+    - to: [{ namespaceSelector: {} }]
+      ports: [{ protocol: TCP, port: ${POSTGRES_PORT} }, { protocol: TCP, port: ${REDIS_PORT} }, { protocol: TCP, port: ${RABBITMQ_PORT} }]
+    # Keycloak (token signing keys) and other HTTPS endpoints
+    - ports: [{ protocol: TCP, port: 443 }]
+    - to: [{ namespaceSelector: {}, podSelector: { matchLabels: { k8s-app: kube-dns } } }]
+      ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]

@@ -354,8 +354,12 @@ if ($Interactive) {
     if (-not $DryRun) {
         $SkipBuild = -not (Ask 'Build and push new images of this commit (No = deploy images already pushed)?' $true)
         if ($SkipBuild) {
-            $t = (Read-Host '   Image tag to deploy (Enter = this commit)').Trim()
-            if ($t) { $Tag = $t }
+            # default: the images running now (a deploy that only changes settings or policies)
+            $running = "$(Remote "$Kubectl -n $Ns get deploy water-network-bff -o jsonpath='{.spec.template.spec.containers[0].image}' --ignore-not-found")".Trim()
+            $runningTag = if ($running -match ':([^:@/]+)$') { $Matches[1] } else { '' }
+            $prompt = if ($runningTag) { "   Image tag to deploy (Enter = $runningTag, running now)" } else { '   Image tag to deploy (Enter = this commit)' }
+            $t = (Read-Host $prompt).Trim()
+            if ($t) { $Tag = $t } elseif ($runningTag) { $Tag = $runningTag }
         } else {
             $SkipInstall = -not (Ask 'Run pnpm install for the frontend packages (No = faster, dependencies unchanged)?' $true)
         }

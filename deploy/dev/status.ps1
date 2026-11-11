@@ -39,6 +39,16 @@ $selMatch = {
     param($selector, $labels)
     if (-not $selector) { return $true }
     foreach ($p in @($selector.matchLabels.PSObject.Properties)) { if ($labels.($p.Name) -ne $p.Value) { return $false } }
+    foreach ($e in @($selector.matchExpressions)) {
+        if (-not $e) { continue }
+        $v = $labels.($e.key)
+        switch ($e.operator) {
+            'In' { if (@($e.values) -notcontains $v) { return $false } }
+            'NotIn' { if (@($e.values) -contains $v) { return $false } }
+            'Exists' { if ($null -eq $v) { return $false } }
+            'DoesNotExist' { if ($null -ne $v) { return $false } }
+        }
+    }
     return $true
 }
 
