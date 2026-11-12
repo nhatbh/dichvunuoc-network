@@ -27,11 +27,13 @@ export function ImportReview(props: {
   jobId: string
   canApprove: boolean
   canSubmit: boolean
+  /** Opened from the guided flow at a given tool (decision 0032). */
+  initialPanel?: 'object' | 'layers' | 'blocks' | 'quality' | 'align'
 }): JSX.Element {
   const w = props.workspace
   const job = () => w.job()!
   const [panel, setPanel] = createSignal<'object' | 'layers' | 'blocks' | 'quality' | 'align'>(
-    'object'
+    props.initialPanel ?? 'object'
   )
   createEffect(() => {
     if (props.draftMap) setPanel('align')

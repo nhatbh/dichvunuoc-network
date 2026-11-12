@@ -87,6 +87,8 @@ let reviewBody: (ReviewConfig & { expectedVersion: number }) | undefined
 let handleRequest: (url: string, init: RequestInit) => Promise<Response>
 
 beforeEach(() => {
+  // These tests cover the advanced workspace; the guided flow has its own tests.
+  localStorage.setItem('wn.import.mode', 'advanced')
   vi.mocked(createMapInstance).mockResolvedValue(createFakePort())
   ;[session, setSession] = createSignal<AuthSessionData | null>(identity('shw'))
   current = jobFixture()
