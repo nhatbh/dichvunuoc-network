@@ -455,10 +455,13 @@ $vars = @{} + $cfg
 $vars['NAMESPACE'] = $Ns
 $vars['REGISTRY'] = $Reg
 $vars['TAG'] = $Tag
-$vars['FE_ORGANIZATION'] = if ($cfg['ALLOW_FLAT_TENANT'] -eq 'true') { '{ "context": "optional", "allowLegacyTenantIdFallback": true }' } else { '{ "context": "optional" }' }
+# "disabled": the login asks Keycloak for no organization scope (a realm without the Organizations
+# feature answers invalid_scope, and the app loops back to its sign-in page); the flat tenant_id
+# is then the tenant, allowed for import/editor only with ALLOW_FLAT_TENANT.
+$vars['FE_ORGANIZATION'] = if ($cfg['ALLOW_FLAT_TENANT'] -eq 'true') { '{ "context": "disabled", "allowLegacyTenantIdFallback": true }' } else { '{ "context": "disabled" }' }
 $vars['JOB_SUFFIX'] = ($Tag.ToLower() -replace '[^a-z0-9-]', '-').Substring(0, [Math]::Min(30, $Tag.Length)).TrimEnd('-')
 $sha256 = [Security.Cryptography.SHA256]::Create()
-$vars['CONFIG_HASH'] = ([BitConverter]::ToString($sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes(($cfg.GetEnumerator() | Sort-Object Name | Out-String)))) -replace '-', '').Substring(0, 16)
+$vars['CONFIG_HASH'] = ([BitConverter]::ToString($sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes(($cfg.GetEnumerator() | Sort-Object Name | Out-String) + $vars['FE_ORGANIZATION']))) -replace '-', '').Substring(0, 16)
 
 function Render([string]$Text) {
     $out = [regex]::Replace($Text, '\$\{([A-Z0-9_]+)\}', {
