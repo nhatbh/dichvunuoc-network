@@ -128,6 +128,8 @@ echo 'apps in the network block (ml):'
 grep -o '{"code":"ml-[^}]*}' /tmp/me.json | sed -e 's/"desc":"[^"]*",//' -e 's/"ai":[^,]*,//'
 echo '--- access to $code'
 wget -S -T 10 -O /dev/null --header "Authorization: Bearer `$T" '$base/api/platform/app-catalog/me/apps/$code/access' 2>&1 | grep -E 'HTTP/|wget:' | head -3
+echo '--- import service: /api/gis/imports/capabilities'
+wget -S -T 10 -O /dev/null --header "Authorization: Bearer `$T" 'http://water-network-import:8090/api/gis/imports/capabilities' 2>&1 | grep -E 'HTTP/|wget:' | head -2
 echo '--- /api/gis/bootstrap through the BFF'
 wget -S -T 15 -O - --header "Authorization: Bearer `$T" 'http://water-network-bff:8080/api/gis/bootstrap' 2>&1 | grep -E 'HTTP/|wget:|schemaVersion|hasData' | head -4
 "@
@@ -141,6 +143,22 @@ if ($joined -match "access to [^\n]*\n[^\n]*HTTP/\S+ 204") { Good "the catalog a
 elseif ($joined -match "access to [^\n]*\n[^\n]*HTTP/\S+ 403") { Bad "the catalog denies app '$code' for this user: check the code in the list above (APP_CODE in deploy.env) or give the user's organization the app" }
 if (-not $claims.organization) { Note 'the token has no organization claim: the catalog checks the signed selected Organization, so a flat tenant_id is likely why it refuses (Keycloak: make the user a member of the organization and add the organization scope to the client)' }
 if ($joined -match 'bootstrap[^\n]*\n[^\n]*HTTP/\S+ 200') { Good '/api/gis/bootstrap answers 200 with this token' }
+
+# ------------------------------------------------------------------------ 3. import service
+Step '3. The CAD import service'
+try {
+    $importEnv = Remote "$K exec deploy/water-network-import -- printenv IMPORT_JWT_ISSUER IMPORT_JWT_AUDIENCE IMPORT_ALLOWED_CLIENTS"
+    $importEnv | ForEach-Object { Note "running: $_" }
+    $flatRunning = "$(try { Remote "$K exec deploy/water-network-import -- printenv IMPORT_ALLOW_FLAT_TENANT" } catch { '' })".Trim()
+    $flatConfig = "$(Remote "$K get configmap water-network-import-config -o jsonpath={.data.IMPORT_ALLOW_FLAT_TENANT}")".Trim()
+    Note "IMPORT_ALLOW_FLAT_TENANT: running '$flatRunning', ConfigMap '$flatConfig'"
+    if ($flatRunning -ne $flatConfig) { Bad 'the import pod has not restarted since its ConfigMap changed: run deploy-system.cmd again (it now restarts it)' }
+    if ($flatRunning -ne 'true' -and -not $claims.organization) {
+        Bad 'the import service refuses a flat tenant_id and this token has no organization: answer y to "Accept the flat tenant_id claim" in deploy-system.cmd'
+    }
+    $refused = Remote "$K logs deploy/water-network-import --since=10m --tail=400" | Where-Object { $_ -match 'import auth refused' } | Select-Object -Last 3
+    if ($refused) { $refused | ForEach-Object { Bad "import service: $_" } } else { Note 'no refused sign-in in the import log (last 10 minutes)' }
+} catch { Note "could not read the import service: $_" }
 
 # the earlier BFF ran with other app-catalog settings: offer them
 if ($earlier -and ($earlier.Code -ne $code -or ($earlier.Url -and $earlier.Url -ne $catalog))) {

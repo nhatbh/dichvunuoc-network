@@ -2,8 +2,13 @@ from dataclasses import dataclass
 import json
 import os
 import re
+import logging
+
 import jwt
 from fastapi import HTTPException, Request
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -79,6 +84,7 @@ class Authentication:
     def __call__(self, request: Request):
         raw = request.headers.get("authorization", "")
         if not raw.startswith("Bearer ") or not self.jwks:
+            logger.warning("import auth refused: %s", "no bearer" if self.jwks else "IMPORT_JWT_ISSUER not set")
             raise HTTPException(401, "Cần đăng nhập với đơn vị được chọn.")
         token = raw[7:]
         try:
@@ -102,7 +108,10 @@ class Authentication:
             ):
                 raise ValueError("permission")
             return Principal(tenant, claims["sub"], token, frozenset(permissions))
-        except (jwt.PyJWTError, ValueError, TypeError, KeyError):
+        except (jwt.PyJWTError, ValueError, TypeError, KeyError) as exc:
+            # The reason only (never the token): expired, issuer, audience, JWKS fetch,
+            # client, tenant ("A signed selected tenant is required" = flat tenant_id refused).
+            logger.warning("import auth refused: %s: %s", type(exc).__name__, str(exc)[:200])
             raise HTTPException(
                 401, "Phiên đăng nhập hoặc ngữ cảnh đơn vị không hợp lệ."
             ) from None

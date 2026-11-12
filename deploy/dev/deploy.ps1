@@ -481,6 +481,8 @@ $importYaml = $importYaml -replace 'IMPORT_JWT_ISSUER: .*', "IMPORT_JWT_ISSUER: 
 $importYaml = $importYaml -replace 'IMPORT_JWT_AUDIENCE: .*', "IMPORT_JWT_AUDIENCE: $($cfg['JWT_AUDIENCE'])"
 $importYaml = $importYaml -replace 'IMPORT_ALLOWED_CLIENTS: .*', "IMPORT_ALLOWED_CLIENTS: $($cfg['KEYCLOAK_CLIENT_ID'])"
 $importYaml = $importYaml -replace 'IMPORT_ALLOW_FLAT_TENANT: .*', "IMPORT_ALLOW_FLAT_TENANT: `"$($cfg['ALLOW_FLAT_TENANT'])`""
+# the import pod reads its ConfigMap only at start: restart it when the settings change
+$importYaml = $importYaml -replace '(?m)^(    metadata:\r?\n      labels:\r?\n        app: water-network-import)', "    metadata:`n      annotations: { water-network/config: `"$($vars['CONFIG_HASH'])`" }`n      labels:`n        app: water-network-import"
 Set-Content (Join-Path $Rendered 'system.yaml') $systemYaml -Encoding UTF8
 Set-Content (Join-Path $Rendered 'migrate.yaml') $migrateYaml -Encoding UTF8
 Set-Content (Join-Path $Rendered 'import.yaml') $importYaml -Encoding UTF8
