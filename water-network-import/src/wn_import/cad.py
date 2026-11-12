@@ -13,6 +13,7 @@ from pathlib import Path
 import ezdxf
 from ezdxf.path import make_path
 
+from .crs_detect import suggest_crs
 from .models import issue
 
 MAX_FEATURES = 100_000
@@ -466,6 +467,21 @@ def read_document(file_info: dict, path: Path, directory: Path):
                     )
                 }
             )
+    # Every text of the document (model space, layouts, block definitions): the title
+    # block is often in a layout or a block. Bounded; used only as CRS evidence.
+    texts = []
+    for entity in doc.entitydb.values():
+        if len(texts) >= 20000:
+            break
+        kind = entity.dxftype()
+        if kind in TEXT_TYPES:
+            try:
+                value = entity.plain_text() if kind == "MTEXT" else entity.dxf.get("text", "")
+            except Exception:  # noqa: BLE001 - a malformed text is only missing evidence
+                continue
+            if value and value.strip():
+                texts.append(str(value)[:500])
+    crs_suggestion = suggest_crs(texts, bounds, geodata)
     blocks = []
     for name, count in sorted(block_counts.items()):
         block = doc.blocks.get(name)
@@ -493,6 +509,7 @@ def read_document(file_info: dict, path: Path, directory: Path):
             "paperSpaceCount": paper_count,
             "header": header,
             "geoData": geodata,
+            "crsSuggestion": crs_suggestion,
             "converter": converter,
         },
         "layers": [
