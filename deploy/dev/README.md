@@ -90,6 +90,14 @@ CAD import and the editor need the user's unit (tenant). Users without a Keycloa
 have a flat `tenant_id`; answer **y** to "Accept the flat tenant_id claim..." in `deploy-system.cmd`
 (saved as `ALLOW_FLAT_TENANT=true`, dev only). It needs a frontend image with this support, so build once.
 
+## Demo data for one account
+
+`seed-demo.cmd` loads the Vĩnh Thịnh Đợt 3 network into the unit (tenant) of the account whose
+access token you paste: it uploads `1.MB-PP-Vinh Thinh - Dot 3.dwg` (repository root) to the CAD
+import, applies `vinh-thinh-dot3.review.json`, submits to Design, approves and publishes, then checks
+the map (43 pipes, 14.8 km, 44 nodes, 27 valves). The account needs network-gis:read and
+network-design:read/write/approve. Running it again resumes the same import job.
+
 ## Replace the current GIS frontend
 
 `replace-gis-fe.cmd` serves SYSTEM 3D at the current GIS frontend's address (deployment
