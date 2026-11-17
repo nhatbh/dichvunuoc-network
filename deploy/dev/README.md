@@ -1,4 +1,35 @@
-# Deploying the whole system to the dev cluster
+# Deploying the whole system
+
+## The longvan-dev Docker host (current target)
+
+The dev server `longvan-ubuntu` (103.200.24.110, access pack `D:\Work\water-network\longvan-dev`)
+is a plain Docker host shared with other apps, published through **nginx-proxy-manager**. There
+SYSTEM 3D runs as one Docker Compose project `water-network` (decision 0033,
+`deploy/longvan/compose.yaml`): its own PostGIS, Redis and RabbitMQ, the migrations, gis-be,
+asset-be, design-be, topology-rs, import, BFF and the web container. No host ports; the web
+container joins the network `water-network-proxy`, which the deploy also attaches
+nginx-proxy-manager to. Login stays on the Keycloak realm (`KEYCLOAK_URL`).
+
+1. `setup-longvan.cmd` once: installs the ssh profile, checks the server, sets
+   `DEPLOY_TARGET=compose` in `deploy.env`.
+2. `deploy-system.cmd`: builds the images here (Docker Desktop, pnpm), copies the missing ones to
+   the server over ssh, writes `~/water-network` (compose.yaml, web/, `.env` = settings + secrets
+   generated once on the server in `.secrets`), starts the stack and checks web -> BFF. It then
+   offers to create the nginx-proxy-manager proxy host for `FRONTEND_HOST` (asks the
+   nginx-proxy-manager admin login, used once, never saved; uses a `*.dichvunuoc.vn` or matching
+   certificate, or requests one from Let's Encrypt). Manual alternative: tunnel
+   `ssh -L 8181:127.0.0.1:81 longvan-ubuntu`, open http://localhost:8181, proxy host ->
+   `water-network-web:8080`, websockets on, `client_max_body_size 100m;`.
+3. DNS: `FRONTEND_HOST` (gis-dev.dichvunuoc.vn) A record -> 103.200.24.110. The Keycloak client
+   keeps `https://gis-dev.dichvunuoc.vn/*` as redirect URI.
+4. `seed-demo.cmd` loads the demo network for an account; `deploy-status.cmd`,
+   `check-access.cmd` and `db-credentials.cmd` work on the stack (the database is reachable
+   through the ssh tunnel they print). `replace-gis-fe.cmd` does not apply.
+
+No app catalog runs there: the BFF's catalog check is off unless `APP_CATALOG_URL` points to one
+and `APP_ENTITLEMENT_ENABLED=true`.
+
+## A Kubernetes cluster (DEPLOY_TARGET=k8s)
 
 `deploy-system.cmd` (repository root) runs `deploy/dev/deploy.ps1`. One run builds, pushes and
 deploys every component of SYSTEM 3D to the dev Kubernetes cluster (namespace `platform-core`):

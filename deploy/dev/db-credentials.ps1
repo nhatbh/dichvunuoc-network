@@ -43,6 +43,8 @@ foreach ($line in Get-Content $EnvFile -Encoding UTF8) {
     if ($i -gt 0) { $cfg[$t.Substring(0, $i).Trim()] = $t.Substring($i + 1).Trim() }
 }
 $SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'longvan-ubuntu' }
+$Target = if ($cfg['DEPLOY_TARGET']) { $cfg['DEPLOY_TARGET'] } elseif ($cfg['SSH_HOST'] -eq 'longvan-ubuntu') { 'compose' } else { 'k8s' }
+if ($Target -eq 'compose') { & (Join-Path $PSScriptRoot '..\longvan\db.ps1'); exit $LASTEXITCODE }
 $Ns = if ($cfg['NAMESPACE']) { $cfg['NAMESPACE'] } else { 'platform-core' }
 $Kubectl = if ($cfg['KUBECTL']) { $cfg['KUBECTL'] } else { 'sudo -n k3s kubectl' }
 

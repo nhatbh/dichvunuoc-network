@@ -49,6 +49,11 @@ if (Test-Path $EnvFile) {
     }
 }
 $SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'longvan-ubuntu' }
+$Target = if ($cfg['DEPLOY_TARGET']) { $cfg['DEPLOY_TARGET'] } elseif ($cfg['SSH_HOST'] -eq 'longvan-ubuntu') { 'compose' } else { 'k8s' }
+if ($Target -eq 'compose') {
+    Write-Host "On the Docker host ($SshHost) the stack serves $($cfg['FRONTEND_HOST']) itself (deploy-system.cmd); there is no separate GIS frontend to replace." -ForegroundColor Yellow
+    exit 0
+}
 $Ns = if ($cfg['NAMESPACE']) { $cfg['NAMESPACE'] } else { 'platform-core' }
 $Kubectl = if ($cfg['KUBECTL']) { $cfg['KUBECTL'] } else { 'sudo -n k3s kubectl' }
 $K = "$Kubectl -n $Ns"

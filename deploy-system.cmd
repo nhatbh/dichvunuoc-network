@@ -1,6 +1,6 @@
 @echo off
 rem Double-click: build and deploy the whole SYSTEM 3D platform to the dev k3s cluster.
-rem Needs the cluster ssh profile (setup-longvan.cmd), Docker Desktop (logged in to the registry) and pnpm.
+rem Needs the server ssh profile (setup-longvan.cmd), Docker Desktop (logged in to the registry) and pnpm.
 rem It asks each step (y/n) and any missing setting, saved in deploy\dev\deploy.env.
 rem See deploy\dev\README.md.
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\dev\deploy.ps1" %*

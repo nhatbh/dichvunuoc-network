@@ -29,6 +29,7 @@ if (Test-Path $EnvFile) {
     }
 }
 $SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'longvan-ubuntu' }
+$Target = if ($cfg['DEPLOY_TARGET']) { $cfg['DEPLOY_TARGET'] } elseif ($cfg['SSH_HOST'] -eq 'longvan-ubuntu') { 'compose' } else { 'k8s' }
 $Ns = if ($cfg['NAMESPACE']) { $cfg['NAMESPACE'] } else { 'platform-core' }
 $Kubectl = if ($cfg['KUBECTL']) { $cfg['KUBECTL'] } else { 'sudo -n k3s kubectl' }
 $K = "$Kubectl -n $Ns"
@@ -77,6 +78,8 @@ if ($perms) { Note "permissions: $($perms -join ', ')" } else { Bad 'no permissi
 foreach ($p in 'network-gis:read', 'network-design:read', 'network-design:write', 'network-design:approve') {
     if ($perms -contains $p) { Good $p } elseif ($p -eq 'network-gis:read') { Bad "$p missing: the map (bootstrap) is refused" } else { Note "$p missing (needed for the editor / approval)" }
 }
+
+if ($Target -eq 'compose') { . (Join-Path $PSScriptRoot '..\longvan\check.ps1'); exit 0 }
 
 # ------------------------------------------------------------------------ 2. app-catalog gate
 Step '2. The app-catalog gate'

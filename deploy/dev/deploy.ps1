@@ -80,6 +80,14 @@ foreach ($line in Get-Content $EnvFile -Encoding UTF8) {
     if ($i -lt 1) { continue }
     $cfg[$t.Substring(0, $i).Trim()] = $t.Substring($i + 1).Trim()
 }
+$Target = if ($cfg['DEPLOY_TARGET']) { $cfg['DEPLOY_TARGET'] } elseif ($cfg['SSH_HOST'] -eq 'longvan-ubuntu') { 'compose' } else { 'k8s' }
+if ($Target -eq 'compose') {
+    # the longvan-dev Docker host (decision 0033): Docker Compose instead of Kubernetes
+    $forward = @{}
+    foreach ($k in 'SkipBuild', 'SkipInstall', 'Yes', 'Tag') { if ($PSBoundParameters.ContainsKey($k)) { $forward[$k] = $PSBoundParameters[$k] } }
+    & (Join-Path $DeployDir '..\longvan\deploy.ps1') @forward
+    exit $LASTEXITCODE
+}
 $SshHost = $cfg['SSH_HOST']
 $Ns = $cfg['NAMESPACE']
 if (-not $SshHost -or -not $Ns) { Fail 'SSH_HOST and NAMESPACE must be set in deploy.env' }
@@ -493,55 +501,10 @@ Note "manifests rendered to $Rendered (the secret is not written to disk)"
 if ($DryRun) { Write-Host "`nDry run: nothing built or changed." -ForegroundColor Green; exit 0 }
 
 # -------------------------------------------------------------------------------------- build
-$images = [ordered]@{
-    'water-network-gis-be'      = @{ Context = $BeDir; File = 'src\services\water-network-gis-be\Dockerfile' }
-    'water-network-asset-be'    = @{ Context = $BeDir; File = 'src\services\water-network-asset-be\Dockerfile' }
-    'water-network-design-be'   = @{ Context = $BeDir; File = 'src\services\water-network-design-be\Dockerfile' }
-    'water-network-bff'         = @{ Context = $BeDir; File = 'src\services\water-network-bff\Dockerfile' }
-    'water-network-topology-rs' = @{ Context = $BeDir; File = 'src\services\water-network-topology-rs\Dockerfile' }
-    'water-network-import'      = @{ Context = $ImportDir; File = 'Dockerfile' }
-    'water-network-gis-3d'      = @{ Context = (Join-Path $AppDir 'dist'); File = (Join-Path $DeployDir 'web.Dockerfile') }
-}
+. (Join-Path $DeployDir 'build-images.ps1')
+$images = Get-SystemImages $Root
 if (-not $SkipBuild) {
-    foreach ($cmd in 'docker', 'pnpm') { if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { Fail "$cmd not found" } }
-    $ErrorActionPreference = 'Continue'   # Windows PowerShell turns redirected native stderr into errors
-    & docker info *> $null
-    $ErrorActionPreference = 'Stop'
-    if ($LASTEXITCODE -ne 0) { Fail 'Docker is not running - start Docker Desktop.' }
-
-    Step 'Building the frontend bundle (Keycloak sign-in, real backend through /api/gis)'
-    foreach ($pkg in 'contracts', 'component-models', 'map-runtime', 'map-runtime-3d') {
-        Push-Location (Join-Path $FeDir "packages\$pkg")
-        try {
-            Note "packages\$pkg"
-            if (-not $SkipInstall) { Native pnpm @('install') }
-            Native pnpm @('run', 'build')
-        } finally { Pop-Location }
-    }
-    $viteEnv = @{
-        VITE_AUTH_MODE = 'keycloak'; VITE_USE_MOCK_AUTH = 'false'; VITE_USE_MOCK_DATA = 'false'; VITE_DEMO = 'false'
-        VITE_ENABLE_MSW = 'false'; VITE_E2E_HOOKS = 'false'; VITE_USE_RUNTIME_CONFIG = 'true'; VITE_API_URL = '/api/gis'
-        VITE_KEYCLOAK_ON_LOAD = 'login-required'; VITE_KEYCLOAK_URL = $cfg['KEYCLOAK_URL']; VITE_KEYCLOAK_REALM = $cfg['KEYCLOAK_REALM']
-        VITE_KEYCLOAK_CLIENT_ID = $cfg['KEYCLOAK_CLIENT_ID']; VITE_MENU_APP_URL = $cfg['MENU_APP_URL']; VITE_MOCK_PERMISSIONS = ''
-    }
-    $saved = @{}
-    foreach ($k in $viteEnv.Keys) { $saved[$k] = [Environment]::GetEnvironmentVariable($k); [Environment]::SetEnvironmentVariable($k, $viteEnv[$k]) }
-    Push-Location $AppDir
-    try {
-        if (-not $SkipInstall) { Native pnpm @('install') }
-        Native pnpm @('exec', 'vite', 'build', '--mode', 'production')
-    } finally {
-        Pop-Location
-        foreach ($k in $saved.Keys) { [Environment]::SetEnvironmentVariable($k, $saved[$k]) }
-    }
-    if (-not (Test-Path (Join-Path $AppDir 'dist\index.html'))) { Fail 'the frontend build produced no dist\index.html' }
-
-    foreach ($name in $images.Keys) {
-        $img = $images[$name]
-        Step "Building image $name"
-        $file = if ([IO.Path]::IsPathRooted($img.File)) { $img.File } else { Join-Path $img.Context $img.File }
-        Native docker @('build', '-f', $file, '-t', "$Reg/${name}:$Tag", $img.Context)
-    }
+    try { Build-SystemImages -Root $Root -Cfg $cfg -Tag $Tag -Prefix $Reg -SkipInstall:$SkipInstall } catch { Fail "$_" }
     Step "Pushing images to $Reg"
     foreach ($name in $images.Keys) {
         & docker push "$Reg/${name}:$Tag"

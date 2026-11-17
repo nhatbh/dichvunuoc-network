@@ -1,0 +1,13 @@
+{
+  "apiUrl": "/api/gis",
+  "gisDataSource": "canonical",
+  "gisViewerMode": "rich",
+  "opsSource": "off",
+  "appName": "SYSTEM 3D",
+  "mapView": { "center": { "lon": ${MAP_LON}, "lat": ${MAP_LAT} }, "zoom": ${MAP_ZOOM} },
+  "keycloakUrl": "${KEYCLOAK_URL}",
+  "keycloakRealm": "${KEYCLOAK_REALM}",
+  "keycloakClientId": "${KEYCLOAK_CLIENT_ID}",
+  "menuAppUrl": "${MENU_APP_URL}",
+  "organization": ${FE_ORGANIZATION}
+}

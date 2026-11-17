@@ -124,20 +124,24 @@ if ($kubectl) {
     Bad 'no working kubectl on the server (tried k3s, kubectl, microk8s, with and without sudo)'
     $ps = Remote 'docker ps 2>/dev/null || sudo -n docker ps'
     if ($ps.Out) { Note 'running containers:'; $ps.Out -split "`n" | Select-Object -First 40 | ForEach-Object { Note $_ } }
-    Note 'The deploy scripts drive Kubernetes; send this output so the deploy can be adapted to this server.'
+    $compose = Remote 'docker compose version --short 2>/dev/null || sudo -n docker compose version --short'
+    $npm = Remote 'docker inspect -f {{.State.Status}} nginx-proxy-manager 2>/dev/null'
+    if ($compose.Code -eq 0) { Good "docker compose $($compose.Out): the deploy scripts use Docker Compose on this server (decision 0033)" }
+    else { Bad 'docker compose is not installed on the server: the Compose deploy needs it' }
+    if ($npm.Out -eq 'running') { Good 'nginx-proxy-manager is running (it will serve FRONTEND_HOST)' } else { Bad 'no running nginx-proxy-manager container' }
 }
 
 # ----------------------------------------------------------------------------------- 3. save
 $EnvFile = Join-Path $PSScriptRoot 'deploy.env'
 if (Test-Path $EnvFile) {
     $lines = [System.Collections.Generic.List[string]](Get-Content $EnvFile -Encoding UTF8)
-    $values = [ordered]@{ SSH_HOST = $Alias }
+    $values = [ordered]@{ SSH_HOST = $Alias; DEPLOY_TARGET = $(if ($kubectl) { 'k8s' } else { 'compose' }) }
     if ($kubectl) { $values.KUBECTL = $kubectl }
     foreach ($k in $values.Keys) {
         $i = $lines.FindIndex([Predicate[string]]{ param($l) $l -match "^\s*$k\s*=" })
         if ($i -ge 0) { $lines[$i] = "$k=$($values[$k])" } else { $lines.Add("$k=$($values[$k])") }
     }
     Set-Content $EnvFile $lines -Encoding UTF8
-    Good "deploy.env: SSH_HOST=$Alias$(if ($kubectl) { ", KUBECTL=$kubectl" })"
+    Good "deploy.env: SSH_HOST=$Alias, DEPLOY_TARGET=$($values.DEPLOY_TARGET)$(if ($kubectl) { ", KUBECTL=$kubectl" })"
 } else { Note "no deploy.env yet: deploy-system.cmd creates it; set SSH_HOST=$Alias there" }
 Write-Host "`nDone. Send this output if anything above failed." -ForegroundColor Green
