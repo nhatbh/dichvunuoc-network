@@ -41,9 +41,18 @@ $grant = "*$($me.User.Value):F"
 if (Test-Path $KeyFile) { & icacls $KeyFile /grant $grant | Out-Null }
 Copy-Item (Join-Path $Pack 'id_ed25519_longvan') $KeyFile -Force
 Copy-Item (Join-Path $Pack 'id_ed25519_longvan.pub') "$KeyFile.pub" -Force
-# OpenSSH refuses a private key others can read: this account only, no inherited rights
-& icacls $KeyFile /inheritance:r /grant:r $grant | Out-Null
-if ($LASTEXITCODE -ne 0) { Bad "could not restrict access to $KeyFile"; exit 1 }
+# OpenSSH refuses a private key anyone else can read. Replace the whole access list (not just
+# add to it): this account only, nothing inherited, no entry left by an earlier run - a grant to
+# the name "Admin" can resolve to the computer itself when the computer is also named ADMIN.
+try {
+    $acl = New-Object System.Security.AccessControl.FileSecurity
+    $acl.SetOwner($me.User)
+    $acl.SetAccessRuleProtection($true, $false)
+    $acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($me.User, 'FullControl', 'Allow')))
+    Set-Acl -Path $KeyFile -AclObject $acl
+} catch { Bad "could not restrict access to ${KeyFile}: $($_.Exception.Message)"; exit 1 }
+$others = @((Get-Acl $KeyFile).GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier]) | Where-Object { $_.IdentityReference.Value -ne $me.User.Value })
+if ($others) { Bad "others can still read the key: $(($others | ForEach-Object { $_.IdentityReference }) -join ', ')"; exit 1 }
 try { [IO.File]::ReadAllBytes($KeyFile) | Out-Null }
 catch {
     Bad "the key is not readable by $($me.Name) after setting its access:"
