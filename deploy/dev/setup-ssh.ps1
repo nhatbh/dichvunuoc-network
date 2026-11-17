@@ -33,12 +33,24 @@ if (-not (Test-Path (Join-Path $Pack 'id_ed25519_longvan'))) {
     if (-not (Test-Path (Join-Path $Pack 'id_ed25519_longvan'))) { Bad "id_ed25519_longvan not found in $Pack"; exit 1 }
 }
 New-Item -ItemType Directory -Force $SshDir | Out-Null
+# The signed-in account by SID: its name can differ from USERNAME (Microsoft or domain account),
+# and a grant to the wrong name leaves the key unreadable ("Load key ...: Permission denied").
+$me = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+$grant = "*$($me.User.Value):F"
+# a key left by an earlier run may already be locked to someone else: as its owner, open it first
+if (Test-Path $KeyFile) { & icacls $KeyFile /grant $grant | Out-Null }
 Copy-Item (Join-Path $Pack 'id_ed25519_longvan') $KeyFile -Force
 Copy-Item (Join-Path $Pack 'id_ed25519_longvan.pub') "$KeyFile.pub" -Force
-# OpenSSH refuses a private key others can read: owner only, no inherited rights
-& icacls $KeyFile /inheritance:r /grant:r "$($env:USERNAME):(R,W)" | Out-Null
+# OpenSSH refuses a private key others can read: this account only, no inherited rights
+& icacls $KeyFile /inheritance:r /grant:r $grant | Out-Null
 if ($LASTEXITCODE -ne 0) { Bad "could not restrict access to $KeyFile"; exit 1 }
-Good "key in $KeyFile (readable by $($env:USERNAME) only)"
+try { [IO.File]::ReadAllBytes($KeyFile) | Out-Null }
+catch {
+    Bad "the key is not readable by $($me.Name) after setting its access:"
+    & icacls $KeyFile | ForEach-Object { Note $_ }
+    exit 1
+}
+Good "key in $KeyFile (readable by $($me.Name) only)"
 
 $config = Join-Path $SshDir 'config'
 $text = if (Test-Path $config) { Get-Content $config -Raw } else { '' }
