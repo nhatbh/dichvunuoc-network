@@ -28,9 +28,10 @@ if (Test-Path $EnvFile) {
         if ($t -and -not $t.StartsWith('#') -and $t.IndexOf('=') -gt 0) { $cfg[$t.Substring(0, $t.IndexOf('=')).Trim()] = $t.Substring($t.IndexOf('=') + 1).Trim() }
     }
 }
-$SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'tino32' }
+$SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'longvan-ubuntu' }
 $Ns = if ($cfg['NAMESPACE']) { $cfg['NAMESPACE'] } else { 'platform-core' }
-$K = "sudo -n k3s kubectl -n $Ns"
+$Kubectl = if ($cfg['KUBECTL']) { $cfg['KUBECTL'] } else { 'sudo -n k3s kubectl' }
+$K = "$Kubectl -n $Ns"
 function Remote([string]$Command, [string]$StdIn) {
     if ($PSBoundParameters.ContainsKey('StdIn')) { $StdIn | & ssh -o ConnectTimeout=15 $SshHost $Command }
     else { & ssh -o ConnectTimeout=15 $SshHost $Command }

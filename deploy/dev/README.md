@@ -1,7 +1,7 @@
 # Deploying the whole system to the dev cluster
 
 `deploy-system.cmd` (repository root) runs `deploy/dev/deploy.ps1`. One run builds, pushes and
-deploys every component of SYSTEM 3D to the tino k3s cluster (namespace `platform-core`):
+deploys every component of SYSTEM 3D to the dev Kubernetes cluster (namespace `platform-core`):
 
 | Component | Image | Notes |
 |---|---|---|
@@ -16,7 +16,10 @@ It uses the cluster's **shared** PostgreSQL (PostGIS), Redis and RabbitMQ and th
 
 ## Before the first run
 
-1. VPN on; `ssh tino32` works (dev access pack; `sudo -n k3s kubectl` allowed).
+1. Double-click `setup-longvan.cmd` once: it installs the longvan-dev access pack
+   (`D:\Work\water-network\longvan-dev`) as the ssh profile `longvan-ubuntu`, pins the server's host
+   key, checks sudo/docker/kubectl and the cluster, and saves `SSH_HOST` and `KUBECTL` in
+   `deploy.env`. Every script below goes through that profile.
 2. Docker Desktop running; `docker login registry-dev.dichvunuoc.vn` once. pnpm and git installed.
 3. Double-click `deploy-system.cmd`. It first offers to list the cluster's shared
    PostgreSQL/Redis/RabbitMQ/app-catalog services, then offers to **fill the missing settings
@@ -38,7 +41,7 @@ It uses the cluster's **shared** PostgreSQL (PostGIS), Redis and RabbitMQ and th
 ## Database login
 
 If the migrations fail with `password authentication failed`, double-click `db-credentials.cmd`
-(repository root). Through `ssh tino32` it finds the pod behind `POSTGRES_HOST`, shows the
+(repository root). Through the ssh profile it finds the pod behind `POSTGRES_HOST`, shows the
 user/password settings the database was started with (passwords masked unless you ask), tests
 every candidate login the way the services connect (deploy.env, the database pod, the namespace's
 secrets) and saves a working one to `deploy.env`. It also says whether PostGIS is available.
@@ -113,5 +116,5 @@ frontend to the new image too. Run it again to put the previous frontend back.
 ## Roll back / remove
 
 - Roll back: `deploy-system.cmd -SkipBuild -Tag <previous tag>` (migrations only move forward).
-- Remove: `ssh tino32 "sudo k3s kubectl -n platform-core delete deploy,svc,ingress,configmap,secret,job -l app.kubernetes.io/part-of=water-network-system"`
+- Remove: `ssh longvan-ubuntu "sudo k3s kubectl -n platform-core delete deploy,svc,ingress,configmap,secret,job -l app.kubernetes.io/part-of=water-network-system"`
   (the PVC `water-network-design-files` and the import service's resources are kept).

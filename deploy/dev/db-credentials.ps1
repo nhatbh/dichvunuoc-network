@@ -1,6 +1,6 @@
 <#
   Finds a PostgreSQL login that works for the SYSTEM 3D services on the dev cluster, through the
-  tino32 ssh profile (VPN on). Double-click db-credentials.cmd at the repository root.
+  cluster ssh profile (SSH_HOST in deploy.env). Double-click db-credentials.cmd at the repository root.
 
   1. Finds the database pod behind POSTGRES_HOST (deploy\dev\deploy.env).
   2. Shows how that database was started: the user/password settings of its container and where
@@ -42,9 +42,9 @@ foreach ($line in Get-Content $EnvFile -Encoding UTF8) {
     $i = $t.IndexOf('=')
     if ($i -gt 0) { $cfg[$t.Substring(0, $i).Trim()] = $t.Substring($i + 1).Trim() }
 }
-$SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'tino32' }
+$SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'longvan-ubuntu' }
 $Ns = if ($cfg['NAMESPACE']) { $cfg['NAMESPACE'] } else { 'platform-core' }
-$Kubectl = 'sudo -n k3s kubectl'
+$Kubectl = if ($cfg['KUBECTL']) { $cfg['KUBECTL'] } else { 'sudo -n k3s kubectl' }
 
 function Remote([string]$Command, [string]$StdIn) {
     if ($PSBoundParameters.ContainsKey('StdIn')) { $StdIn | & ssh -o ConnectTimeout=15 $SshHost $Command }
@@ -63,7 +63,7 @@ function Save-Settings([hashtable]$Values) {
 }
 $sq = { param([string]$v) "'" + $v.Replace("'", "'\''") + "'" }
 
-Step "Connecting to the cluster ($SshHost) - VPN must be on"
+Step "Connecting to the cluster ($SshHost)"
 try { Remote "$Kubectl get ns $Ns -o name" | Out-Null } catch { Fail "cannot reach the cluster through ssh $SshHost ($_)" }
 
 # ------------------------------------------------------------------------------ the database pod

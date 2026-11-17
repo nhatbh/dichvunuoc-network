@@ -1,10 +1,10 @@
 <#
-  Deploys the whole SYSTEM 3D platform to the dev k3s cluster:
+  Deploys the whole SYSTEM 3D platform to the dev Kubernetes cluster:
     frontend (gis-3d, served with an /api/gis proxy to the BFF), BFF, gis-be, asset-be,
     design-be, topology-rs and the CAD import service.
   Uses the cluster's shared PostgreSQL, Redis, RabbitMQ and Keycloak (settings in deploy.env).
 
-  Needs: VPN on and the tino32 access pack (ssh tino32 works, sudo k3s without password),
+  Needs: the cluster ssh profile (setup-longvan.cmd; SSH_HOST and KUBECTL in deploy.env),
          Docker Desktop running and logged in to the registry, pnpm, git.
 
   Run: double-click deploy-system.cmd at the repository root. It asks, step by step (y/n):
@@ -83,7 +83,7 @@ foreach ($line in Get-Content $EnvFile -Encoding UTF8) {
 $SshHost = $cfg['SSH_HOST']
 $Ns = $cfg['NAMESPACE']
 if (-not $SshHost -or -not $Ns) { Fail 'SSH_HOST and NAMESPACE must be set in deploy.env' }
-$Kubectl = 'sudo -n k3s kubectl'
+$Kubectl = if ($cfg['KUBECTL']) { $cfg['KUBECTL'] } else { 'sudo -n k3s kubectl' }
 
 function Remote([string]$Command, [string]$StdIn) {
     if ($PSBoundParameters.ContainsKey('StdIn')) { $StdIn | & ssh -o ConnectTimeout=15 $SshHost $Command }
@@ -95,7 +95,7 @@ function Kube([string]$KubeArgs, [string]$StdIn) {
     else { Remote "$Kubectl -n $Ns $KubeArgs" }
 }
 
-Step "Checking the cluster ($SshHost) - VPN must be on"
+Step "Checking the cluster ($SshHost)"
 foreach ($cmd in 'ssh', 'git') { if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { Fail "$cmd not found" } }
 try { Remote "$Kubectl get ns $Ns -o name" | Out-Null } catch { Fail "cannot reach the cluster or namespace $Ns through ssh $SshHost ($_)" }
 

@@ -1,6 +1,6 @@
 <#
   Serves SYSTEM 3D in place of the current GIS frontend on the dev cluster (the 2D app at
-  https://gis-dev.dichvunuoc.vn, deployment "water-network-gis"), through the tino32 ssh profile.
+  https://gis-dev.dichvunuoc.vn, deployment "water-network-gis"), through the cluster ssh profile (SSH_HOST in deploy.env).
   Double-click replace-gis-fe.cmd at the repository root. It asks before changing anything.
 
   What it does:
@@ -48,9 +48,10 @@ if (Test-Path $EnvFile) {
         if ($t -and -not $t.StartsWith('#') -and $t.IndexOf('=') -gt 0) { $cfg[$t.Substring(0, $t.IndexOf('=')).Trim()] = $t.Substring($t.IndexOf('=') + 1).Trim() }
     }
 }
-$SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'tino32' }
+$SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'longvan-ubuntu' }
 $Ns = if ($cfg['NAMESPACE']) { $cfg['NAMESPACE'] } else { 'platform-core' }
-$K = "sudo -n k3s kubectl -n $Ns"
+$Kubectl = if ($cfg['KUBECTL']) { $cfg['KUBECTL'] } else { 'sudo -n k3s kubectl' }
+$K = "$Kubectl -n $Ns"
 $Target = 'water-network-gis'
 
 function Remote([string]$Command, [string]$StdIn) {
@@ -73,7 +74,7 @@ function Clean($o) {
     $o
 }
 
-Step "Connecting to the cluster ($SshHost) - VPN must be on"
+Step "Connecting to the cluster ($SshHost)"
 try { Remote "$K get deploy $Target -o name" | Out-Null } catch { Fail "no deployment $Target in $Ns (or the cluster is unreachable): $_" }
 
 # ------------------------------------------------------------------------------------- rollback

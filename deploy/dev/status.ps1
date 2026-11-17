@@ -1,5 +1,5 @@
 <#
-  Read-only status of the SYSTEM 3D deployment on the dev cluster, through the tino32 ssh profile.
+  Read-only status of the SYSTEM 3D deployment on the dev cluster, through the cluster ssh profile (SSH_HOST in deploy.env).
   Double-click deploy-status.cmd at the repository root. Changes nothing.
 
   Per component: who owns the deployment (this deploy or something older), desired/ready replicas,
@@ -16,9 +16,10 @@ if (Test-Path $EnvFile) {
         if ($t -and -not $t.StartsWith('#') -and $t.IndexOf('=') -gt 0) { $cfg[$t.Substring(0, $t.IndexOf('=')).Trim()] = $t.Substring($t.IndexOf('=') + 1).Trim() }
     }
 }
-$SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'tino32' }
+$SshHost = if ($cfg['SSH_HOST']) { $cfg['SSH_HOST'] } else { 'longvan-ubuntu' }
 $Ns = if ($cfg['NAMESPACE']) { $cfg['NAMESPACE'] } else { 'platform-core' }
-$K = "sudo -n k3s kubectl -n $Ns"
+$Kubectl = if ($cfg['KUBECTL']) { $cfg['KUBECTL'] } else { 'sudo -n k3s kubectl' }
+$K = "$Kubectl -n $Ns"
 function Json([string]$Command) {
     $out = & ssh -o ConnectTimeout=15 $SshHost $Command
     if ($LASTEXITCODE -ne 0) { throw "on $SshHost`: $Command failed" }
@@ -27,7 +28,7 @@ function Json([string]$Command) {
 
 $names = 'water-network-gis', 'water-network-gis-be', 'water-network-asset-be', 'water-network-design-be', 'water-network-topology-rs',
     'water-network-import', 'water-network-bff', 'water-network-gis-3d'
-Write-Host "Reading namespace $Ns on $SshHost (VPN must be on)..." -ForegroundColor Cyan
+Write-Host "Reading namespace $Ns on $SshHost..." -ForegroundColor Cyan
 $deps = (Json "$K get deploy -o json").items
 $pods = (Json "$K get pods -o json").items
 $hpas = (Json "$K get hpa -o json").items
