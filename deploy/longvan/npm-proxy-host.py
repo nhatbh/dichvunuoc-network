@@ -1,8 +1,11 @@
 # Creates or updates the nginx-proxy-manager proxy host of SYSTEM 3D (decision 0033).
-# Run on the server by deploy/longvan/deploy.ps1 through `python3 -`, with ARGS (admin login,
-# host, request) defined before this code; the login only ever travels on stdin.
+# Run on the server by deploy/longvan/deploy.ps1 through `python3 -`, with ARGS (host, request,
+# optionally an admin login) defined before this code. Without a login it uses the tokens in
+# NPM_TOKENS: signed on the server with nginx-proxy-manager's own key (ssh + docker access is
+# already full control of it), one per candidate user id; the first admin among them is used.
 # nginx-proxy-manager's API listens on 127.0.0.1:81 of the server. Standard library only.
 import json
+import os
 import urllib.error
 import urllib.request
 
@@ -29,7 +32,23 @@ def call(method, path, body=None, token=None):
         raise SystemExit(f"nginx-proxy-manager API not reachable on 127.0.0.1:81: {error.reason}")
 
 
-token = call("POST", "/tokens", {"identity": ARGS["user"], "secret": ARGS["password"]})["token"]  # noqa: F821
+def admin_token():
+    for candidate in os.environ.get("NPM_TOKENS", "").split():
+        try:
+            request = urllib.request.Request(API + "/users/me", headers={"Authorization": "Bearer " + candidate})
+            with urllib.request.urlopen(request, timeout=30) as response:
+                me = json.loads(response.read().decode())
+            if "admin" in (me.get("roles") or []):
+                print(f"signed in to nginx-proxy-manager as {me.get('email', 'admin')} (server key)")
+                return candidate
+        except (urllib.error.URLError, ValueError):
+            continue
+    if ARGS.get("user"):  # noqa: F821
+        return call("POST", "/tokens", {"identity": ARGS["user"], "secret": ARGS["password"]})["token"]  # noqa: F821
+    raise SystemExit("auto sign-in unavailable")
+
+
+token = admin_token()
 
 certificates = call("GET", "/nginx/certificates", token=token) or []
 certificate = next((c for c in certificates if HOST in c.get("domain_names", [])), None) or next(

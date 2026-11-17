@@ -11,8 +11,9 @@
   4. Creates the network water-network-proxy and attaches nginx-proxy-manager to it, so the proxy
      reaches the web container by name (nothing else of nginx-proxy-manager changes).
   5. docker compose up -d: PostGIS, Redis, RabbitMQ, migrations, services, web. No host ports.
-  6. With your OK, creates or updates the nginx-proxy-manager proxy host for FRONTEND_HOST
-     (its admin login is asked, used once, never saved).
+  6. Creates or updates the nginx-proxy-manager proxy host for FRONTEND_HOST through its API,
+     signed in with nginx-proxy-manager's own key on the server (no login to type); only if that
+     fails, its admin login is asked (used once, never saved).
   Other containers on the server are not touched.
 
   Switches (unattended): -SkipBuild [-Tag <tag>]  -SkipInstall  -Yes
@@ -190,19 +191,42 @@ $manual = @"
        Advanced: client_max_body_size 100m;
 "@
 $automated = $false
-if ($hasNpm -and $hasPython -and $Interactive -and (Ask "Create or update the proxy host for $hostName automatically (asks the nginx-proxy-manager admin login)?" $true)) {
-    $npmUser = (Read-Host '   nginx-proxy-manager admin e-mail').Trim()
-    $sec = Read-Host '   nginx-proxy-manager password (hidden)' -AsSecureString
-    $npmPass = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
-    $requestCert = Ask "If no certificate covers $hostName yet: request one from Let's Encrypt now (needs DNS of $hostName already pointing to this server)?" $false
-    $payload = @{ user = $npmUser; password = $npmPass; host = $hostName; request = $requestCert } | ConvertTo-Json -Compress
-    $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($payload))
-    $py = Get-Content (Join-Path $LvDir 'npm-proxy-host.py') -Raw -Encoding UTF8
-    # the login travels on stdin only (never on a command line or in a file)
-    $result = Invoke-Server ("python3 - <<'PY'`nimport base64, json`nARGS = json.loads(base64.b64decode('$b64'))`n" + $py + "`nPY") -AllowFail
+$py = Get-Content (Join-Path $LvDir 'npm-proxy-host.py') -Raw -Encoding UTF8
+# Signs short-lived nginx-proxy-manager tokens with its own key, inside its container (ssh +
+# docker on the server already control it fully): one per candidate admin user id. They stay on
+# the server, in the environment of the python run below.
+$mint = @'
+NPM_TOKENS=$(docker exec -w /app nginx-proxy-manager node -e '
+const fs = require("fs"); const jwt = require("jsonwebtoken");
+let keys = null;
+for (const p of ["/data/keys.json", "/app/config/keys.json"]) { try { keys = JSON.parse(fs.readFileSync(p, "utf8")); break } catch (e) {} }
+if (!keys || !keys.key) process.exit(3);
+const out = [];
+for (let id = 1; id <= 10; id++) out.push(jwt.sign({ iss: "api", attrs: { id }, scope: ["user"], jti: "water-network-deploy-" + id }, keys.key, { algorithm: "RS256", expiresIn: "10m" }));
+process.stdout.write(out.join(" "));
+' 2>/dev/null) || NPM_TOKENS=""
+export NPM_TOKENS
+'@
+function Publish([hashtable]$ArgsIn) {
+    $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($ArgsIn | ConvertTo-Json -Compress)))
+    # any login travels on stdin only (never on a command line or in a file)
+    return Invoke-Server ($mint + "`npython3 - <<'PY'`nimport base64, json`nARGS = json.loads(base64.b64decode('$b64'))`n" + $py + "`nPY") -AllowFail
+}
+if ($hasNpm -and $hasPython) {
+    $requestCert = $Interactive -and (Ask "If no certificate covers $hostName yet: request one from Let's Encrypt now (needs DNS of $hostName already pointing to this server)?" $false)
+    $result = Publish @{ host = $hostName; request = $requestCert }
     $result | ForEach-Object { Note $_ }
-    $npmPass = $null; $payload = $null; $b64 = $null
     $automated = ($result -join "`n") -match '(?m)^proxy host (created|updated)'
+    if (-not $automated -and $Interactive -and ($result -join "`n") -match 'auto sign-in unavailable' -and
+        (Ask 'Signing in with the server key did not work. Use the nginx-proxy-manager admin login instead?' $true)) {
+        $npmUser = (Read-Host '   nginx-proxy-manager admin e-mail').Trim()
+        $sec = Read-Host '   nginx-proxy-manager password (hidden)' -AsSecureString
+        $npmPass = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
+        $result = Publish @{ host = $hostName; request = $requestCert; user = $npmUser; password = $npmPass }
+        $npmPass = $null
+        $result | ForEach-Object { Note $_ }
+        $automated = ($result -join "`n") -match '(?m)^proxy host (created|updated)'
+    }
     if (($result -join "`n") -match '(?m)^no certificate') { Write-Host "   Add the certificate in nginx-proxy-manager once DNS points here:" -ForegroundColor Yellow; Write-Host $manual }
 }
 if (-not $automated) { Write-Host $manual -ForegroundColor Yellow }

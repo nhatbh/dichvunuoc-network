@@ -15,9 +15,9 @@ nginx-proxy-manager to. Login stays on the Keycloak realm (`KEYCLOAK_URL`).
 2. `deploy-system.cmd`: builds the images here (Docker Desktop, pnpm), copies the missing ones to
    the server over ssh, writes `~/water-network` (compose.yaml, web/, `.env` = settings + secrets
    generated once on the server in `.secrets`), starts the stack and checks web -> BFF. It then
-   offers to create the nginx-proxy-manager proxy host for `FRONTEND_HOST` (asks the
-   nginx-proxy-manager admin login, used once, never saved; uses a `*.dichvunuoc.vn` or matching
-   certificate, or requests one from Let's Encrypt). Manual alternative: tunnel
+   creates the nginx-proxy-manager proxy host for `FRONTEND_HOST`, signed in with
+   nginx-proxy-manager's own key on the server (the admin login is asked only if that fails); it uses a `*.dichvunuoc.vn` or matching
+   certificate, or requests one from Let's Encrypt. Manual alternative: tunnel
    `ssh -L 8181:127.0.0.1:81 longvan-ubuntu`, open http://localhost:8181, proxy host ->
    `water-network-web:8080`, websockets on, `client_max_body_size 100m;`.
 3. DNS: `FRONTEND_HOST` (gis-dev.dichvunuoc.vn) A record -> 103.200.24.110. The Keycloak client
