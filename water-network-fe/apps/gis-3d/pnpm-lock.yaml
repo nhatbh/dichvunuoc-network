@@ -17,6 +17,15 @@ importers:
       '@sentry/solid':
         specifier: ^10.53.0
         version: 10.77.1(@tanstack/solid-router@1.170.43(solid-js@1.9.17))(solid-js@1.9.17)
+      '@siemens/ix':
+        specifier: 5.3.0
+        version: 5.3.0(@siemens/ix-icons@3.7.1)(@types/three@0.169.0)(three@0.169.0)
+      '@siemens/ix-echarts':
+        specifier: 4.1.1
+        version: 4.1.1(@siemens/ix@5.3.0(@siemens/ix-icons@3.7.1)(@types/three@0.169.0)(three@0.169.0))(echarts@6.1.0)
+      '@siemens/ix-icons':
+        specifier: 3.7.1
+        version: 3.7.1
       '@solid-primitives/event-listener':
         specifier: ^2.4.5
         version: 2.4.6(solid-js@1.9.17)
@@ -62,6 +71,9 @@ importers:
       date-fns:
         specifier: ^3.0.0
         version: 3.6.0
+      echarts:
+        specifier: 6.1.0
+        version: 6.1.0
       epanet-js:
         specifier: 0.9.0
         version: 0.9.0
@@ -1169,6 +1181,21 @@ packages:
       '@tanstack/solid-router':
         optional: true
 
+  '@siemens/ix-echarts@4.1.1':
+    resolution: {integrity: sha512-mIhQ8E9Uz27Rvoa8bQIsB5PbipC9aDR/aq9GRo8AyWMUOVahTvYeyxv+/xZMpnDZ5022wRjxbrCQqxNzqdHX8A==}
+    peerDependencies:
+      '@siemens/ix': ^5.0.0
+      echarts: ^5.0.0 || ^6.0.0
+
+  '@siemens/ix-icons@3.7.1':
+    resolution: {integrity: sha512-tnswQGzAFi5fN3Unkem52AZLP/MobXbgPrEe1CKQ+Pa1O5qX23m6DctGFumuKxZxoKBeW/lnf3zt61AUXT8aRQ==}
+    engines: {node: '>=22.19.x', pnpm: '>=10.x.x'}
+
+  '@siemens/ix@5.3.0':
+    resolution: {integrity: sha512-7tbrWI2CYAYItx7AoVte5lNHcp0Psu55WP2zCg6StMlap3guaQLZdmIkA+x8bbKfuzvOmGBnaKhoY5oJI8x/Ag==}
+    peerDependencies:
+      '@siemens/ix-icons': ^3.5.0
+
   '@size-limit/file@12.1.0':
     resolution: {integrity: sha512-eGwDcIufnNnvJRzv3liDOn6MAOGgmOTUdpeGQ2KuRTlgIgO54AJH1ilvktlJc6PIjNfwpYY0dOGyap1QgM1swQ==}
     engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
@@ -1716,6 +1743,17 @@ packages:
   ajv@6.15.0:
     resolution: {integrity: sha512-fgFx7Hfoq60ytK2c7DhnF8jIvzYgOMxfugjLOSMHjLIPgenqa7S7oaagATUq99mV6IYvN2tRmC0wnTYX6iPbMw==}
 
+  animejs@4.5.0:
+    resolution: {integrity: sha512-NQimYX+lz8WaXonGS9zVVoviCIAjONeJayxacUditaivYLqyXgGjFKjuyl0aUUhFKm5MriX9ty1TGovNzoJQWA==}
+    peerDependencies:
+      '@types/three': '>=0.150.0'
+      three: '>=0.150.0'
+    peerDependenciesMeta:
+      '@types/three':
+        optional: true
+      three:
+        optional: true
+
   ansi-escapes@7.3.0:
     resolution: {integrity: sha512-BvU8nYgGQBxcmMuEeUEmNTvrMVjJNSH7RgW24vXexN4Ven6qCvy4TntnvlnwnMLTVlcRQQdbRY8NKnaIoeWDNg==}
     engines: {node: '>=18'}
@@ -2160,6 +2198,9 @@ packages:
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
+
+  echarts@6.1.0:
+    resolution: {integrity: sha512-q0yaFPggC9FUdsWH4blavRWFmxdrIodbkoKNAjJudAI6CA9gNPxHtV2RcZNEepZVlk4yvBYkOkbk6HIVpIyHZA==}
 
   electron-to-chromium@1.5.467:
     resolution: {integrity: sha512-Nw9X371rtZmYcBSnEijnCDONILjs93biCZO34juC7MBOmK8E+GFnyD4T/WvyrlJkppul7oxg6TwvtKst9SODTw==}
@@ -3026,6 +3067,10 @@ packages:
     resolution: {integrity: sha512-DMP7LupPa+yWdZWXJCSeCNB+lI9Da489JaSlArvX69HQZ1k9GY+ckP6WB+B5JLZfehzXd1tjZS1GFuTwQiShtA==}
     peerDependencies:
       solid-js: ^1.4.7
+
+  luxon@3.7.2:
+    resolution: {integrity: sha512-vtEhXh/gNjI9Yg1u4jX/0YVPMvxzHuGgCm6tC5kZyb08yjGWGnqAjGJvcXbqQR2P3MyMEFnRbpcdFS6PBcLqew==}
+    engines: {node: '>=12'}
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -3936,6 +3981,9 @@ packages:
   tsconfig-paths@3.15.0:
     resolution: {integrity: sha512-2Ac2RgzDe/cn48GvOe3M+o82pEFewD3UPbyoUHHdKasHwJKjds4fLXWf/Ux5kATBKN20oaFGu+jbElp1pos0mg==}
 
+  tslib@2.3.0:
+    resolution: {integrity: sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==}
+
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
@@ -4283,6 +4331,9 @@ packages:
 
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
+
+  zrender@6.1.0:
+    resolution: {integrity: sha512-oEGMDB6pOP2S6OwRR4PdVv610zrjnA3Bh+JnSG12fYJlBKjtNAoEb5fSUoCOOINlH96I2fU38/A2UpRKs67xYQ==}
 
   zstd-codec@0.1.5:
     resolution: {integrity: sha512-v3fyjpK8S/dpY/X5WxqTK3IoCnp/ZOLxn144GZVlNUjtwAchzrVo03h+oMATFhCIiJ5KTr4V3vDQQYz4RU684g==}
@@ -5374,6 +5425,23 @@ snapshots:
     optionalDependencies:
       '@tanstack/solid-router': 1.170.43(solid-js@1.9.17)
 
+  '@siemens/ix-echarts@4.1.1(@siemens/ix@5.3.0(@siemens/ix-icons@3.7.1)(@types/three@0.169.0)(three@0.169.0))(echarts@6.1.0)':
+    dependencies:
+      '@siemens/ix': 5.3.0(@siemens/ix-icons@3.7.1)(@types/three@0.169.0)(three@0.169.0)
+      echarts: 6.1.0
+
+  '@siemens/ix-icons@3.7.1': {}
+
+  '@siemens/ix@5.3.0(@siemens/ix-icons@3.7.1)(@types/three@0.169.0)(three@0.169.0)':
+    dependencies:
+      '@floating-ui/dom': 1.8.0
+      '@siemens/ix-icons': 3.7.1
+      animejs: 4.5.0(@types/three@0.169.0)(three@0.169.0)
+      luxon: 3.7.2
+    transitivePeerDependencies:
+      - '@types/three'
+      - three
+
   '@size-limit/file@12.1.0(size-limit@12.1.0(jiti@1.21.7))':
     dependencies:
       size-limit: 12.1.0(jiti@1.21.7)
@@ -6023,6 +6091,11 @@ snapshots:
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
 
+  animejs@4.5.0(@types/three@0.169.0)(three@0.169.0):
+    optionalDependencies:
+      '@types/three': 0.169.0
+      three: 0.169.0
+
   ansi-escapes@7.3.0:
     dependencies:
       environment: 1.1.0
@@ -6453,6 +6526,11 @@ snapshots:
   earcut@3.2.4: {}
 
   eastasianwidth@0.2.0: {}
+
+  echarts@6.1.0:
+    dependencies:
+      tslib: 2.3.0
+      zrender: 6.1.0
 
   electron-to-chromium@1.5.467: {}
 
@@ -7466,6 +7544,8 @@ snapshots:
     dependencies:
       solid-js: 1.9.17
 
+  luxon@3.7.2: {}
+
   lz-string@1.5.0: {}
 
   lz4js@0.2.0:
@@ -8418,6 +8498,8 @@ snapshots:
       minimist: 1.2.8
       strip-bom: 3.0.0
 
+  tslib@2.3.0: {}
+
   tslib@2.8.1: {}
 
   type-check@0.4.0:
@@ -8777,6 +8859,10 @@ snapshots:
   zod@3.25.76: {}
 
   zod@4.6.7: {}
+
+  zrender@6.1.0:
+    dependencies:
+      tslib: 2.3.0
 
   zstd-codec@0.1.5:
     optional: true

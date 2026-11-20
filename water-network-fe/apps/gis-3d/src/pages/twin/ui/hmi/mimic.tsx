@@ -4,15 +4,17 @@
  * (running green, manual amber, stopped grey, fault red blinking).
  */
 import { Show, type JSX, For } from 'solid-js'
+import { IX } from './ix'
 
 export type MimicState = 'run' | 'man' | 'stop' | 'fault' | 'na' | 'travel'
-export const FILL: Record<MimicState, string> = { run: '#2fbf5a', man: '#f0a20a', stop: '#6c7786', fault: '#e0453a', na: '#6c7786', travel: '#e8c547' }
+/** state colours: Siemens iX classic theme tokens (CSS variables, so they are applied through `style`) */
+export const FILL: Record<MimicState, string> = { run: IX.success, man: IX.warning, stop: IX.neutral, fault: IX.alarm, na: IX.neutral, travel: IX.warning }
 export const FLUID: Record<string, string> = { raw: '#a07c4c', settled: '#5fa8a0', clean: '#3c9be8', chem: '#d9a21b', cl: '#8fc93a', air: '#c9d4dc', waste: '#7b6650', wash: '#62c0f0' }
 
 export function Pipe(props: { d: string; fluid?: keyof typeof FLUID; flow?: boolean; w?: number }) {
   return (
     <>
-      <path d={props.d} fill="none" stroke="#0e141b" stroke-width={(props.w ?? 6) + 3} stroke-linejoin="round" />
+      <path d={props.d} fill="none" style={{ stroke: IX.bg }} stroke-width={(props.w ?? 6) + 3} stroke-linejoin="round" />
       <path d={props.d} fill="none" stroke={FLUID[props.fluid ?? 'clean']} stroke-width={props.w ?? 6} stroke-linejoin="round" />
       <Show when={props.flow}>
         <path d={props.d} fill="none" stroke="rgba(255,255,255,.55)" stroke-width={Math.max(1.5, (props.w ?? 6) / 3)} class="hm-flow" stroke-linejoin="round" />
@@ -34,8 +36,8 @@ export function Pump(props: { tag: string; x: number; y: number; r?: number; sta
   return (
     <Clickable tag={props.tag} onOpen={props.onOpen}>
       <g transform={`translate(${props.x} ${props.y}) rotate(${props.rot ?? 0})`}>
-        <circle r={r()} fill={FILL[props.state]} stroke="#dfe7ef" stroke-width="2" class={props.state === 'fault' ? 'hm-blink' : undefined} />
-        <path d={`M${-r() * 0.45} ${-r() * 0.55}L${r() * 0.65} 0L${-r() * 0.45} ${r() * 0.55}Z`} fill="#0e141b" />
+        <circle r={r()} style={{ fill: FILL[props.state], stroke: IX.text }} stroke-width="2" class={props.state === 'fault' ? 'hm-blink' : undefined} />
+        <path d={`M${-r() * 0.45} ${-r() * 0.55}L${r() * 0.65} 0L${-r() * 0.45} ${r() * 0.55}Z`} style={{ fill: IX.bg }} />
       </g>
       <text x={props.x} y={props.y + r() + 13} class="hm-tag" text-anchor="middle">
         {props.label ?? props.tag}
@@ -55,9 +57,9 @@ export function Valve(props: { tag: string; x: number; y: number; open: number; 
   return (
     <Clickable tag={props.tag} onOpen={props.onOpen}>
       <g transform={`translate(${props.x} ${props.y}) rotate(${props.vertical ? 90 : 0})`}>
-        <path d={`M${-s()} ${-s() * 0.7}L0 0L${-s()} ${s() * 0.7}ZM${s()} ${-s() * 0.7}L0 0L${s()} ${s() * 0.7}Z`} fill={fill()} stroke="#dfe7ef" stroke-width="1.5" />
-        <rect x={-s() * 0.45} y={-s() * 1.9} width={s() * 0.9} height={s() * 0.8} fill="#e8c547" stroke="#0e141b" />
-        <line x1="0" y1={-s() * 1.1} x2="0" y2="0" stroke="#dfe7ef" stroke-width="1.5" />
+        <path d={`M${-s()} ${-s() * 0.7}L0 0L${-s()} ${s() * 0.7}ZM${s()} ${-s() * 0.7}L0 0L${s()} ${s() * 0.7}Z`} style={{ fill: fill(), stroke: IX.text }} stroke-width="1.5" />
+        <rect x={-s() * 0.45} y={-s() * 1.9} width={s() * 0.9} height={s() * 0.8} style={{ fill: IX.warning, stroke: IX.bg }} />
+        <line x1="0" y1={-s() * 1.1} x2="0" y2="0" style={{ stroke: IX.text }} stroke-width="1.5" />
       </g>
       <Show when={props.label !== false}>
         <text x={props.x} y={props.y + s() + 14} class="hm-tag" text-anchor="middle">
@@ -71,7 +73,7 @@ export function Valve(props: { tag: string; x: number; y: number; open: number; 
 export function Motor(props: { tag: string; x: number; y: number; state: MimicState; onOpen?: (t: string) => void; letter?: string; label?: string }) {
   return (
     <Clickable tag={props.tag} onOpen={props.onOpen}>
-      <circle cx={props.x} cy={props.y} r="11" fill={FILL[props.state]} stroke="#dfe7ef" stroke-width="1.5" class={props.state === 'fault' ? 'hm-blink' : undefined} />
+      <circle cx={props.x} cy={props.y} r="11" style={{ fill: FILL[props.state], stroke: IX.text }} stroke-width="1.5" class={props.state === 'fault' ? 'hm-blink' : undefined} />
       <text x={props.x} y={props.y + 4} class="hm-letter" text-anchor="middle">
         {props.letter ?? 'M'}
       </text>
@@ -86,10 +88,10 @@ export function Tank(props: { x: number; y: number; w: number; h: number; level:
   const lv = () => Math.max(0, Math.min(1, props.level))
   return (
     <Clickable tag={props.tag} onOpen={props.onOpen}>
-      <rect x={props.x} y={props.y} width={props.w} height={props.h} fill="#18212b" stroke="#9aa6b4" stroke-width="2" />
+      <rect x={props.x} y={props.y} width={props.w} height={props.h} style={{ fill: IX.bg, stroke: IX.border }} stroke-width="2" />
       <rect x={props.x + 2} y={props.y + props.h - (props.h - 4) * lv() - 2} width={props.w - 4} height={(props.h - 4) * lv()} fill={FLUID[props.fluid ?? 'clean']} opacity="0.85" />
       <Show when={props.open === false}>
-        <line x1={props.x} y1={props.y} x2={props.x + props.w} y2={props.y} stroke="#9aa6b4" stroke-width="4" />
+        <line x1={props.x} y1={props.y} x2={props.x + props.w} y2={props.y} style={{ stroke: IX.border }} stroke-width="4" />
       </Show>
       <Show when={props.label}>
         <text x={props.x + props.w / 2} y={props.y - 7} class="hm-title" text-anchor="middle">
@@ -107,7 +109,7 @@ export function Value(props: { x: number; y: number; label: string; value: strin
   const w = () => props.w ?? 118
   return (
     <Clickable tag={props.tag} onOpen={props.onOpen}>
-      <rect x={props.x} y={props.y} width={w()} height="34" rx="3" fill="#0e141b" stroke={props.warn ? '#e0453a' : '#3a4756'} stroke-width={props.warn ? 2 : 1} class={props.warn ? 'hm-blink-soft' : undefined} />
+      <rect x={props.x} y={props.y} width={w()} height="34" rx="3" style={{ fill: IX.bg, stroke: props.warn ? IX.alarm : IX.weakBorder }} stroke-width={props.warn ? 2 : 1} class={props.warn ? 'hm-blink-soft' : undefined} />
       <text x={props.x + 6} y={props.y + 12} class="hm-label">
         {props.label}
       </text>
@@ -122,7 +124,7 @@ export function Value(props: { x: number; y: number; label: string; value: strin
 export function Box(props: { x: number; y: number; w: number; h: number; label?: string; fill?: string; tag?: string; onOpen?: (t: string) => void; children?: JSX.Element }) {
   return (
     <Clickable tag={props.tag} onOpen={props.onOpen}>
-      <rect x={props.x} y={props.y} width={props.w} height={props.h} fill={props.fill ?? '#18212b'} stroke="#9aa6b4" stroke-width="1.5" />
+      <rect x={props.x} y={props.y} width={props.w} height={props.h} style={{ fill: props.fill ?? IX.bg, stroke: IX.border }} stroke-width="1.5" />
       <Show when={props.label}>
         <text x={props.x + props.w / 2} y={props.y - 6} class="hm-title" text-anchor="middle">
           {props.label}
@@ -137,8 +139,8 @@ export function Bar(props: { x: number; y: number; w: number; value: number; max
   const k = () => Math.max(0, Math.min(1, props.value / props.max))
   return (
     <>
-      <rect x={props.x} y={props.y} width={props.w} height="7" fill="#0e141b" stroke="#3a4756" />
-      <rect x={props.x + 1} y={props.y + 1} width={(props.w - 2) * k()} height="5" fill={props.warnAt !== undefined && props.value > props.warnAt ? '#f0a20a' : '#3c9be8'} />
+      <rect x={props.x} y={props.y} width={props.w} height="7" style={{ fill: IX.bg, stroke: IX.weakBorder }} />
+      <rect x={props.x + 1} y={props.y + 1} width={(props.w - 2) * k()} height="5" style={{ fill: props.warnAt !== undefined && props.value > props.warnAt ? IX.warning : IX.primary }} />
       <Show when={props.label}>
         <text x={props.x + props.w / 2} y={props.y + 19} class="hm-sub" text-anchor="middle">
           {props.label}
@@ -156,16 +158,16 @@ export function Trend(props: { x: number; y: number; w: number; h: number; data:
   const last = () => props.data[props.data.length - 1] ?? 0
   return (
     <>
-      <rect x={props.x} y={props.y} width={props.w} height={props.h} fill="#0e141b" stroke="#3a4756" />
+      <rect x={props.x} y={props.y} width={props.w} height={props.h} style={{ fill: IX.bg, stroke: IX.weakBorder }} />
       <Show when={props.band}>
         {b => {
           const top = () => Math.max(props.y, Math.min(props.y + props.h, yOf(b()[1])))
           const bottom = () => Math.max(props.y, Math.min(props.y + props.h, yOf(b()[0])))
-          return <rect x={props.x} y={top()} width={props.w} height={Math.max(0, bottom() - top())} fill="#2fbf5a" opacity="0.12" />
+          return <rect x={props.x} y={top()} width={props.w} height={Math.max(0, bottom() - top())} style={{ fill: IX.success }} opacity="0.12" />
         }}
       </Show>
       <For each={[0.25, 0.5, 0.75]}>{k => (
-        <line x1={props.x} x2={props.x + props.w} y1={props.y + props.h * k} y2={props.y + props.h * k} stroke="#222c38" />
+        <line x1={props.x} x2={props.x + props.w} y1={props.y + props.h * k} y2={props.y + props.h * k} style={{ stroke: IX.weakBorder }} opacity="0.4" />
       )}</For>
       <path d={d()} fill="none" stroke={props.color} stroke-width="1.8" />
       <text x={props.x + 6} y={props.y + 14} class="hm-label">

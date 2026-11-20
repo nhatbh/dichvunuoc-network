@@ -6,15 +6,37 @@
  *    pumps, HMI-05 the filter gallery …), as on a panel mounted next to the equipment.
  * Every symbol opens the item's faceplate; commands go to the same simulation the 3D views and the map use.
  */
+import {
+  iconAlarm,
+  iconAlarmBell,
+  iconClose,
+  iconConnected,
+  iconDashboard,
+  iconHistory,
+  iconHome,
+  iconLayers,
+  iconLocation,
+  iconPlant,
+  iconSingleCheck,
+  iconTree,
+  iconTrend,
+  iconWarning,
+  iconBulb,
+  iconMaintenance,
+  iconRefresh,
+} from '@siemens/ix-icons/icons'
 import { createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch, type JSX } from 'solid-js'
+import { setupIx } from './ix'
+import { EChart, gaugeOption, trendOption } from './ix-charts'
+import { IxFaceplate } from './ix-faceplate'
 import { Bar, Box, MimicButton, Motor, Pipe, Pump, Tank, Trend, Valve, Value, type MimicState } from './mimic'
 import { NET_DEVICES } from '../../data/network-devices'
 import { solveNetwork } from '../../data/network-model'
 import { EQUIPMENT_BY_TAG, type HmiScreenId } from '../../data/plant-model'
 import { deviceReadings, deviceStatus } from '../../sim/network-devices-state'
-import { fmtClock, PHASE_LABEL } from '../../sim/plant-sim'
+import { fmtClock, PHASE_LABEL, type PlantSim } from '../../sim/plant-sim'
 import { CatalogIcon } from '../catalog-info'
-import { Faceplate, stateOf } from '../faceplate'
+import { stateOf } from '../faceplate'
 import { f0, f1, f2, useSim } from '../sim-context'
 import './hmi.css'
 
@@ -26,17 +48,17 @@ export interface HmiTarget {
   station?: string
 }
 
-export const SCREENS: Array<{ id: HmiScreenId; label: string }> = [
-  { id: 'overview', label: 'Tổng quan' },
-  { id: 'tb1', label: 'TB1 nước thô' },
-  { id: 'clarifier', label: 'Trộn – lắng' },
-  { id: 'filters', label: 'Bể lọc' },
-  { id: 'pumps', label: 'Bơm nước sạch' },
-  { id: 'chemicals', label: 'Hóa chất & clo' },
-  { id: 'power', label: 'Điện' },
-  { id: 'network', label: 'Mạng lưới' },
-  { id: 'alarms', label: 'Báo động' },
-  { id: 'trends', label: 'Xu hướng' },
+export const SCREENS: Array<{ id: HmiScreenId; label: string; icon: string }> = [
+  { id: 'overview', label: 'Tổng quan', icon: iconHome },
+  { id: 'tb1', label: 'TB1 nước thô', icon: iconLocation },
+  { id: 'clarifier', label: 'Trộn – lắng', icon: iconLayers },
+  { id: 'filters', label: 'Bể lọc', icon: iconRefresh },
+  { id: 'pumps', label: 'Bơm nước sạch', icon: iconTree },
+  { id: 'chemicals', label: 'Hóa chất & clo', icon: iconMaintenance },
+  { id: 'power', label: 'Điện', icon: iconBulb },
+  { id: 'network', label: 'Mạng lưới', icon: iconDashboard },
+  { id: 'alarms', label: 'Báo động', icon: iconAlarm },
+  { id: 'trends', label: 'Xu hướng', icon: iconTrend },
 ]
 const LOCAL_SCREENS: Partial<Record<HmiScreenId, HmiScreenId[]>> = {
   tb1: ['tb1', 'alarms'],
@@ -49,6 +71,7 @@ const LOCAL_SCREENS: Partial<Record<HmiScreenId, HmiScreenId[]>> = {
 }
 
 export function ScadaWindow(props: { target: HmiTarget; onClose: () => void }) {
+  setupIx()
   const { sim, v } = useSim()
   const first = props.target.screen === 'transfer' ? 'clarifier' : props.target.screen
    
@@ -67,48 +90,68 @@ export function ScadaWindow(props: { target: HmiTarget; onClose: () => void }) {
   const open = (tag: string) => EQUIPMENT_BY_TAG[tag] && setFace(tag)
   const crit = () => (v(), sim.activeAlarms.some(a => a.level === 'crit'))
   const last = () => (v(), sim.activeAlarms[0])
+  const count = () => (v(), sim.activeAlarms.length)
+  const svgScreen = () => !['alarms', 'network', 'trends'].includes(screen())
   return (
     <div class="hm-backdrop" role="dialog" aria-modal="true" aria-label={local() ? 'Màn hình HMI tại chỗ' : 'SCADA trung tâm'}>
       <div class={local() ? 'hm-bezel' : 'hm-full'}>
         <Show when={local()}>
           <div class="hm-bezel-top">
-            <span>{props.target.station ?? 'HMI'} · Panel 15″</span>
+            <span>{props.target.station ?? 'HMI'} · Panel 15″ · Siemens iX</span>
             <span class="hm-led" />
           </div>
         </Show>
-        <div class="hm-screen">
-          <header class="hm-head">
-            <div class="hm-brand">
-              <b>{local() ? `${props.target.station ?? 'HMI'} · VẬN HÀNH TẠI CHỖ` : 'SCADA TRUNG TÂM'}</b>
-              <span>{local() ? station()?.name ?? '' : 'Nhà máy nước sạch Sông Hồng · 29.000 m³/ngđ'}</span>
+        <div class="hm-screen hx" data-ix-theme="classic" data-ix-color-schema="dark">
+          <header class="hx-head">
+            <ix-icon name={local() ? iconDashboard : iconPlant} size="24" />
+            <div class="hx-brand">
+              <ix-typography format="h4">{local() ? `${props.target.station ?? 'HMI'} · Vận hành tại chỗ` : 'SCADA trung tâm'}</ix-typography>
+              <ix-typography format="body-xs" text-color="soft">
+                {local() ? (station()?.name ?? '') : 'Nhà máy nước sạch Sông Hồng · 29.000 m³/ngđ'}
+              </ix-typography>
             </div>
-            <div class="hm-comm">
+            <div class="hx-comm">
               <For each={local() ? [station()?.tag ?? 'PLC', 'SCADA'] : ['PLC-TB1', 'PLC-03', 'PLC-04', 'PLC-05', 'PLC-07', 'PLC-08', 'RTU-VT3']}>
                 {c => (
-                  <span class="hm-commchip" title="Truyền thông OK">
-                    <i /> {c}
-                  </span>
+                  <ix-chip variant="success" outline icon={iconConnected} tooltip-text="Truyền thông OK">
+                    {c}
+                  </ix-chip>
                 )}
               </For>
             </div>
-            <div class="hm-clock">{(v(), sim.clock)}</div>
-            <button type="button" class={`hm-alarmcount ${crit() ? 'crit' : (v(), sim.activeAlarms.length) ? 'warn' : ''}`} onClick={() => setScreen('alarms')}>
-              {(v(), sim.activeAlarms.length)} báo động
-            </button>
-            <button type="button" class="hm-x" onClick={() => props.onClose()} aria-label="Đóng màn hình">
-              ✕
-            </button>
+            <ix-typography format="h3" class="hx-clock">
+              {(v(), sim.clock)}
+            </ix-typography>
+            <ix-chip variant={crit() ? 'alarm' : count() ? 'warning' : 'neutral'} icon={iconAlarmBell} onClick={() => setScreen('alarms')}>
+              {count()} báo động
+            </ix-chip>
+            <ix-icon-button icon={iconClose} variant="subtle-tertiary" onClick={() => props.onClose()} aria-label="Đóng màn hình" />
           </header>
-          <nav class="hm-nav" aria-label="Màn hình">
-            <For each={tabs()}>
-              {s => (
-                <button type="button" aria-pressed={screen() === s.id} onClick={() => setScreen(s.id)}>
-                  {s.label}
-                </button>
-              )}
-            </For>
-            <span class="hm-mode">{local() ? 'Quyền điều khiển: TẠI CHỖ (ưu tiên)' : 'Quyền điều khiển: TRUNG TÂM'}</span>
-          </nav>
+          <div class="hx-tabs">
+            <ix-tabs prop:activeTabKey={screen()} small>
+              <For each={tabs()}>
+                {s => (
+                  <ix-tab-item tab-key={s.id} icon={s.icon} prop:counter={s.id === 'alarms' && count() ? count() : undefined} onClick={() => setScreen(s.id)}>
+                    {s.label}
+                  </ix-tab-item>
+                )}
+              </For>
+            </ix-tabs>
+            <ix-pill variant={local() ? 'warning' : 'info'} outline class="hx-mode">
+              {local() ? 'Quyền: TẠI CHỖ (ưu tiên)' : 'Quyền: TRUNG TÂM'}
+            </ix-pill>
+          </div>
+          <Show when={!local()}>
+            <div class="hx-kpis">
+              <ix-kpi label="Nước thô vào" value={(v(), f0(sim.qRaw))} unit="m³/h" />
+              <ix-kpi label="Phát ra mạng" value={(v(), f0(sim.qOut))} unit="m³/h" />
+              <ix-kpi label="Áp lực ra PT-701" value={(v(), f2(sim.pOut))} unit="bar" state={(v(), sim.pOut < 2.5 ? 'alarm' : 'neutral')} />
+              <ix-kpi label="Bể chứa LT-601" value={(v(), f0(sim.reservoirPct))} unit="%" state={(v(), sim.reservoirPct < 8 ? 'alarm' : sim.reservoirPct < 20 ? 'warning' : 'neutral')} />
+              <ix-kpi label="Độ đục sau lọc" value={(v(), f2(sim.filteredTurb))} unit="NTU" state={(v(), sim.filteredTurb > 2 ? 'alarm' : sim.filteredTurb > 1 ? 'warning' : 'neutral')} />
+              <ix-kpi label="Clo dư AIT-601" value={(v(), f2(sim.clRes))} unit="mg/L" state={(v(), sim.clRes < 0.3 ? 'warning' : 'neutral')} />
+              <ix-kpi label="Điện năng" value={(v(), f2(sim.specificEnergy))} unit="kWh/m³" />
+            </div>
+          </Show>
           <div class="hm-body">
             <Switch>
               <Match when={screen() === 'alarms'}>
@@ -117,63 +160,105 @@ export function ScadaWindow(props: { target: HmiTarget; onClose: () => void }) {
               <Match when={screen() === 'network'}>
                 <NetworkScreen />
               </Match>
-              <Match when={true}>
-                <svg class="hm-svg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet">
-                  <Switch>
-                    <Match when={screen() === 'overview'}>
-                      <Overview onOpen={open} />
-                    </Match>
-                    <Match when={screen() === 'tb1'}>
-                      <Tb1Screen onOpen={open} />
-                    </Match>
-                    <Match when={screen() === 'clarifier'}>
-                      <ClarifierScreen onOpen={open} />
-                    </Match>
-                    <Match when={screen() === 'filters'}>
-                      <FilterScreen onOpen={open} />
-                    </Match>
-                    <Match when={screen() === 'pumps'}>
-                      <PumpScreen onOpen={open} />
-                    </Match>
-                    <Match when={screen() === 'chemicals'}>
-                      <ChemScreen onOpen={open} />
-                    </Match>
-                    <Match when={screen() === 'power'}>
-                      <PowerScreen onOpen={open} />
-                    </Match>
-                    <Match when={screen() === 'trends'}>
-                      <TrendScreen />
-                    </Match>
-                  </Switch>
-                </svg>
+              <Match when={screen() === 'trends'}>
+                <TrendScreen />
               </Match>
             </Switch>
+            <Show when={svgScreen()}>
+              <svg class="hm-svg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet">
+                <Switch>
+                  <Match when={screen() === 'overview'}>
+                    <Overview onOpen={open} />
+                  </Match>
+                  <Match when={screen() === 'tb1'}>
+                    <Tb1Screen onOpen={open} />
+                  </Match>
+                  <Match when={screen() === 'clarifier'}>
+                    <ClarifierScreen onOpen={open} />
+                  </Match>
+                  <Match when={screen() === 'filters'}>
+                    <FilterScreen onOpen={open} />
+                  </Match>
+                  <Match when={screen() === 'pumps'}>
+                    <PumpScreen onOpen={open} />
+                  </Match>
+                  <Match when={screen() === 'chemicals'}>
+                    <ChemScreen onOpen={open} />
+                  </Match>
+                  <Match when={screen() === 'power'}>
+                    <PowerScreen onOpen={open} />
+                  </Match>
+                </Switch>
+              </svg>
+              <Show when={screen() === 'overview' || screen() === 'pumps'}>
+                <GaugeColumn kind={screen() as 'overview' | 'pumps'} />
+              </Show>
+            </Show>
             <Show when={face()}>
               {t => (
                 <aside class="hm-face">
-                  <Faceplate tag={t()} onClose={() => setFace(null)} />
+                  <IxFaceplate tag={t()} onClose={() => setFace(null)} />
                 </aside>
               )}
             </Show>
           </div>
           <footer class={`hm-foot ${last()?.level ?? ''}`}>
-            <Show when={last()} fallback={<span>Không có báo động đang hoạt động</span>}>
+            <Show
+              when={last()}
+              fallback={
+                <ix-typography format="body-sm" text-color="soft">
+                  Không có báo động đang hoạt động
+                </ix-typography>
+              }
+            >
               {a => (
                 <>
-                  <span class={`hm-lv ${a().level}`} />
+                  <ix-pill variant={a().level === 'crit' ? 'alarm' : 'warning'} icon={a().level === 'crit' ? iconAlarm : iconWarning}>
+                    {a().level === 'crit' ? 'NGUY CẤP' : 'CẢNH BÁO'}
+                  </ix-pill>
                   <span>{fmtClock(a().t)}</span>
                   <b>{a().tag}</b>
                   <span>{a().msg}</span>
                   <span style={{ flex: 1 }} />
-                  <button type="button" class="hm-ack" onClick={() => sim.ackAll()}>
+                  <ix-button variant="secondary" icon={iconSingleCheck} onClick={() => sim.ackAll()}>
                     Xác nhận
-                  </button>
+                  </ix-button>
                 </>
               )}
             </Show>
           </footer>
         </div>
       </div>
+    </div>
+  )
+}
+
+/** ECharts gauges (iX theme) beside the overview / pump mimics. */
+function GaugeColumn(props: { kind: 'overview' | 'pumps' }) {
+  const { sim, v } = useSim()
+  const G = { ok: '#44cc00', warn: '#ffbb00', bad: '#ff2453', info: '#00bde3' }
+  const gauges = () => {
+    v()
+    if (props.kind === 'pumps')
+      return ['P-NS-01', 'P-NS-02', 'P-NS-03'].map(t => {
+        const d = sim.dev[t]!
+        return gaugeOption({ name: `${t} · Hz`, value: d.run && !d.fault ? d.sp : 0, min: 0, max: 50, unit: 'Hz', bands: [[0.6, G.info], [0.9, G.ok], [1, G.warn]] })
+      })
+    return [
+      gaugeOption({ name: 'Áp lực ra PT-701', value: sim.pOut, min: 0, max: 7, unit: 'bar', digits: 2, bands: [[0.36, G.bad], [0.5, G.warn], [0.8, G.ok], [1, G.warn]] }),
+      gaugeOption({ name: 'Bể chứa LT-601', value: sim.reservoirPct, min: 0, max: 100, unit: '%', digits: 0, bands: [[0.08, G.bad], [0.2, G.warn], [0.95, G.ok], [1, G.warn]] }),
+      gaugeOption({ name: 'Độ đục sau lọc', value: sim.filteredTurb, min: 0, max: 3, unit: 'NTU', digits: 2, bands: [[0.33, G.ok], [0.66, G.warn], [1, G.bad]] }),
+    ]
+  }
+  return (
+    <div class="hx-gauges">
+      <For each={[0, 1, 2]}>
+        {i => (
+          <div class="hx-gauge">
+            <EChart option={gauges()[i]!} />
+          </div>
+        )}
+      </For>
     </div>
   )
 }
@@ -623,19 +708,28 @@ function PowerScreen(props: ScreenProps) {
 }
 
 function TrendScreen() {
-  const { sim, v } = useState()
+  const { sim, v } = useSim()
+  const charts: Array<{ series: Array<{ name: string; key: keyof PlantSim['history']; unit: string }>; band?: [number, number]; min?: number; max?: number }> = [
+    { series: [{ name: 'PT-701 áp lực ra', key: 'pOut', unit: 'bar' }], band: [3.6, 4.8] },
+    { series: [{ name: 'FT-701 lưu lượng phát', key: 'qOut', unit: 'm³/h' }] },
+    { series: [{ name: 'LT-601 bể chứa', key: 'res', unit: '%' }], band: [30, 95], min: 0, max: 100 },
+    { series: [{ name: 'AIT-501 độ đục sau lọc', key: 'turb', unit: 'NTU' }], band: [0, 1], min: 0 },
+    { series: [{ name: 'AIT-601 clo dư', key: 'cl', unit: 'mg/L' }], band: [0.3, 1] },
+    { series: [{ name: 'AIT-201 độ đục nước thô', key: 'raw', unit: 'NTU' }] },
+  ]
   return (
-    <>
-      <T x={16} y={24}>
-        Xu hướng 24 giờ
-      </T>
-      <Trend x={20} y={50} w={570} h={160} data={(v(), sim.history.pOut)} color="#3c9be8" label="PT-701 áp lực đầu ra" unit="bar" band={[3.6, 4.8]} />
-      <Trend x={610} y={50} w={570} h={160} data={(v(), sim.history.qOut)} color="#62c0f0" label="FT-701 lưu lượng phát" unit="m³/h" />
-      <Trend x={20} y={230} w={570} h={160} data={(v(), sim.history.res)} color="#2fbf5a" label="LT-601 mực nước bể chứa" unit="%" band={[30, 95]} min={0} max={100} />
-      <Trend x={610} y={230} w={570} h={160} data={(v(), sim.history.turb)} color="#f0a20a" label="AIT-501 độ đục sau lọc" unit="NTU" band={[0, 1]} min={0} />
-      <Trend x={20} y={410} w={570} h={160} data={(v(), sim.history.cl)} color="#8fc93a" label="AIT-601 clo dư" unit="mg/L" band={[0.3, 1]} />
-      <Trend x={610} y={410} w={570} h={160} data={(v(), sim.history.raw)} color="#a07c4c" label="AIT-201 độ đục nước thô" unit="NTU" />
-    </>
+    <div class="hx-trends">
+      <For each={charts}>
+        {c => (
+          <div class="hx-trend">
+            <EChart
+              option={(v(),
+              trendOption({ series: c.series.map(s => ({ name: s.name, unit: s.unit, data: sim.history[s.key] })), band: c.band, min: c.min, max: c.max, endClock: sim.t }))}
+            />
+          </div>
+        )}
+      </For>
+    </div>
   )
 }
 
@@ -644,63 +738,60 @@ function AlarmScreen(props: { onOpen: (t: string) => void }) {
   const [showLog, setShowLog] = createSignal(false)
   return (
     <div class="hm-table-wrap">
-      <div class="hm-table-tools">
-        <button type="button" aria-pressed={!showLog()} onClick={() => setShowLog(false)}>
+      <div class="hx-row" style={{ 'margin-bottom': '8px' }}>
+        <ix-button variant={showLog() ? 'subtle-primary' : 'primary'} onClick={() => setShowLog(false)}>
           Báo động
-        </button>
-        <button type="button" aria-pressed={showLog()} onClick={() => setShowLog(true)}>
+        </ix-button>
+        <ix-button variant={showLog() ? 'primary' : 'subtle-primary'} icon={iconHistory} onClick={() => setShowLog(true)}>
           Nhật ký vận hành
-        </button>
+        </ix-button>
         <span style={{ flex: 1 }} />
-        <button type="button" onClick={() => sim.ackAll()}>
+        <ix-button variant="secondary" icon={iconSingleCheck} onClick={() => sim.ackAll()}>
           Xác nhận tất cả
-        </button>
+        </ix-button>
       </div>
       <Show
         when={showLog()}
         fallback={
-          <table class="hm-table">
-            <thead>
-              <tr>
-                <th>Giờ</th>
-                <th>Mức</th>
-                <th>Tag</th>
-                <th>Nội dung</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Show when={(v(), sim.alarms.length)} fallback={<ix-typography text-color="soft">Chưa có báo động.</ix-typography>}>
+            <ix-event-list item-height="S" chevron>
               <For each={(v(), sim.alarms.slice(0, 40))}>
                 {a => (
-                  <tr class={`${a.active ? 'act' : ''} ${a.acked ? '' : 'unack'} ${a.level}`} onClick={() => props.onOpen(a.tag)}>
-                    <td>{fmtClock(a.t)}</td>
-                    <td>{a.level === 'crit' ? 'NGUY CẤP' : a.level === 'warn' ? 'CẢNH BÁO' : 'TIN'}</td>
-                    <td>{a.tag}</td>
-                    <td>{a.msg}</td>
-                    <td>
-                      {a.active ? 'Đang hoạt động' : 'Đã hết'} · {a.acked ? 'đã xác nhận' : 'chưa xác nhận'}
-                    </td>
-                  </tr>
+                  <ix-event-list-item item-color={a.level === 'crit' ? 'color-alarm' : a.level === 'warn' ? 'color-warning' : 'color-info'} prop:selected={!a.acked && a.active} onClick={() => props.onOpen(a.tag)}>
+                    <div class="hx-event">
+                      <span class="hx-event-time">{fmtClock(a.t)}</span>
+                      <b>{a.tag}</b>
+                      <span class="hx-event-msg">{a.msg}</span>
+                      <ix-pill variant={a.active ? (a.level === 'crit' ? 'alarm' : 'warning') : 'neutral'} outline>
+                        {a.active ? 'Đang hoạt động' : 'Đã hết'}
+                      </ix-pill>
+                      <ix-pill variant={a.acked ? 'success' : 'neutral'} outline>
+                        {a.acked ? 'Đã xác nhận' : 'Chưa xác nhận'}
+                      </ix-pill>
+                    </div>
+                  </ix-event-list-item>
                 )}
               </For>
-            </tbody>
-          </table>
+            </ix-event-list>
+          </Show>
         }
       >
-        <table class="hm-table">
-          <tbody>
-            <For each={(v(), sim.log.slice(0, 60))}>
-              {l => (
-                <tr>
-                  <td>{fmtClock(l.t)}</td>
-                  <td>{l.who === 'op' ? 'Vận hành' : l.who === 'auto' ? 'Tự động' : 'Hệ thống'}</td>
-                  <td>{l.tag}</td>
-                  <td>{l.msg}</td>
-                </tr>
-              )}
-            </For>
-          </tbody>
-        </table>
+        <ix-event-list item-height="S" compact>
+          <For each={(v(), sim.log.slice(0, 60))}>
+            {l => (
+              <ix-event-list-item item-color={l.who === 'op' ? 'color-primary' : l.who === 'auto' ? 'color-success' : 'color-neutral'}>
+                <div class="hx-event">
+                  <span class="hx-event-time">{fmtClock(l.t)}</span>
+                  <ix-pill variant="neutral" outline>
+                    {l.who === 'op' ? 'Vận hành' : l.who === 'auto' ? 'Tự động' : 'Hệ thống'}
+                  </ix-pill>
+                  <b>{l.tag}</b>
+                  <span class="hx-event-msg">{l.msg}</span>
+                </div>
+              </ix-event-list-item>
+            )}
+          </For>
+        </ix-event-list>
       </Show>
     </div>
   )
@@ -714,27 +805,14 @@ function NetworkScreen() {
     return solveNetwork({ entryHead: z.head, qZone: z.q, qOut: sim.qOut, qRaw: sim.qRaw, demandFactor: sim.demandFactor, closedValves: sim.closedNetValves })
   })
   const telemetry = NET_DEVICES.filter(d => ['MotorisedValve', 'BulkMeter', 'PressureSensor', 'ChlorineAnalyser', 'RTU', 'AcousticLogger'].includes(d.code))
+  const PILL = { normal: ['success', 'Bình thường'], warning: ['warning', 'Cảnh báo'], critical: ['alarm', 'Nguy cấp'], offline: ['neutral', 'Mất kết nối / mất nước'] } as const
   return (
     <div class="hm-table-wrap">
-      <div class="hm-net-kpis">
-        <div>
-          <span>Áp lực điểm đấu nối Vĩnh Thịnh</span>
-          <b>{(v(), f1(sim.zone.head))} m</b>
-        </div>
-        <div>
-          <span>Lưu lượng vào vùng (DMA)</span>
-          <b>
-            {(v(), f0(sim.zone.q))} / {(v(), f0(sim.zone.qDemand))} m³/h
-          </b>
-        </div>
-        <div>
-          <span>Áp lực thấp nhất mạng</span>
-          <b>{f1(sol().minP)} m</b>
-        </div>
-        <div>
-          <span>Đoạn ống mất nước</span>
-          <b>{sol().unsupplied}</b>
-        </div>
+      <div class="hx-kpis" style={{ padding: '0 0 10px' }}>
+        <ix-kpi label="Áp lực điểm đấu nối Vĩnh Thịnh" value={(v(), f1(sim.zone.head))} unit="m" state={(v(), sim.zone.head < 15 ? 'alarm' : 'neutral')} />
+        <ix-kpi label="Lưu lượng vào vùng (DMA)" value={(v(), `${f0(sim.zone.q)} / ${f0(sim.zone.qDemand)}`)} unit="m³/h" />
+        <ix-kpi label="Áp lực thấp nhất mạng" value={f1(sol().minP)} unit="m" state={sol().minP < 12 ? 'warning' : 'neutral'} />
+        <ix-kpi label="Đoạn ống mất nước" value={String(sol().unsupplied)} state={sol().unsupplied ? 'alarm' : 'neutral'} />
       </div>
       <table class="hm-table">
         <thead>
@@ -751,13 +829,17 @@ function NetworkScreen() {
             {d => {
               const s = () => (v(), deviceStatus(d, sol(), sim))
               return (
-                <tr class={s() === 'critical' ? 'crit act' : s() === 'warning' ? 'warn act' : ''}>
+                <tr>
                   <td>
                     <CatalogIcon code={d.code} status={s()} size={20} />
                   </td>
                   <td>{d.tag}</td>
                   <td>{d.code}</td>
-                  <td>{{ normal: 'Bình thường', warning: 'Cảnh báo', critical: 'Nguy cấp', offline: 'Mất kết nối / mất nước' }[s()]}</td>
+                  <td>
+                    <ix-pill variant={PILL[s()][0]} outline>
+                      {PILL[s()][1]}
+                    </ix-pill>
+                  </td>
                   <td>
                     {(v(),
                     deviceReadings(d.id, sol(), sim)

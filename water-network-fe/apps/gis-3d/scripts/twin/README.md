@@ -79,3 +79,17 @@ supplies its 3D model, flat symbol, functions and properties.
   central SCADA, with these screens: overview P&ID, TB1, clarification, filters, clean-water pumps, chemicals &
   chlorine, power, network telemetry, alarms and trends. An HMI or PLC panel's faceplate opens the same screens as
   a local operator panel. Clicking a symbol opens its faceplate, and commands go to the shared simulation.
+
+### Professional HMI library: Siemens iX + ECharts
+
+The SCADA / HMI screens use **Siemens Industrial Experience (iX)**: `@siemens/ix` 5.3, `@siemens/ix-icons` 3.7,
+both MIT. These are the web components behind Siemens' industrial HMI style. Charts use **Apache ECharts** 6.1
+with the iX theme (`@siemens/ix-echarts`).
+- iX components used: tabs, KPIs, communication chips, pills, key/value lists, AUTO/MAN toggle, command buttons
+  with a confirmation step, setpoint slider, event list for alarms and the operator log. ECharts provides the
+  gauges (outlet pressure, reservoir, turbidity, pump frequency) and the 24 h trends.
+- The P&ID mimics stay SVG, coloured with iX theme tokens.
+- Only iX's design tokens are loaded, scoped to the SCADA container `.hx` (`data-ix-theme="classic"
+  data-ix-color-schema="dark"`). iX's global element styles are not loaded, so the rest of the app is unchanged.
+  The tokens file `src/pages/twin/ui/hmi/ix-scoped.css` is generated from the installed package:
+  `node scripts/twin/build-ix-scoped-css.mjs`. Rerun it after upgrading `@siemens/ix`.

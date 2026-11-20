@@ -1,9 +1,12 @@
-/* Mock SCADA / local HMI: dark operator theme, independent of the app's light/dark tokens. */
+/*
+ * SCADA / HMI frame around Siemens iX components. Colours, type scale and spacing come from the iX classic-dark
+ * theme tokens (scoped to .hx via data-ix-theme / data-ix-color-schema); iX's global stylesheet is not loaded.
+ */
 .hm-backdrop {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(6, 10, 14, 0.62);
+  background: rgba(4, 8, 10, 0.66);
   display: grid;
   place-items: center;
 }
@@ -13,11 +16,11 @@
   display: flex;
 }
 .hm-bezel {
-  width: min(1180px, calc(100vw - 32px));
-  height: min(760px, calc(100vh - 32px));
-  background: linear-gradient(#2b3036, #1c2024);
+  width: min(1240px, calc(100vw - 32px));
+  height: min(800px, calc(100vh - 32px));
+  background: linear-gradient(#2c3236, #1b1f22);
   border-radius: 18px;
-  padding: 14px 18px 22px;
+  padding: 12px 16px 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
@@ -36,128 +39,75 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #2fbf5a;
-  box-shadow: 0 0 6px #2fbf5a;
+  background: #44cc00;
+  box-shadow: 0 0 6px #44cc00;
+}
+/* the iX themed screen */
+.hx {
+  --theme-box-shadow-level-1: var(--theme-shadow-1);
+  --theme-box-shadow-level-2: var(--theme-shadow-2);
+  --theme-box-shadow-level-3: var(--theme-shadow-3);
+  --theme-box-shadow-lvl-1: var(--theme-shadow-1);
+  --theme-box-shadow-lvl-2: var(--theme-shadow-2);
+  --theme-z-index-dropdown: 1060;
+  --theme-z-index-tooltip: 1070;
+  font-family: var(--theme-font-sans, 'Siemens Sans', Arial, Helvetica, sans-serif);
+  font-size: var(--theme-ms-0, 0.875rem);
+  color: var(--theme-color-std-text);
+  background: var(--theme-color-1);
 }
 .hm-screen {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #141b23;
-  color: #dfe7ef;
-  border: 1px solid #2a3542;
+  border: 1px solid var(--theme-color-weak-bdr);
   border-radius: 6px;
   overflow: hidden;
-  font-size: 13px;
 }
-.hm-head {
+.hx-head {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
-  background: #0e141b;
-  border-bottom: 1px solid #2a3542;
+  background: var(--theme-color-2);
+  border-bottom: 1px solid var(--theme-color-weak-bdr);
 }
-.hm-brand {
+.hx-brand {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-.hm-brand b {
-  font-size: 14px;
-  letter-spacing: 0.04em;
-}
-.hm-brand span {
-  font-size: 11.5px;
-  color: #9aa6b4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.hm-comm {
+.hx-comm {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex: 1;
   justify-content: center;
   flex-wrap: wrap;
 }
-.hm-commchip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: #b7c2cf;
-  background: #18212b;
-  border: 1px solid #2a3542;
-  border-radius: 10px;
-  padding: 1px 7px;
-}
-.hm-commchip i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #2fbf5a;
-}
-.hm-clock {
-  font-size: 18px;
-  font-weight: 700;
+.hx-clock {
   font-variant-numeric: tabular-nums;
 }
-.hm-alarmcount,
-.hm-x,
-.hm-ack {
-  border: 1px solid #3a4756;
-  background: #18212b;
-  color: #dfe7ef;
-  border-radius: 4px;
-  padding: 5px 10px;
-  font: inherit;
-  font-weight: 650;
-  cursor: pointer;
-}
-.hm-alarmcount.warn {
-  background: #8a5a00;
-  border-color: #f0a20a;
-}
-.hm-alarmcount.crit {
-  background: #9b1f1a;
-  border-color: #e0453a;
-  animation: hm-blink 1s infinite;
-}
-.hm-nav {
+.hx-tabs {
   display: flex;
-  gap: 2px;
-  padding: 4px 8px;
-  background: #18212b;
-  border-bottom: 1px solid #2a3542;
-  overflow-x: auto;
   align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--theme-color-2);
+  border-bottom: 1px solid var(--theme-color-weak-bdr);
 }
-.hm-nav button {
-  border: 1px solid transparent;
-  background: transparent;
-  color: #b7c2cf;
-  font: inherit;
-  font-weight: 600;
-  padding: 5px 11px;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
+.hx-tabs ix-tabs {
+  flex: 1;
+  min-width: 0;
 }
-.hm-nav button:hover {
-  background: #222d3a;
+.hx-mode {
+  flex: none;
 }
-.hm-nav button[aria-pressed='true'] {
-  background: #1d6cae;
-  color: #fff;
-}
-.hm-mode {
-  margin-left: auto;
-  font-size: 11.5px;
-  color: #9aa6b4;
-  white-space: nowrap;
-  padding-left: 12px;
+.hx-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px;
+  padding: 8px 12px;
 }
 .hm-body {
   flex: 1;
@@ -167,89 +117,163 @@
 }
 .hm-svg {
   flex: 1;
+  min-width: 0;
   width: 100%;
   height: 100%;
   font-family: inherit;
+}
+.hx-gauges {
+  width: 240px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--theme-color-weak-bdr);
+}
+.hx-gauge {
+  flex: 1;
+  min-height: 0;
+}
+.hx-trends {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 12px;
+  min-height: 0;
+}
+.hx-trend {
+  background: var(--theme-color-2);
+  border: 1px solid var(--theme-color-weak-bdr);
+  border-radius: 4px;
+  min-height: 0;
 }
 .hm-face {
   position: absolute;
   top: 10px;
   right: 10px;
   bottom: 10px;
-  width: 340px;
+  width: 360px;
   overflow: auto;
+  background: var(--theme-color-2);
+  border: 1px solid var(--theme-color-soft-bdr);
+  border-radius: 6px;
+  box-shadow: var(--theme-shadow-3, 0 10px 30px rgba(0, 0, 0, 0.45));
+  z-index: 5;
+}
+.hx-face {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 12px;
-  background: var(--glass-2);
-  color: var(--ink);
-  border: 1px solid var(--glass-line);
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.hx-face-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.hx-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.hx-section {
+  margin-top: 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--theme-color-soft-text);
+  font-weight: 700;
+}
+.hx-spec {
+  display: block;
+}
+.hx-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hx-confirm {
+  border: 1px solid var(--theme-color-warning);
+  border-radius: 4px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 187, 0, 0.08);
+}
+.hx-warn {
+  --theme-color-std-text: var(--theme-color-alarm);
 }
 .hm-foot {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
-  background: #0e141b;
-  border-top: 1px solid #2a3542;
-  font-size: 12.5px;
-  min-height: 36px;
+  background: var(--theme-color-2);
+  border-top: 1px solid var(--theme-color-weak-bdr);
+  min-height: 40px;
 }
 .hm-foot.crit {
-  background: #4a1512;
+  box-shadow: inset 4px 0 0 var(--theme-color-alarm);
 }
 .hm-foot.warn {
-  background: #3d2c06;
+  box-shadow: inset 4px 0 0 var(--theme-color-warning);
 }
-.hm-lv {
-  width: 11px;
-  height: 11px;
-  border-radius: 2px;
+.hx-event {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  padding-right: 8px;
 }
-.hm-lv.crit {
-  background: #e0453a;
+.hx-event-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--theme-color-soft-text);
+  width: 44px;
 }
-.hm-lv.warn {
-  background: #f0a20a;
+.hx-event-msg {
+  flex: 1;
 }
-/* svg text */
+/* svg mimic text (iX tokens) */
 .hm-title {
-  fill: #dfe7ef;
+  fill: var(--theme-color-std-text);
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 700;
 }
 .hm-tag {
-  fill: #dfe7ef;
+  fill: var(--theme-color-std-text);
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 700;
 }
 .hm-tag.warn {
-  fill: #f0a20a;
+  fill: var(--theme-color-warning);
 }
 .hm-sub {
-  fill: #9aa6b4;
+  fill: var(--theme-color-soft-text);
   font-size: 10.5px;
 }
 .hm-label {
-  fill: #9aa6b4;
+  fill: var(--theme-color-soft-text);
   font-size: 9.5px;
 }
 .hm-val {
-  fill: #7fe39b;
+  fill: var(--theme-color-primary);
   font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .hm-val.warn {
-  fill: #ff7a70;
+  fill: var(--theme-color-alarm);
 }
 .hm-unit {
-  fill: #9aa6b4;
+  fill: var(--theme-color-soft-text);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 400;
 }
 .hm-letter {
-  fill: #0e141b;
+  fill: var(--theme-color-1);
   font-size: 11px;
   font-weight: 800;
   pointer-events: none;
@@ -307,26 +331,29 @@
   opacity: 0.4;
 }
 .hm-btn-bg {
-  fill: #2a3542;
-  stroke: #5b6b7d;
+  fill: var(--theme-color-component-1);
+  stroke: var(--theme-color-soft-bdr);
 }
 .hm-btn-bg.primary {
-  fill: #1d6cae;
+  fill: var(--theme-color-primary);
 }
 .hm-btn-bg.danger {
-  fill: #9b1f1a;
+  fill: var(--theme-color-alarm);
 }
 .hm-btn-bg.ok {
-  fill: #1f7a3c;
+  fill: var(--theme-color-success);
 }
 .hm-btn:not(.disabled):hover .hm-btn-bg {
-  filter: brightness(1.25);
+  filter: brightness(1.2);
 }
 .hm-btn-t {
-  fill: #fff;
+  fill: var(--theme-color-std-text);
   font-size: 11.5px;
-  font-weight: 650;
+  font-weight: 700;
   pointer-events: none;
+}
+.hm-btn-bg.primary + .hm-btn-t {
+  fill: #000;
 }
 /* tables */
 .hm-table-wrap {
@@ -334,74 +361,28 @@
   overflow: auto;
   padding: 10px 12px;
 }
-.hm-table-tools {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.hm-table-tools button {
-  border: 1px solid #3a4756;
-  background: #18212b;
-  color: #dfe7ef;
-  font: inherit;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.hm-table-tools button[aria-pressed='true'] {
-  background: #1d6cae;
-}
 .hm-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 .hm-table th {
   text-align: left;
-  color: #9aa6b4;
-  font-weight: 600;
-  border-bottom: 1px solid #2a3542;
-  padding: 5px 6px;
+  color: var(--theme-color-soft-text);
+  font-weight: 700;
+  border-bottom: 1px solid var(--theme-color-soft-bdr);
+  padding: 6px;
 }
 .hm-table td {
-  border-bottom: 1px solid #1e2833;
+  border-bottom: 1px solid var(--theme-color-weak-bdr);
   padding: 5px 6px;
   vertical-align: middle;
 }
 .hm-table tr:hover td {
-  background: #1b2531;
-  cursor: pointer;
+  background: var(--theme-color-component-1);
 }
-.hm-table tr.act.crit td {
-  color: #ff8c84;
-}
-.hm-table tr.act.warn td {
-  color: #ffc35a;
-}
-.hm-table tr.unack td {
-  font-weight: 700;
-}
-.hm-net-kpis {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.hm-net-kpis div {
-  background: #0e141b;
-  border: 1px solid #2a3542;
-  border-radius: 4px;
-  padding: 6px 8px;
-  display: flex;
-  flex-direction: column;
-}
-.hm-net-kpis span {
-  color: #9aa6b4;
-  font-size: 11px;
-}
-.hm-net-kpis b {
-  color: #7fe39b;
-  font-size: 17px;
-  font-variant-numeric: tabular-nums;
+/* the theme names "Siemens Sans" alone (a licensed font): give it system fallbacks, above the theme's specificity */
+.hx.hx.hx {
+  --theme-font-sans: 'Siemens Sans', 'Segoe UI', Roboto, Arial, Helvetica, sans-serif;
+  font-family: var(--theme-font-sans);
 }
