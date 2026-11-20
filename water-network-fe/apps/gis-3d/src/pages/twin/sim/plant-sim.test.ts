@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { PlantSim } from './plant-sim'
 import { NET, solveNetwork } from '../data/network-model'
 import { PLANT } from '../data/plant-model'
-import { PlantSim } from './plant-sim'
 
 const run = (sim: PlantSim, seconds: number) => {
   for (let i = 0; i < seconds * 2; i++) sim.advance(0.5)
@@ -53,5 +53,24 @@ describe('network + plant model from CAD', () => {
     const shut = solveNetwork({ ...base, closedValves: new Set(NET.valves.map(v => v.code)) })
     expect(shut.unsupplied).toBeGreaterThan(0)
     expect(open.minP).toBeGreaterThan(20)
+  })
+})
+
+describe('component catalog', () => {
+  it('gives every plant item and every network component a catalog code with a 3D model', async () => {
+    const { getEntry } = await import('@wn/component-models')
+    const { EQUIPMENT } = await import('../data/plant-model')
+    const { NET_DEVICES } = await import('../data/network-devices')
+    for (const e of EQUIPMENT) expect(getEntry(e.code), e.tag).toBeDefined()
+    for (const d of NET_DEVICES) expect(getEntry(d.code), d.id).toBeDefined()
+    expect(new Set(EQUIPMENT.map(e => e.code)).size).toBeGreaterThan(20)
+    expect(NET_DEVICES.filter(d => d.code === 'GateValve')).toHaveLength(27)
+  })
+  it('reports equipment status from the simulation', async () => {
+    const { equipmentStatus } = await import('./plant-sim')
+    const sim = new PlantSim()
+    expect(equipmentStatus(sim, 'VFD-NS-01')).toBe('normal')
+    sim.command('P-NS-01', 'fault')
+    expect(equipmentStatus(sim, 'VFD-NS-01')).toBe('critical')
   })
 })

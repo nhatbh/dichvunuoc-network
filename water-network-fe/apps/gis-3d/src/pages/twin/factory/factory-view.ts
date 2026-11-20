@@ -8,6 +8,8 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import { EQUIPMENT, EQUIPMENT_BY_TAG, PLANT, R, rectOf, STRUCTURE_BY_ID, type Rect } from '../data/plant-model'
+import { equipmentStatus } from '../sim/plant-sim'
+import { setModelStatus } from '../three/catalog-mesh'
 import { setHighlight } from '../three/equipment'
 import { buildIntake } from '../three/intake-builder'
 import { buildPlant, FLUID_COLOR, PROCESS_PIPES, type PlantModel, type ProcessPipe } from '../three/plant-builder'
@@ -363,16 +365,25 @@ export class FactoryView {
   }
 
   #labelTick = 0
+  #statusTick = 0
   #animate(dt: number, t: number) {
     const sim = this.sim
     for (const [tag, g] of this.equipment) {
       const d = sim.dev[tag]
       if (!d) continue
-      const on = d.run && !d.fault
-      const anim = g.userData.anim as { spin: THREE.Object3D[]; axis: 'x' | 'z' } | undefined
+      const e = EQUIPMENT_BY_TAG[tag]
+      const linked = e?.link ? sim.dev[e.link] : undefined
+      const on = linked ? linked.run && !linked.fault : d.run && !d.fault
+      // the catalog models' rotors (impellers, paddles, fans) spin about their local +Y
+      const anim = g.userData.anim as { spin: THREE.Object3D[] } | undefined
       if (anim && on) {
-        const speed = (d.sp || 50) / 50
-        for (const s of anim.spin) s.rotation[anim.axis === 'x' ? 'x' : 'z'] += dt * (anim.axis === 'x' ? 22 : 2.2) * speed
+        const speed = e?.kind === 'pump' ? 12 : (d.sp || 50) / 50 * 2.2
+        for (const s of anim.spin) s.rotation.y += dt * speed
+      }
+      // catalog status parts (LEDs, rings on sensors and panels)
+      if ((this.#statusTick ?? 0) === 0) {
+        const s = equipmentStatus(sim, tag)
+        for (const m of (g.userData.models as THREE.Object3D[] | undefined) ?? []) setModelStatus(m, s)
       }
       const ring = g.userData.ring as THREE.Mesh | undefined
       if (ring) {
@@ -380,11 +391,8 @@ export class FactoryView {
         m.color.setHex(d.fault ? RING.fault : on ? (d.mode === 'man' ? RING.man : RING.run) : RING.stop)
         m.opacity = d.fault ? 0.55 + 0.4 * Math.sin(t * 8) : 0.85
       }
-      if (tag.startsWith('MV-')) {
-        const body = g.children[0]
-        if (body) body.rotation.x = (1 - d.open) * (Math.PI / 2)
-      }
     }
+    this.#statusTick = ((this.#statusTick ?? 0) + 1) % 10
     // water levels
     const w = this.plant.water
     if (w.reservoir) w.reservoir.position.z = 0.1 + (sim.reservoirLevel / 5.3) * 1.35

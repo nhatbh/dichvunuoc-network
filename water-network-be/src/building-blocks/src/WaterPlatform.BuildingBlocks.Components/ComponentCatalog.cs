@@ -27,6 +27,8 @@ public static class ComponentFunctions
     public const string Supplies = "supplies";
     public const string Connects = "connects";
     public const string Serves = "serves";
+    public const string Treats = "treats";
+    public const string Automates = "automates";
 }
 
 /// <summary>Where a component attaches: a pipe is a line; devices sit on a pipe or a node; nodes stand alone.</summary>

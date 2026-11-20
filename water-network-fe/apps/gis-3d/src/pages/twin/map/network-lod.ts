@@ -6,14 +6,19 @@
  * tilted view draws near chunks in full detail and far chunks as lines in the same frame:
  *
  *   L0  far      fat screen-space lines (2 draw calls per chunk), no service lines, no devices
- *   L1  mid      low-poly tubes (6 sides, ×4 radius), service lines as thin lines, valve markers
- *   L2  near     smooth tubes (14 sides, joints, ×2.2 radius), service tubes, valves, fittings, meter boxes
+ *   L1  mid      low-poly tubes (6 sides, ×7 radius), service lines as thin lines, and the component catalog's
+ *                flat symbols for valves, meters, sensors, hydrants (coloured by live state)
+ *   L2  near     smooth tubes (14 sides, joints, ×5 radius), service tubes, and every network component as its
+ *                3D catalog model (valves, fittings, saddles, hydrants, meters, sensors, RTUs …), instanced per code
  *
  * Levels are built lazily the first time a chunk needs them and kept; switching only flips visibility.
  * A 15 % hysteresis band stops chunks flickering on the threshold.
  */
+import { getCatalogItem, getSymbol, type Status } from '@wn/component-models'
 import * as THREE from 'three'
+import { NET_DEVICES, SYMBOLISED, type NetDevice } from '../data/network-devices'
 import { NET, PIPE_BY_ID, type NetPipe } from '../data/network-model'
+import { instancedDevices, symbolInstances, type InstancedDevices } from '../three/catalog-mesh'
 import { buildLines, buildTubes, flowMaterial, paintLines, paintTubes, type PipeInput, type Range } from '../three/pipe-mesh'
 import type { XY } from '../data/geo'
 import type { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
@@ -36,15 +41,15 @@ interface Built {
   root: THREE.Group
   tubes: Array<{ g: THREE.BufferGeometry; ranges: Range[] }>
   lines: Array<{ line: LineSegments2; ranges: Range[] }>
+  devices?: InstancedDevices
+  symbols?: { group: THREE.Group; signature: string }
 }
 export interface Chunk {
   key: string
   center: THREE.Vector3
   radius: number
   pieces: Piece[]
-  valves: typeof NET.valves
-  fittings: typeof NET.fittings
-  meters: XY[]
+  devices: NetDevice[]
   level: LodLevel
   built: Partial<Record<LodLevel, Built>>
   box: THREE.Box3Helper
@@ -89,18 +94,16 @@ export class NetworkLod {
   readonly chunks: Chunk[] = []
   readonly flow = [flowMaterial({ stripe: 0.45 }), flowMaterial({ stripe: 0.6 })] as const
   readonly lineMaterials: LineMaterial[] = []
-  readonly valveMat = new THREE.MeshStandardMaterial({ color: 0x1f5fa8, roughness: 0.4, metalness: 0.4 })
-  readonly valveClosedMat = new THREE.MeshStandardMaterial({ color: 0xd03b3b, roughness: 0.4, metalness: 0.3 })
-  readonly fittingMat = new THREE.MeshStandardMaterial({ color: 0x5b6770, roughness: 0.5, metalness: 0.4 })
-  readonly meterMat = new THREE.MeshStandardMaterial({ color: 0x2d7a4f, roughness: 0.6 })
   debug = false
   visible = { mains: true, dist: true, service: true }
   colorOf: (pipeId: string) => THREE.Color = () => new THREE.Color(0x3d8fd1)
   speedOf: (pipeId: string) => number = () => 0
-  valveClosed: (code: string) => boolean = () => false
+  /** live state of a network component (catalog status colours) */
+  deviceStatus: (id: string) => Status = () => 'normal'
+  /** body tint of a component (closed valves), null = catalog colours */
+  deviceTint: (id: string) => THREE.Color | null = () => null
   #paintVersion = 0
   #painted = new WeakMap<Built, number>()
-  #valveObjs: Array<{ code: string; mesh: THREE.Mesh }> = []
 
   constructor() {
     const by = new Map<string, Chunk>()
@@ -108,7 +111,7 @@ export class NetworkLod {
       const key = `${Math.floor(x / CHUNK)}:${Math.floor(y / CHUNK)}`
       let c = by.get(key)
       if (!c) {
-        c = { key, center: new THREE.Vector3(), radius: 0, pieces: [], valves: [], fittings: [], meters: [], level: 0, built: {}, box: null! }
+        c = { key, center: new THREE.Vector3(), radius: 0, pieces: [], devices: [], level: 0, built: {}, box: null! }
         by.set(key, c)
       }
       return c
@@ -119,14 +122,11 @@ export class NetworkLod {
         const a = pc.path[0]!
         chunkAt((a[0] + m[0]) / 2, (a[1] + m[1]) / 2).pieces.push(pc)
       }
-    for (const v of NET.valves) chunkAt(...v.at).valves.push(v)
-    for (const f of NET.fittings) chunkAt(...f.at).fittings.push(f)
-    for (const m of NET.meters) chunkAt(...m).meters.push(m)
+    for (const d of NET_DEVICES) chunkAt(...d.at).devices.push(d)
     for (const c of by.values()) {
       const box = new THREE.Box3()
       for (const pc of c.pieces) for (const p of pc.path) box.expandByPoint(new THREE.Vector3(p[0], p[1], 0))
-      for (const v of c.valves) box.expandByPoint(new THREE.Vector3(v.at[0], v.at[1], 0))
-      for (const m of c.meters) box.expandByPoint(new THREE.Vector3(m[0], m[1], 0))
+      for (const d of c.devices) box.expandByPoint(new THREE.Vector3(d.at[0], d.at[1], 0))
       if (box.isEmpty()) continue
       box.min.z = 0
       box.max.z = 4
@@ -140,7 +140,7 @@ export class NetworkLod {
     }
   }
 
-  /** mark colours / speeds dirty (network state or colour mode changed) */
+  /** mark colours / speeds / component states dirty (network state or colour mode changed) */
   repaint() {
     this.#paintVersion++
   }
@@ -151,12 +151,12 @@ export class NetworkLod {
 
   update(cam: THREE.Vector3, time: number) {
     for (const f of this.flow) f.uniforms.uTime.value = time
-    const stats = { chunks: [0, 0, 0], drawn: 0 }
+    const stats = { chunks: [0, 0, 0], devices: 0 }
     for (const c of this.chunks) {
       const d = Math.max(0, cam.distanceTo(c.center) - c.radius)
       const cur = c.level as number
       const h = (lvl: number) => (cur === lvl ? 1.15 : 1)
-      const lvl: LodLevel = d < LOD_DIST.l2 * h(2) ? 2 : d < LOD_DIST.l1 * h(1) * (cur === 2 ? 1 : 1) ? 1 : 0
+      const lvl: LodLevel = d < LOD_DIST.l2 * h(2) ? 2 : d < LOD_DIST.l1 * h(1) ? 1 : 0
       if (lvl !== cur) {
         for (const [k, b] of Object.entries(c.built)) if (b) b.root.visible = Number(k) === lvl
         c.level = lvl
@@ -170,6 +170,7 @@ export class NetworkLod {
       c.box.visible = this.debug
       ;(c.box.material as THREE.LineBasicMaterial).color.setHex(LOD_COLORS[lvl])
       stats.chunks[lvl]!++
+      if (lvl === 2) stats.devices += c.devices.length
     }
     return stats
   }
@@ -180,6 +181,11 @@ export class NetworkLod {
     if (k === 'dist') return this.visible.dist
     return this.visible.mains
   }
+  #showDevice(d: NetDevice) {
+    if (d.code === 'TappingSaddle' || d.code === 'CustomerMeter') return this.visible.service
+    const p = d.pipe ? PIPE_BY_ID[d.pipe] : undefined
+    return p && (p.kind === 'transmission' || p.kind === 'raw' || p.kind === 'trunk') && d.onPipe ? this.visible.mains : this.visible.dist
+  }
 
   /** rebuild everything (after a visibility toggle) */
   reset() {
@@ -189,13 +195,12 @@ export class NetworkLod {
         this.group.remove(b.root)
         b.root.traverse(o => {
           const g = (o as THREE.Mesh).geometry
-          if (g) g.dispose()
+          if (g && !(o as THREE.InstancedMesh).isInstancedMesh) g.dispose()
         })
       }
       c.built = {}
       c.level = -1 as unknown as LodLevel
     }
-    this.#valveObjs = []
   }
 
   #build(c: Chunk, lvl: LodLevel): Built {
@@ -230,71 +235,32 @@ export class NetworkLod {
       root.add(mesh)
       built.tubes.push({ g: geometry, ranges })
     }
+    const devices = c.devices.filter(d => this.#showDevice(d))
     if (lvl === 0) {
       addLines(mains, 4.2, 0.6)
       addLines(dist, 2.4, 0.5)
     } else if (lvl === 1) {
       addTubes([...mains, ...dist], 6, false, 0)
       addLines(service, 1.3, 0.4)
-      this.#valves(c, root, false)
     } else {
       addTubes([...mains, ...dist], 14, true, 1)
       addTubes(service, 6, false, 1)
-      this.#valves(c, root, true)
-      if (c.fittings.length && this.visible.dist) {
-        const im = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 12, 8), this.fittingMat, c.fittings.length)
-        const m = new THREE.Matrix4()
-        c.fittings.forEach((f, i) => {
-          m.makeScale(0.42, 0.42, 0.42).setPosition(f.at[0], f.at[1], 0.62)
-          im.setMatrixAt(i, m)
-        })
-        root.add(im)
-      }
-      if (c.meters.length && this.visible.service) {
-        const im = new THREE.InstancedMesh(new THREE.BoxGeometry(1.1, 0.7, 0.9), this.meterMat, c.meters.length)
-        const m = new THREE.Matrix4()
-        c.meters.forEach((p, i) => {
-          m.makeTranslation(p[0], p[1], 0.45)
-          im.setMatrixAt(i, m)
-        })
-        im.castShadow = true
-        root.add(im)
+      if (devices.length) {
+        // catalog models at map scale: in-line parts grow with the (exaggerated) pipe they sit on
+        built.devices = instancedDevices(
+          devices.map(d => {
+            const pipe = d.pipe ? PIPE_BY_ID[d.pipe] : undefined
+            const onPipe = !!(d.onPipe && pipe)
+            const r = pipe ? radiusOf(pipe, 2) : 0.3
+            const scale = onPipe ? Math.max(3, (r * 2) / Math.max(0.05, (pipe!.dn * 1.05) / 1000)) * 0.9 : d.code === 'CustomerMeter' ? 6 : 3.4
+            return { id: d.id, code: d.code, dn: d.dn, dn2: d.dn2, at: d.at, heading: d.heading, z: onPipe ? r + 0.35 : 0.05, scale: Math.min(scale, 12) }
+          }),
+        )
+        root.add(built.devices.group)
       }
     }
     this.group.add(root)
     return built
-  }
-
-  #valves(c: Chunk, root: THREE.Group, detailed: boolean) {
-    if (!c.valves.length || !this.visible.dist) return
-    for (const v of c.valves) {
-      const g = new THREE.Group()
-      const pipe = PIPE_BY_ID[v.pipe]
-      const r = pipe ? radiusOf(pipe, detailed ? 2 : 1) : 0.4
-      const closed = this.valveClosed(v.code)
-      const body = new THREE.Mesh(detailed ? new THREE.CylinderGeometry(r * 1.6, r * 1.6, r * 1.4, 18) : new THREE.OctahedronGeometry(r * 2.2), closed ? this.valveClosedMat : this.valveMat)
-      body.rotation.x = Math.PI / 2
-      body.position.z = r + 0.35
-      g.add(body)
-      if (detailed) {
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.2, 8), this.fittingMat)
-        stem.rotation.x = Math.PI / 2
-        stem.position.z = r * 2 + 0.9
-        const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.06, 8, 20), closed ? this.valveClosedMat : this.valveMat)
-        wheel.position.z = r * 2 + 1.5
-        g.add(stem, wheel)
-      }
-      g.position.set(v.at[0], v.at[1], 0)
-      g.userData.valve = v.code
-      g.traverse(o => (o.userData.valve = v.code))
-      root.add(g)
-      this.#valveObjs.push({ code: v.code, mesh: body })
-    }
-  }
-
-  /** valve open/closed colours, without a rebuild */
-  refreshValves() {
-    for (const { code, mesh } of this.#valveObjs) mesh.material = this.valveClosed(code) ? this.valveClosedMat : this.valveMat
   }
 
   #paint(c: Chunk, b: Built) {
@@ -303,6 +269,30 @@ export class NetworkLod {
     const color = this.debug ? () => dbg : (id: string) => this.colorOf(pipeOf(id))
     for (const t of b.tubes) paintTubes(t.g, t.ranges, color, id => this.speedOf(pipeOf(id)))
     for (const l of b.lines) paintLines(l.line, l.ranges, color)
+    b.devices?.paint(this.deviceTint, this.deviceStatus)
+    if (c.level === 1) {
+      // flat catalog symbols: the state is baked into the texture, so rebuild when any state changed
+      const list = c.devices.filter(d => SYMBOLISED.has(d.code) && this.#showDevice(d))
+      const states = list.map(d => this.deviceStatus(d.id))
+      const signature = states.join(',')
+      if (b.symbols?.signature !== signature) {
+        if (b.symbols) b.root.remove(b.symbols.group)
+        const group = symbolInstances(
+          list.map((d, i) => ({
+            id: d.id,
+            code: d.code,
+            at: d.at,
+            heading: d.heading,
+            status: states[i]!,
+            size: d.code === 'CustomerMeter' || d.code === 'AcousticLogger' ? 9 : getCatalogItem(d.code)?.role === 'inline' ? 14 : 12,
+            align: getSymbol(d.code).align === 'pipe',
+          })),
+          2.4,
+        )
+        b.root.add(group)
+        b.symbols = { group, signature }
+      }
+    }
   }
 
   /** triangles of the levels currently shown */

@@ -14,6 +14,7 @@ import * as F from './fittings.js';
 import * as Vv from './valves.js';
 import * as D from './devices.js';
 import * as Fa from './facilities.js';
+import * as P from './plant.js';
 import { CATALOG_ITEMS } from './catalog.js';
 import type { CatalogItem } from './catalog.js';
 
@@ -43,6 +44,12 @@ const BUILDERS: Record<string, (o: BuildOptions) => THREE.Group> = {
   QualitySensor: D.qualitySensor, AcousticLogger: D.acousticLogger, RTU: D.rtu, ChlorinationPoint: D.chlorinationPoint,
   Pump: Fa.pump, BoosterStation: Fa.boosterStation, PRVStation: Fa.prvStation, PumpStation: Fa.pumpStation,
   Reservoir: Fa.reservoir, Tank: Fa.tank, Source: Fa.source,
+  TurbidityMeter: P.turbidityMeter, ChlorineAnalyser: P.chlorineAnalyser, PHAnalyser: P.phAnalyser, DPTransmitter: P.dpTransmitter,
+  GasDetector: P.gasDetector, CCTVCamera: P.cctvCamera, MotorisedValve: P.motorisedValve, VerticalTurbinePump: P.verticalTurbinePump,
+  SubmersiblePump: P.submersiblePump, Blower: P.blower, Mixer: P.mixer, Flocculator: P.flocculator, LamellaSettler: P.lamellaSettler,
+  RapidSandFilter: P.rapidSandFilter, DosingPump: P.dosingPump, ChemicalTank: P.chemicalTank, Chlorinator: P.chlorinator,
+  ChlorineContainer: P.chlorineContainer, Scrubber: P.scrubber, VFDPanel: P.vfdPanel, MCC: P.mcc, PLCPanel: P.plcPanel,
+  HMIPanel: P.hmiPanel, SCADAWorkstation: P.scadaWorkstation, Transformer: P.transformer,
 };
 
 export const CATALOG: CatalogEntry[] = CATALOG_ITEMS.map((item) => {

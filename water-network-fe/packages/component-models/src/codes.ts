@@ -25,7 +25,9 @@ export type ComponentFunction =
   | 'stores' // storage volume
   | 'supplies' // water source into the network
   | 'connects' // fitting joining pipes
-  | 'serves'; // customer service
+  | 'serves' // customer service
+  | 'treats' // water treatment process equipment (mixing, settling, filtration, dosing, chlorination)
+  | 'automates'; // electrical, control and supervision equipment (drives, PLC, HMI, SCADA)
 
 export type PropertyType = 'int' | 'number' | 'string' | 'enum';
 export interface PropertySpec {
@@ -57,9 +59,11 @@ export const PIPE_MATERIAL_CODES = ['HDPE', 'PVC', 'DuctileIron', 'Steel', 'Cast
 export const CONDITIONS = ['good', 'fair', 'poor', 'critical'] as const;
 export const VALVE_STATES = ['open', 'closed', 'throttled'] as const;
 
-const ISOLATES = new Set(['GateValve', 'ButterflyValve', 'BallValve', 'ServiceValve']);
-const CONTROLS = new Set(['CheckValve', 'PRV', 'PSV', 'FCV', 'AltitudeValve', 'BackflowPreventer', 'PRVStation']);
-const SETPOINT = new Set(['PRV', 'PSV', 'FCV', 'AltitudeValve', 'PRVStation']);
+const ISOLATES = new Set(['GateValve', 'ButterflyValve', 'BallValve', 'ServiceValve', 'MotorisedValve']);
+const CONTROLS = new Set(['CheckValve', 'PRV', 'PSV', 'FCV', 'AltitudeValve', 'BackflowPreventer', 'PRVStation', 'MotorisedValve']);
+const SETPOINT = new Set(['PRV', 'PSV', 'FCV', 'AltitudeValve', 'PRVStation', 'MotorisedValve', 'DosingPump', 'Chlorinator', 'VFDPanel']);
+const TELEMETRY = new Set(['TurbidityMeter', 'ChlorineAnalyser', 'PHAnalyser', 'DPTransmitter', 'GasDetector', 'CCTVCamera', 'MotorisedValve', 'DosingPump', 'Chlorinator', 'Blower']);
+export const FIELDBUS_PROTOCOLS = ['ModbusTCP', 'ModbusRTU', 'Profinet', 'EtherNetIP', 'OPCUA', 'IEC104', 'MQTT'] as const;
 const FUNCTIONS: Record<string, ComponentFunction[]> = {
   BulkMeter: ['meters', 'senses'],
   CustomerMeter: ['meters', 'serves'],
@@ -77,6 +81,30 @@ const FUNCTIONS: Record<string, ComponentFunction[]> = {
   Reservoir: ['stores'],
   Tank: ['stores'],
   Source: ['supplies'],
+  TurbidityMeter: ['senses'],
+  ChlorineAnalyser: ['senses'],
+  PHAnalyser: ['senses'],
+  DPTransmitter: ['senses'],
+  GasDetector: ['senses'],
+  CCTVCamera: ['senses'],
+  VerticalTurbinePump: ['pumps'],
+  SubmersiblePump: ['pumps'],
+  Blower: ['treats'],
+  Mixer: ['treats'],
+  Flocculator: ['treats'],
+  LamellaSettler: ['treats'],
+  RapidSandFilter: ['treats'],
+  DosingPump: ['treats'],
+  ChemicalTank: ['stores', 'treats'],
+  Chlorinator: ['treats'],
+  ChlorineContainer: ['stores', 'treats'],
+  Scrubber: ['treats'],
+  VFDPanel: ['automates'],
+  MCC: ['automates'],
+  PLCPanel: ['automates'],
+  HMIPanel: ['automates'],
+  SCADAWorkstation: ['automates'],
+  Transformer: ['automates'],
 };
 
 const kindOf = (c: CatalogItem): AssetKind =>
@@ -112,6 +140,10 @@ function propertiesOf(c: CatalogItem, kind: AssetKind, functions: ComponentFunct
   if (SETPOINT.has(c.code)) p.push({ key: 'setpoint', type: 'number', min: 0, max: 200 });
   if (functions.includes('stores')) p.push({ key: 'capacityM3', type: 'number', min: 0, max: 1e7, unit: 'm³' });
   if (functions.includes('pumps')) p.push({ key: 'pumpCount', type: 'int', min: 1, max: 50 });
+  // plant automation points carry their SCADA tag and how they are reached
+  if (functions.includes('automates') || TELEMETRY.has(c.code)) {
+    p.push({ key: 'tag', type: 'string' }, { key: 'protocol', type: 'enum', values: FIELDBUS_PROTOCOLS }, { key: 'ipAddress', type: 'string' });
+  }
   return p;
 }
 

@@ -8,7 +8,7 @@ import list from './codes.json' with { type: 'json' };
  * worker validate against copies of this list.
  */
 export const ComponentFunction = z.enum([
-  'isolates', 'controls', 'meters', 'senses', 'pumps', 'fireFlow', 'stores', 'supplies', 'connects', 'serves',
+  'isolates', 'controls', 'meters', 'senses', 'pumps', 'fireFlow', 'stores', 'supplies', 'connects', 'serves', 'treats', 'automates',
 ]);
 export type ComponentFunction = z.infer<typeof ComponentFunction>;
 

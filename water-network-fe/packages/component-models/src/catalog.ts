@@ -82,6 +82,36 @@ export const CATALOG_ITEMS: readonly CatalogItem[] = [
   i('Reservoir', 'Clear-water reservoir', 'Bể chứa nước sạch', 'Pumping & storage', 'facility', ['Inlet', 'Outlet'], 400, [200, 1200]),
   i('Tank', 'Elevated tank', 'Đài nước', 'Pumping & storage', 'facility', ['A'], 300, [150, 800]),
   i('Source', 'Treatment plant outlet', 'Nhà máy nước', 'Pumping & storage', 'facility', ['Outlet'], 600, [300, 1200]),
+
+  // ---- what a clean-water plant monitors and controls (src/plant.ts) ----
+  i('TurbidityMeter', 'Online turbidimeter', 'Máy đo độ đục trực tuyến', 'Metering & monitoring', 'nodeDevice', ['A'], 15, [15, 15], { hasStatus: true }),
+  i('ChlorineAnalyser', 'Residual chlorine analyser', 'Máy đo clo dư trực tuyến', 'Metering & monitoring', 'nodeDevice', ['A'], 15, [15, 15], { hasStatus: true }),
+  i('PHAnalyser', 'pH / ORP analyser', 'Máy đo pH / ORP', 'Metering & monitoring', 'nodeDevice', ['A'], 15, [15, 15], { hasStatus: true }),
+  i('DPTransmitter', 'Differential pressure transmitter', 'Cảm biến chênh áp', 'Metering & monitoring', 'nodeDevice', ['High', 'Low'], 15, [15, 15], { hasStatus: true }),
+  i('GasDetector', 'Chlorine gas detector', 'Đầu dò rò rỉ khí clo', 'Metering & monitoring', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
+  i('CCTVCamera', 'CCTV camera', 'Camera giám sát', 'Metering & monitoring', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
+
+  i('MotorisedValve', 'Motorised butterfly valve', 'Van bướm điều khiển điện', 'Valves', 'inline', AB, 300, [100, 1200], { hasStatus: true }),
+  i('VerticalTurbinePump', 'Vertical turbine pump', 'Bơm trục đứng', 'Pumping & storage', 'inline', ['Suction', 'Discharge'], 400, [150, 800]),
+  i('SubmersiblePump', 'Submersible pump', 'Bơm chìm', 'Pumping & storage', 'nodeDevice', ['Discharge'], 150, [50, 400]),
+  i('Blower', 'Air blower', 'Máy thổi khí', 'Treatment', 'nodeDevice', ['Outlet'], 300, [80, 600], { hasStatus: true }),
+
+  i('Mixer', 'Rapid mixer', 'Máy khuấy trộn nhanh', 'Treatment', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
+  i('Flocculator', 'Paddle flocculator', 'Máy khuấy phản ứng (bông cặn)', 'Treatment', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
+  i('LamellaSettler', 'Lamella settler', 'Bể lắng lamella', 'Treatment', 'facility', ['Inlet', 'Outlet'], 600, [300, 1200]),
+  i('RapidSandFilter', 'Rapid sand filter', 'Bể lọc nhanh', 'Treatment', 'facility', ['Inlet', 'Outlet'], 400, [200, 800]),
+  i('DosingPump', 'Chemical dosing pump', 'Bơm định lượng hóa chất', 'Treatment', 'inline', ['Suction', 'Discharge'], 25, [15, 50], { hasStatus: true }),
+  i('ChemicalTank', 'Chemical preparation tank', 'Bồn pha hóa chất', 'Treatment', 'nodeDevice', ['Outlet'], 50, [25, 100], { hasStatus: true }),
+  i('Chlorinator', 'Gas chlorinator', 'Clorator (thiết bị châm clo khí)', 'Treatment', 'nodeDevice', ['Outlet'], 25, [15, 50], { hasStatus: true }),
+  i('ChlorineContainer', 'Chlorine container 900 kg', 'Bình clo lỏng 900 kg', 'Treatment', 'nodeDevice', ['Outlet'], 15, [15, 25]),
+  i('Scrubber', 'Chlorine scrubber', 'Tháp trung hòa khí clo', 'Treatment', 'facility', ['Inlet'], 200, [100, 400], { hasStatus: true }),
+
+  i('VFDPanel', 'Variable frequency drive', 'Tủ biến tần', 'Electrical & automation', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
+  i('MCC', 'Motor control centre', 'Tủ điều khiển động cơ (MCC)', 'Electrical & automation', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
+  i('PLCPanel', 'PLC control panel', 'Tủ điều khiển PLC', 'Electrical & automation', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
+  i('HMIPanel', 'Local HMI operator panel', 'Màn hình vận hành tại chỗ (HMI)', 'Electrical & automation', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
+  i('SCADAWorkstation', 'SCADA operator workstation', 'Trạm vận hành SCADA', 'Electrical & automation', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
+  i('Transformer', 'Distribution transformer', 'Máy biến áp', 'Electrical & automation', 'nodeDevice', ['Mount'], 15, [15, 15], { hasStatus: true }),
 ];
 
 export type ComponentCode = (typeof CATALOG_ITEMS)[number]['code'];

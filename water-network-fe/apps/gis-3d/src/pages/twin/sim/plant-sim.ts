@@ -10,7 +10,8 @@
  * (stop pumps → pressure falls on the map; close MV-701 → dead-head alarm; dirty filters → backwash),
  * nothing more.
  */
-import { EQUIPMENT, type Equipment } from '../data/plant-model'
+import { EQUIPMENT, EQUIPMENT_BY_TAG, type Equipment } from '../data/plant-model'
+import type { Status } from '@wn/component-models'
 
 export type Mode = 'auto' | 'man'
 export type FilterPhase = 'filter' | 'drain' | 'air' | 'airwater' | 'rinse' | 'refill' | 'standby'
@@ -181,7 +182,7 @@ export class PlantSim {
     return {
       tag: e.tag,
       mode: 'auto',
-      run: e.kind === 'mixer' || e.kind === 'flocculator' || e.kind === 'dosing' || e.kind === 'chlorinator',
+      run: ['mixer', 'flocculator', 'dosing', 'chlorinator', 'plc', 'hmi', 'scada', 'mcc', 'camera', 'transformer'].includes(e.kind),
       fault: false,
       sp:
         e.kind === 'dosing'
@@ -657,6 +658,7 @@ export class PlantSim {
     const d = this.dev[tag]
     const f1 = (v: number) => v.toFixed(1).replace('.', ',')
     const f2 = (v: number) => v.toFixed(2).replace('.', ',')
+    const f0 = (v: number) => Math.round(v).toLocaleString('vi-VN')
     const out: Array<{ k: string; v: string; u?: string; warn?: boolean }> = []
     const kind = EQUIPMENT.find(e => e.tag === tag)?.kind
     if (!d) return out
@@ -710,7 +712,36 @@ export class PlantSim {
         out.push({ k: 'Phụ tải', v: f1(this.powerKw), u: 'kW' }, { k: 'Hệ số tải', v: f1((this.powerKw / 1600 / 0.9) * 100), u: '%' })
         break
       case 'scada':
-        out.push({ k: 'Tag trực tuyến', v: '1.284' }, { k: 'Báo động', v: String(this.activeAlarms.length) })
+        out.push({ k: 'Tag trực tuyến', v: '1.284' }, { k: 'Báo động', v: String(this.activeAlarms.length) }, { k: 'Máy chủ', v: 'SCADA-A chính · SCADA-B dự phòng' })
+        break
+      case 'vfd': {
+        const p = this.dev[EQUIPMENT_BY_TAG[tag]?.link ?? '']
+        const run = !!p && p.run && !p.fault
+        out.push(
+          { k: 'Tần số ra', v: f1(run ? p!.sp : 0), u: 'Hz' },
+          { k: 'Dòng điện', v: f1(run ? (p!.kw * 1000) / (1.732 * 400 * 0.88) : 0), u: 'A' },
+          { k: 'Công suất', v: f1(run ? p!.kw : 0), u: 'kW' },
+          { k: 'Nhiệt độ tản nhiệt', v: f0(run ? 38 + p!.kw / 12 : 27), u: '°C' },
+          { k: 'Trạng thái', v: !p ? '–' : p.fault ? 'LỖI (đã ngắt)' : run ? 'ĐANG CHẠY' : 'SẴN SÀNG', warn: !!p?.fault },
+        )
+        break
+      }
+      case 'mcc':
+        out.push({ k: 'Phụ tải', v: f0(tag === 'MSB-1101' ? this.powerKw : this.dev['P-NS-01']!.kw + this.dev['P-NS-02']!.kw + this.dev['P-NS-03']!.kw), u: 'kW' }, { k: 'Điện áp', v: f0(398 + 4 * Math.sin(this.t / 3000)), u: 'V' }, { k: 'Hệ số công suất', v: '0,94' })
+        break
+      case 'plc':
+        out.push({ k: 'CPU', v: 'RUN' }, { k: 'Chu kỳ quét', v: f0(18 + (tag.length % 5) * 3), u: 'ms' }, { k: 'Kết nối SCADA', v: 'OK · OPC UA' }, { k: 'Báo động khu vực', v: String(this.activeAlarms.filter(a => EQUIPMENT_BY_TAG[a.tag]?.unit === EQUIPMENT_BY_TAG[tag]?.unit).length) })
+        break
+      case 'hmi':
+        out.push({ k: 'Màn hình', v: 'Đang hiển thị' }, { k: 'Người đăng nhập', v: 'Vận hành ca 1' })
+        break
+      case 'dp': {
+        const f = this.dev[EQUIPMENT_BY_TAG[tag]?.link ?? '']
+        out.push({ k: 'Chênh áp', v: f2(f && f.phase === 'filter' ? f.headloss : 0.05), u: 'm', warn: !!f && f.headloss > 2.2 }, { k: 'Tín hiệu', v: f1(4 + Math.min(16, ((f?.headloss ?? 0) / 5) * 16)), u: 'mA' })
+        break
+      }
+      case 'camera':
+        out.push({ k: 'Luồng video', v: 'Đang ghi · 25 fps' }, { k: 'Phát hiện chuyển động', v: tag === 'CAM-01' && Math.sin(this.t / 600) > 0.6 ? 'Có (xe vào cổng)' : 'Không' })
         break
       default:
         break
@@ -734,5 +765,36 @@ export class PlantSim {
       'LT-1001': [{ k: 'Mực nước', v: f2(1.2 + 0.6 * Math.sin(this.t / 2000)), u: 'm' }],
     }
     return out.concat(inst[tag] ?? [])
+  }
+}
+
+/** Catalog status of a plant item: drives the status parts (LEDs, rings) of its catalog model. */
+export function equipmentStatus(sim: PlantSim, tag: string): Status {
+  const d = sim.dev[tag]
+  const e = EQUIPMENT_BY_TAG[tag]
+  if (!d || !e) return 'offline'
+  if (d.fault) return 'critical'
+  const linked = e.link ? sim.dev[e.link] : undefined
+  switch (e.kind) {
+    case 'vfd':
+      return linked?.fault ? 'critical' : linked?.run ? 'normal' : 'offline'
+    case 'dp':
+      return linked && linked.headloss > 2.2 ? 'warning' : 'normal'
+    case 'valve':
+      return d.open > 0.98 ? 'normal' : d.open < 0.02 ? 'offline' : 'warning'
+    case 'leak':
+      return sim.leak > 1 ? 'critical' : sim.leak > 0.3 ? 'warning' : 'normal'
+    case 'pump':
+    case 'subpump':
+    case 'blower':
+    case 'mixer':
+    case 'flocculator':
+    case 'dosing':
+    case 'chlorinator':
+      return d.run ? 'normal' : 'offline'
+    case 'scrubber':
+      return d.run ? 'warning' : 'normal'
+    default:
+      return sim.readings(tag).some(r => r.warn) ? 'warning' : 'normal'
   }
 }

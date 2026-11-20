@@ -77,6 +77,33 @@ export const SYMBOLS: Record<string, SymbolDef> = {
   Reservoir: dev(C.plant, [{ d: 'M6 10H26V25H6Z', f: 'none', s: 'ink', w: 2 }, { d: 'M9 16Q12.5 14 16 16T23 16M9 20.5Q12.5 18.5 16 20.5T23 20.5', s: 'accent', w: 2, f: 'none' }], 'point', 'square'),
   Tank: dev(C.plant, [{ d: 'M10 12a6 5 0 1 0 12 0a6 5 0 1 0 -12 0', f: 'none', s: 'ink', w: 2 }, { d: 'M12.5 16.5L10 27M19.5 16.5L22 27M16 17V27', s: 'ink', w: 2 }], 'point', 'square'),
   Source: dev(C.plant, [{ d: 'M6 26V15L11 12V15L16 12V15L21 12V26Z', f: 'none', s: 'ink', w: 2 }, { d: 'M22 26H26V8H22', s: 'ink', w: 2, f: 'none' }], 'point', 'square'),
+
+  // plant monitoring and control (ISA-style bubbles: letters name the measured variable)
+  TurbidityMeter: dev(C.meter, [{ d: circle(16, 16, 9), f: 'none', s: 'ink', w: 2 }, { t: 'NTU', x: 16, y: 18.5, size: 7 }]),
+  ChlorineAnalyser: dev(C.meter, [{ d: circle(16, 16, 9), f: 'none', s: 'ink', w: 2 }, { t: 'Cl₂', x: 16, y: 19, size: 8 }]),
+  PHAnalyser: dev(C.meter, [{ d: circle(16, 16, 9), f: 'none', s: 'ink', w: 2 }, { t: 'pH', x: 16, y: 19, size: 9 }]),
+  DPTransmitter: dev(C.meter, [{ d: circle(16, 16, 9), f: 'none', s: 'ink', w: 2 }, { t: 'ΔP', x: 16, y: 19, size: 9 }]),
+  GasDetector: dev(C.hydrant, [{ d: 'M16 6L27 25H5Z', f: 'none', s: 'ink', w: 2 }, { t: 'Cl', x: 16, y: 22, size: 7.5 }]),
+  CCTVCamera: dev(C.meter, [{ d: 'M6 12H20V21H6Z', f: 'ink' }, { d: 'M20 14.5L26 11V22L20 18.5Z', f: 'ink' }]),
+  MotorisedValve: dev(C.valve, [{ d: BOWTIE_LOW, f: 'ink' }, { d: 'M16 20V10', s: 'ink', w: 2 }, { d: circle(16, 7, 4), f: 'none', s: 'ink', w: 2 }, { t: 'M', x: 16, y: 9.3, size: 5.5 }], 'pipe'),
+  VerticalTurbinePump: dev(C.plant, [{ d: circle(16, 19, 7), f: 'none', s: 'ink', w: 2 }, { d: 'M13 15L20.5 19L13 23Z', f: 'ink' }, { d: 'M12 4H20V12H12Z', f: 'ink' }], 'pipe'),
+  SubmersiblePump: dev(C.plant, [{ d: 'M5 9Q10.5 6 16 9T27 9', s: 'ink', w: 2, f: 'none' }, { d: circle(16, 19, 6.5), f: 'none', s: 'ink', w: 2 }, { d: 'M13.5 15.5L20 19L13.5 22.5Z', f: 'ink' }]),
+  Blower: dev(C.plant, [{ d: circle(16, 16, 8.5), f: 'none', s: 'ink', w: 2 }, { d: 'M16 16L16 8.5M16 16L22.5 20M16 16L9.5 20', s: 'ink', w: 2.2 }]),
+  Mixer: dev(C.plant, [{ d: 'M16 4V24', s: 'ink', w: 2 }, { d: 'M9 24H23', s: 'ink', w: 3 }, { d: 'M11 4H21V8H11Z', f: 'ink' }]),
+  Flocculator: dev(C.plant, [{ d: 'M16 4V27', s: 'ink', w: 2 }, { d: 'M8 13H24M8 21H24', s: 'ink', w: 2.2 }, { d: 'M8 11V15M24 11V15M8 19V23M24 19V23', s: 'ink', w: 2.2 }]),
+  LamellaSettler: dev(C.plant, [{ d: 'M5 7H27V26H5Z', f: 'none', s: 'ink', w: 2 }, { d: 'M8 22L14 12M13 22L19 12M18 22L24 12', s: 'ink', w: 1.8 }], 'point', 'square'),
+  RapidSandFilter: dev(C.plant, [{ d: 'M5 7H27V26H5Z', f: 'none', s: 'ink', w: 2 }, { d: 'M7 18H25V24H7Z', f: 'accent' }, { d: 'M8 13Q12 11 16 13T24 13', s: 'ink', w: 1.8, f: 'none' }], 'point', 'square'),
+  DosingPump: dev(C.plant, [{ d: circle(16, 16, 7.5), f: 'none', s: 'ink', w: 2 }, { d: 'M13 11.5L21 16L13 20.5Z', f: 'ink' }, { t: 'D', x: 16, y: 7.5, size: 6 }], 'pipe'),
+  ChemicalTank: dev(C.plant, [{ d: 'M9 9H23V25H9Z', f: 'none', s: 'ink', w: 2 }, { d: 'M16 4V20M12 20H20', s: 'ink', w: 2 }, { d: 'M9 17H23V25H9Z', f: 'accent' }], 'point', 'square'),
+  Chlorinator: dev(C.plant, [{ d: 'M8 6H24V26H8Z', f: 'none', s: 'ink', w: 2 }, { t: 'Cl₂', x: 16, y: 15, size: 7 }, { d: 'M12 19H20', s: 'ink', w: 2 }]),
+  ChlorineContainer: dev(C.plant, [{ d: 'M8 11H24A5 5 0 0 1 24 21H8A5 5 0 0 1 8 11Z', f: '#e0b021', s: 'ink', w: 1.8 }, { t: 'Cl₂', x: 16, y: 19, size: 7 }]),
+  Scrubber: dev(C.plant, [{ d: 'M11 5H21V27H11Z', f: 'none', s: 'ink', w: 2 }, { d: 'M11 12H21M11 19H21', s: 'ink', w: 1.5 }, { d: 'M14 8L18 10M14 15L18 17', s: 'ink', w: 1.2 }]),
+  VFDPanel: dev(C.service, [{ d: 'M8 5H24V27H8Z', f: 'none', s: 'ink', w: 2 }, { d: 'M11 13Q13.5 9 16 13T21 13', s: 'ink', w: 1.8, f: 'none' }, { t: 'Hz', x: 16, y: 23, size: 7 }], 'point', 'square'),
+  MCC: dev(C.service, [{ d: 'M5 6H27V26H5Z', f: 'none', s: 'ink', w: 2 }, { d: 'M12 6V26M20 6V26M5 13H27M5 20H27', s: 'ink', w: 1.4 }], 'point', 'square'),
+  PLCPanel: dev(C.service, [{ d: 'M6 8H26V24H6Z', f: 'none', s: 'ink', w: 2 }, { d: 'M9 12H12V20H9ZM14 12H17V20H14ZM19 12H22V20H19Z', f: 'ink' }], 'point', 'square'),
+  HMIPanel: dev(C.service, [{ d: 'M5 7H27V21H5Z', f: 'none', s: 'ink', w: 2 }, { d: 'M8 17L12 13L15 15L20 10L24 13', s: 'ink', w: 1.6, f: 'none' }, { d: 'M14 21V26H18V21', f: 'ink' }], 'point', 'square'),
+  SCADAWorkstation: dev(C.service, [{ d: 'M3 8H15V18H3ZM17 8H29V18H17Z', f: 'none', s: 'ink', w: 1.8 }, { d: 'M6 24H26', s: 'ink', w: 2.4 }, { d: 'M9 18V24M23 18V24', s: 'ink', w: 1.6 }], 'point', 'square'),
+  Transformer: dev(C.service, [{ d: circle(12, 16, 6.5), f: 'none', s: 'ink', w: 2 }, { d: circle(20, 16, 6.5), f: 'none', s: 'ink', w: 2 }]),
 };
 
 const FALLBACK = SYMBOLS.Junction as SymbolDef;

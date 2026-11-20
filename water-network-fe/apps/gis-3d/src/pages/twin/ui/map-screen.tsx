@@ -1,15 +1,19 @@
+import { getCatalogItem } from '@wn/component-models'
 import { Factory, Layers } from 'lucide-solid'
 import * as maplibregl from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { createEffect, createMemo, createSignal, For, Match, on, onCleanup, onMount, Show, Switch } from 'solid-js'
 import * as THREE from 'three'
+import { CatalogBlock, CatalogIcon } from './catalog-info'
 import { f0, f1, f2, useSim } from './sim-context'
 import { AlarmBadge, Kpi, Row, SimClock } from './widgets'
 import { toLonLat } from '../data/geo'
+import { DEVICE_BY_ID, NET_DEVICES } from '../data/network-devices'
 import { NET, PIPE_BY_ID, solveNetwork, type NetworkSolution, type NetPipe } from '../data/network-model'
 import { INTAKE, PLANT } from '../data/plant-model'
 import { LOD_COLORS, LOD_DIST, LOD_NAMES } from '../map/network-lod'
 import { TwinLayer, type PickInfo, type RenderStats } from '../map/twin-layer'
+import { deviceReadings, deviceStatus } from '../sim/network-devices-state'
 import type { MapMouseEvent, StyleSpecification } from 'maplibre-gl'
 
 type Basemap = 'light' | 'dark' | 'satellite' | 'osm'
@@ -62,6 +66,14 @@ const ramp = (stops: Array<[number, number]>, x: number) => {
 const cssRamp = (stops: Array<[number, number]>, lo: number, hi: number) =>
   `linear-gradient(90deg, ${stops.map(([x, c]) => `#${c.toString(16).padStart(6, '0')} ${(((x - lo) / (hi - lo)) * 100).toFixed(0)}%`).join(', ')})`
 
+const CLOSED_TINT = new THREE.Color(1, 0.35, 0.35)
+/** components on the network, by catalog code (for the catalog panel) */
+const DEVICE_COUNTS = (() => {
+  const m = new Map<string, number>()
+  for (const d of NET_DEVICES) m.set(d.code, (m.get(d.code) ?? 0) + 1)
+  return [...m.entries()].sort((a, b) => b[1] - a[1])
+})()
+
 const KIND_LABEL: Record<NetPipe['kind'], string> = {
   transmission: 'Ống truyền dẫn nước sạch',
   raw: 'Ống dẫn nước thô',
@@ -84,6 +96,7 @@ export function MapScreen(props: { active: boolean; onEnter: (site: 'plant' | 't
   const [tip, setTip] = createSignal<{ x: number; y: number; text: string } | null>(null)
   const [solution, setSolution] = createSignal<NetworkSolution | null>(null)
   const [showLayers, setShowLayers] = createSignal(true)
+  const [showCatalog, setShowCatalog] = createSignal(false)
   const [fade, setFade] = createSignal(false)
   layer.onStats = setStats
 
@@ -113,10 +126,10 @@ export function MapScreen(props: { active: boolean; onEnter: (site: 'plant' | 't
   }
   layer.network.colorOf = colorOf
   layer.network.speedOf = speedOf
-  layer.network.valveClosed = code => sim.closedNetValves.has(code)
+  layer.network.deviceStatus = id => deviceStatus(DEVICE_BY_ID[id]!, solution(), sim)
+  layer.network.deviceTint = id => (sim.closedNetValves.has(id) ? CLOSED_TINT : null)
   const paint = () => {
     layer.network.repaint()
-    layer.network.refreshValves()
     map?.triggerRepaint()
   }
   createEffect(
@@ -161,7 +174,7 @@ export function MapScreen(props: { active: boolean; onEnter: (site: 'plant' | 't
   createEffect(
     on(sel, s => {
       layer.highlightPipe(s?.type === 'pipe' ? s.id : null)
-      layer.highlightValve(s?.type === 'valve' ? s.code : null)
+      layer.highlightValve(s?.type === 'valve' ? s.code : s?.type === 'device' ? s.id : null)
     }),
   )
 
@@ -368,6 +381,29 @@ export function MapScreen(props: { active: boolean; onEnter: (site: 'plant' | 't
           </div>
         </Show>
 
+        <button
+          type="button"
+          class="tw-h"
+          style={{ cursor: 'pointer', border: 0, background: 'transparent', padding: 0, width: '100%' }}
+          aria-expanded={showCatalog()}
+          onClick={() => setShowCatalog(x => !x)}
+        >
+          Thành phần mạng lưới · danh mục ({NET_DEVICES.length}) {showCatalog() ? '▾' : '▸'}
+        </button>
+        <Show when={showCatalog()}>
+          <For each={DEVICE_COUNTS}>
+            {([code, n]) => (
+              <div class="tw-row" title={code}>
+                <span class="k" style={{ display: 'flex', gap: '6px', 'align-items': 'center' }}>
+                  <CatalogIcon code={code} size={18} /> {catalogName(code)}
+                </span>
+                <span class="v">{n}</span>
+              </div>
+            )}
+          </For>
+          <div class="tw-hint">Mô hình 3D và ký hiệu lấy từ danh mục thành phần @wn/component-models; hiện dưới dạng ký hiệu phẳng ở L1 và mô hình 3D ở L2.</div>
+        </Show>
+
         <div class="tw-h">Mức chi tiết (LoD) · hiệu năng</div>
         <div class="tw-lod">
           <Row k="Khung hình" v={`${stat()?.fps ?? '–'} fps`} warn={(stat()?.fps ?? 60) < 30} />
@@ -387,6 +423,7 @@ export function MapScreen(props: { active: boolean; onEnter: (site: 'plant' | 't
               />
             )}
           </For>
+          <Row k="Thành phần 3D (L2)" v={f0(stat()?.devices ?? 0)} />
           <Row k="Nhà máy · TB1" v={`L${stat()?.plant ?? 0} · L${stat()?.intake ?? 0}`} />
           <Row k="Độ cao camera" v={`${f0(stat()?.camDist ?? 0)} m`} />
           <label class="tw-check" style={{ 'margin-top': '4px' }}>
@@ -488,6 +525,8 @@ export function MapScreen(props: { active: boolean; onEnter: (site: 'plant' | 't
   )
 }
 
+const catalogName = (code: string) => getCatalogItem(code)?.vi ?? code
+
 function Inspector(props: {
   sel: PickInfo
   solution: NetworkSolution | null
@@ -545,7 +584,8 @@ function Inspector(props: {
           return (
             <>
               <div class="tw-fp-head">
-                <div>
+                <CatalogIcon code="GateValve" status={closed() ? 'critical' : undefined} size={34} />
+                <div style={{ flex: 1 }}>
                   <h2>Van {valve.code}</h2>
                   <p>Van chặn mặt bích DN{valve.dn} · trên {PIPE_BY_ID[valve.pipe]?.code ?? '—'}</p>
                 </div>
@@ -562,6 +602,41 @@ function Inspector(props: {
                 </button>
               </div>
               <div class="tw-hint">Đóng van cắt nước toàn bộ nhánh phía sau; các đoạn ống đó chuyển màu xám trên bản đồ.</div>
+              <div class="tw-h">Trực tuyến (mô phỏng)</div>
+              <For each={(v(), deviceReadings(valve.code, props.solution, sim))}>{r => <Row k={r.k} v={`${r.v}${r.u ? ' ' + r.u : ''}`} warn={r.warn} />}</For>
+              <CatalogBlock code="GateValve" dn={DEVICE_BY_ID[valve.code]?.dn ?? valve.dn} />
+            </>
+          )
+        }}
+      </Match>
+      <Match when={props.sel.type === 'device' && (props.sel as { id: string })}>
+        {s => {
+          const d = DEVICE_BY_ID[s().id]!
+          const status = () => (v(), deviceStatus(d, props.solution, sim))
+          const STATUS_VI = { normal: 'Bình thường', warning: 'Cảnh báo', critical: 'Nguy cấp', offline: 'Mất nước / mất kết nối' }
+          return (
+            <>
+              <div class="tw-fp-head">
+                <CatalogIcon code={d.code} status={status()} size={34} />
+                <div style={{ flex: 1 }}>
+                  <h2>{d.tag}</h2>
+                  <p>{catalogName(d.code)}</p>
+                </div>
+                {close}
+              </div>
+              <div class="tw-controls">
+                <span class={`tw-chip ${status() === 'normal' ? 'run' : status() === 'warning' ? 'man' : status() === 'critical' ? 'fault' : ''}`}>{STATUS_VI[status()]}</span>
+                <Show when={d.assumed}>
+                  <span class="tw-chip man">Vị trí giả định</span>
+                </Show>
+                <Show when={d.pipe && PIPE_BY_ID[d.pipe!]}>
+                  <span class="tw-chip">trên {PIPE_BY_ID[d.pipe!]!.code}</span>
+                </Show>
+              </div>
+              <div class="tw-h">Trực tuyến (mô phỏng)</div>
+              <For each={(v(), deviceReadings(d.id, props.solution, sim))}>{r => <Row k={r.k} v={`${r.v}${r.u ? ' ' + r.u : ''}`} warn={r.warn} />}</For>
+              <CatalogBlock code={d.code} dn={d.dn} dn2={d.dn2} />
+              <div class="tw-hint">Nguồn: {d.source}</div>
             </>
           )
         }}

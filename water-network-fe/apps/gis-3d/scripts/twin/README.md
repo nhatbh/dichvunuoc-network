@@ -55,3 +55,27 @@ Each chunk picks its level every frame from its own distance, with 15 % hysteres
 levels in one frame. Levels are built lazily and cached, and static parts are merged into vertex-coloured meshes.
 The left panel of `/twin` shows FPS, draw calls, triangles and chunks per level. *Tô màu theo LoD* colours the
 chunks by level and draws their boxes.
+
+## Component catalog, HMI and SCADA
+
+Every component in the twin is typed by its code in the component catalog (`@wn/component-models`). The catalog
+supplies its 3D model, flat symbol, functions and properties.
+
+- **New catalog codes** for what a clean-water plant monitors and controls (`packages/component-models/src/plant.ts`):
+  TurbidityMeter, ChlorineAnalyser, PHAnalyser, DPTransmitter, GasDetector, CCTVCamera, MotorisedValve,
+  VerticalTurbinePump, SubmersiblePump, Blower, Mixer, Flocculator, LamellaSettler, RapidSandFilter, DosingPump,
+  ChemicalTank, Chlorinator, ChlorineContainer, Scrubber, VFDPanel, MCC, PLCPanel, HMIPanel, SCADAWorkstation,
+  Transformer. There are two new functions (`treats`, `automates`) and two new categories (Treatment, Electrical &
+  automation). The code list is regenerated into contracts, the CAD importer and the backend with `npm run codes`.
+- **Network** (`src/pages/twin/data/network-devices.ts`, ~900 items): the CAD gate valves and fittings, a tapping saddle
+  per service line, a customer meter per meter cluster, plus assumed devices: the zone inlet station (MotorisedValve,
+  BulkMeter, ChlorineAnalyser, PressureSensor, RTU), critical-point loggers, hydrants, air valves, washouts, acoustic
+  loggers and sampling points. At L1 they are drawn as flat catalog symbols; at L2 as instanced 3D catalog models
+  whose status parts take the live state.
+- **Plant**: every equipment item has a `code` and is drawn as its catalog model. Status LEDs follow the
+  simulation, and rotors (impellers, paddles, fans) spin. New automation items include VFDs per pump, MCCs, PLC and
+  HMI panels per area, filter DP transmitters, pH analysers and CCTV.
+- **HMI / SCADA** (`src/pages/twin/ui/hmi/`): there is a SCADA button on the map and in the plant view. It opens the
+  central SCADA, with these screens: overview P&ID, TB1, clarification, filters, clean-water pumps, chemicals &
+  chlorine, power, network telemetry, alarms and trends. An HMI or PLC panel's faceplate opens the same screens as
+  a local operator panel. Clicking a symbol opens its faceplate, and commands go to the shared simulation.

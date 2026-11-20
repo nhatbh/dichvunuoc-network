@@ -10,6 +10,7 @@ import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 import { NetworkLod, type LodLevel } from './network-lod'
 import { MERC_PER_M, ORIGIN_MERC, type XY } from '../data/geo'
+import { DEVICE_BY_ID, NET_DEVICES } from '../data/network-devices'
 import { NET, PIPE_BY_ID, segDist, type NetPipe } from '../data/network-model'
 import { INTAKE, PLANT } from '../data/plant-model'
 import { buildIntake, INTAKE_HEADING } from '../three/intake-builder'
@@ -17,13 +18,15 @@ import { buildPlant } from '../three/plant-builder'
 import type { CustomLayerInterface, CustomRenderMethodInput, Map as MlMap } from 'maplibre-gl'
 
 export type SiteLevel = 0 | 1 | 2 | 3
-export type PickInfo = { type: 'plant' } | { type: 'intake' } | { type: 'pipe'; id: string } | { type: 'valve'; code: string }
+export type PickInfo = { type: 'plant' } | { type: 'intake' } | { type: 'pipe'; id: string } | { type: 'valve'; code: string } | { type: 'device'; id: string }
 
 export interface RenderStats {
   fps: number
   calls: number
   triangles: number
   chunks: number[]
+  /** catalog components drawn as 3D models (L2 chunks) */
+  devices: number
   plant: SiteLevel
   intake: SiteLevel
   camDist: number
@@ -138,6 +141,7 @@ export class TwinLayer implements CustomLayerInterface {
         calls: info.calls,
         triangles: info.triangles,
         chunks: ns.chunks,
+        devices: ns.devices,
         plant: pl,
         intake: il,
         camDist: this.camPos.z,
@@ -185,16 +189,18 @@ export class TwinLayer implements CustomLayerInterface {
     ] as const) {
       if (site.level > 0 && site.hitbox && ray.intersectObject(site.hitbox, false).length) return { type }
     }
-    // valves, then pipes, in screen space
+    // catalog components (valves, meters, sensors, hydrants …) near enough to be drawn, then pipes, in screen space
     let best: PickInfo | null = null
     let bd = 12
-    if (filter.dist)
-      for (const v of NET.valves) {
-        const s = this.project(v.at[0], v.at[1], 0.8)
-        if (!s) continue
-        const d = Math.hypot(s[0] - px, s[1] - py)
-        if (d < bd) [bd, best] = [d, { type: 'valve', code: v.code }]
-      }
+    const valveCodes = new Set(NET.valves.map(v => v.code))
+    for (const d of NET_DEVICES) {
+      if (d.code === 'TappingSaddle' || (d.code === 'CustomerMeter' && !filter.service) || (!filter.dist && d.code !== 'CustomerMeter')) continue
+      if (Math.hypot(d.at[0] - this.camPos.x, d.at[1] - this.camPos.y) > 1600) continue
+      const s = this.project(d.at[0], d.at[1], 0.8)
+      if (!s) continue
+      const dd = Math.hypot(s[0] - px, s[1] - py)
+      if (dd < bd) [bd, best] = [dd, valveCodes.has(d.id) ? { type: 'valve', code: d.id } : { type: 'device', id: d.id }]
+    }
     if (best) return best
     bd = 8
     for (const p of NET.pipes) {
@@ -236,7 +242,7 @@ export class TwinLayer implements CustomLayerInterface {
       this.scene.remove(this.#valveRing)
       this.#valveRing = null
     }
-    const v = code ? NET.valves.find(x => x.code === code) : null
+    const v = code ? DEVICE_BY_ID[code] : null
     if (!v) return
     const ring = new THREE.Mesh(new THREE.RingGeometry(3.2, 4.2, 40), new THREE.MeshBasicMaterial({ color: 0xffd400, transparent: true, opacity: 0.9, depthTest: false }))
     ring.position.set(v.at[0], v.at[1], 0.5)

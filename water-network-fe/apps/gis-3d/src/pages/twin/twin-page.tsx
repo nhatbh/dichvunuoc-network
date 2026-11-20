@@ -7,6 +7,7 @@ import { Moon, Sun } from 'lucide-solid'
 import { createSignal, onMount, Show } from 'solid-js'
 import './twin.css'
 import { FactoryScreen } from './ui/factory-screen'
+import { ScadaWindow, type HmiTarget } from './ui/hmi/scada'
 import { MapScreen } from './ui/map-screen'
 import { SimProvider } from './ui/sim-context'
 
@@ -15,6 +16,7 @@ export function TwinPage() {
   const [site, setSite] = createSignal<'plant' | 'tb1'>('plant')
   const [ret, setRet] = createSignal(0)
   const [theme, setTheme] = createSignal<'light' | 'dark'>('light')
+  const [hmi, setHmi] = createSignal<HmiTarget | null>(null)
   onMount(() => {
     const t = (document.documentElement.getAttribute('data-theme') as 'light' | 'dark' | null) ?? 'light'
     setTheme(t === 'dark' ? 'dark' : 'light')
@@ -46,6 +48,9 @@ export function TwinPage() {
               </div>
             </a>
             <div class="tw-spacer" />
+            <button type="button" class="tw-btn primary" onClick={() => setHmi({ mode: 'scada', screen: 'overview' })} title="Màn hình SCADA trung tâm">
+              SCADA
+            </button>
             <a class="tw-btn" href="/gis">
               Ứng dụng GIS
             </a>
@@ -56,6 +61,7 @@ export function TwinPage() {
         </Show>
         <Show when={mode() === 'factory'}>
           <FactoryScreen
+            onOpenHmi={setHmi}
             site={site()}
             onBack={() => {
               setMode('map')
@@ -64,6 +70,7 @@ export function TwinPage() {
           />
         </Show>
       </div>
+      <Show when={hmi()}>{t => <ScadaWindow target={t()} onClose={() => setHmi(null)} />}</Show>
     </SimProvider>
   )
 }

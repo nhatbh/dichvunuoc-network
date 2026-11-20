@@ -8,7 +8,15 @@ export type Status = 'normal' | 'warning' | 'critical' | 'offline';
 
 /** How a component sits in the network model (see the Component catalog). */
 export type Role = 'line' | 'node' | 'inline' | 'nodeDevice' | 'facility';
-export type Category = 'Pipes' | 'Fittings' | 'Valves' | 'Hydrants & services' | 'Metering & monitoring' | 'Pumping & storage';
+export type Category =
+  | 'Pipes'
+  | 'Fittings'
+  | 'Valves'
+  | 'Hydrants & services'
+  | 'Metering & monitoring'
+  | 'Pumping & storage'
+  | 'Treatment'
+  | 'Electrical & automation';
 
 export const MATERIAL_CODES: readonly MaterialCode[] = ['HDPE', 'PVC', 'DuctileIron', 'Steel', 'CastIron', 'Concrete'];
 export const STATUSES: readonly Status[] = ['normal', 'warning', 'critical', 'offline'];

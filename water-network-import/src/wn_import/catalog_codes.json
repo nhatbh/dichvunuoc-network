@@ -3076,6 +3076,1900 @@
           "unit": "m"
         }
       ]
+    },
+    {
+      "code": "TurbidityMeter",
+      "name": "Online turbidimeter",
+      "vi": "Máy đo độ đục trực tuyến",
+      "category": "Metering & monitoring",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "senses"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "ChlorineAnalyser",
+      "name": "Residual chlorine analyser",
+      "vi": "Máy đo clo dư trực tuyến",
+      "category": "Metering & monitoring",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "senses"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "PHAnalyser",
+      "name": "pH / ORP analyser",
+      "vi": "Máy đo pH / ORP",
+      "category": "Metering & monitoring",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "senses"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "DPTransmitter",
+      "name": "Differential pressure transmitter",
+      "vi": "Cảm biến chênh áp",
+      "category": "Metering & monitoring",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "senses"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "GasDetector",
+      "name": "Chlorine gas detector",
+      "vi": "Đầu dò rò rỉ khí clo",
+      "category": "Metering & monitoring",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "senses"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "CCTVCamera",
+      "name": "CCTV camera",
+      "vi": "Camera giám sát",
+      "category": "Metering & monitoring",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "senses"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "MotorisedValve",
+      "name": "Motorised butterfly valve",
+      "vi": "Van bướm điều khiển điện",
+      "category": "Valves",
+      "role": "inline",
+      "kind": "Device",
+      "host": "pipe",
+      "functions": [
+        "isolates",
+        "controls"
+      ],
+      "defaultDN": 300,
+      "dnRange": [
+        100,
+        1200
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 100,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "state",
+          "type": "enum",
+          "values": [
+            "open",
+            "closed",
+            "throttled"
+          ]
+        },
+        {
+          "key": "setpoint",
+          "type": "number",
+          "min": 0,
+          "max": 200
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "VerticalTurbinePump",
+      "name": "Vertical turbine pump",
+      "vi": "Bơm trục đứng",
+      "category": "Pumping & storage",
+      "role": "inline",
+      "kind": "Device",
+      "host": "pipe",
+      "functions": [
+        "pumps"
+      ],
+      "defaultDN": 400,
+      "dnRange": [
+        150,
+        800
+      ],
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 150,
+          "max": 800,
+          "unit": "mm"
+        },
+        {
+          "key": "pumpCount",
+          "type": "int",
+          "min": 1,
+          "max": 50
+        }
+      ]
+    },
+    {
+      "code": "SubmersiblePump",
+      "name": "Submersible pump",
+      "vi": "Bơm chìm",
+      "category": "Pumping & storage",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "pumps"
+      ],
+      "defaultDN": 150,
+      "dnRange": [
+        50,
+        400
+      ],
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 50,
+          "max": 400,
+          "unit": "mm"
+        },
+        {
+          "key": "pumpCount",
+          "type": "int",
+          "min": 1,
+          "max": 50
+        }
+      ]
+    },
+    {
+      "code": "Blower",
+      "name": "Air blower",
+      "vi": "Máy thổi khí",
+      "category": "Treatment",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "treats"
+      ],
+      "defaultDN": 300,
+      "dnRange": [
+        80,
+        600
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 80,
+          "max": 600,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "Mixer",
+      "name": "Rapid mixer",
+      "vi": "Máy khuấy trộn nhanh",
+      "category": "Treatment",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "treats"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        }
+      ]
+    },
+    {
+      "code": "Flocculator",
+      "name": "Paddle flocculator",
+      "vi": "Máy khuấy phản ứng (bông cặn)",
+      "category": "Treatment",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "treats"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        }
+      ]
+    },
+    {
+      "code": "LamellaSettler",
+      "name": "Lamella settler",
+      "vi": "Bể lắng lamella",
+      "category": "Treatment",
+      "role": "facility",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "treats"
+      ],
+      "defaultDN": 600,
+      "dnRange": [
+        300,
+        1200
+      ],
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 300,
+          "max": 1200,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
+    },
+    {
+      "code": "RapidSandFilter",
+      "name": "Rapid sand filter",
+      "vi": "Bể lọc nhanh",
+      "category": "Treatment",
+      "role": "facility",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "treats"
+      ],
+      "defaultDN": 400,
+      "dnRange": [
+        200,
+        800
+      ],
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 200,
+          "max": 800,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
+    },
+    {
+      "code": "DosingPump",
+      "name": "Chemical dosing pump",
+      "vi": "Bơm định lượng hóa chất",
+      "category": "Treatment",
+      "role": "inline",
+      "kind": "Device",
+      "host": "pipe",
+      "functions": [
+        "treats"
+      ],
+      "defaultDN": 25,
+      "dnRange": [
+        15,
+        50
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 50,
+          "unit": "mm"
+        },
+        {
+          "key": "setpoint",
+          "type": "number",
+          "min": 0,
+          "max": 200
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "ChemicalTank",
+      "name": "Chemical preparation tank",
+      "vi": "Bồn pha hóa chất",
+      "category": "Treatment",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "stores",
+        "treats"
+      ],
+      "defaultDN": 50,
+      "dnRange": [
+        25,
+        100
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 25,
+          "max": 100,
+          "unit": "mm"
+        },
+        {
+          "key": "capacityM3",
+          "type": "number",
+          "min": 0,
+          "max": 10000000,
+          "unit": "m³"
+        }
+      ]
+    },
+    {
+      "code": "Chlorinator",
+      "name": "Gas chlorinator",
+      "vi": "Clorator (thiết bị châm clo khí)",
+      "category": "Treatment",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "treats"
+      ],
+      "defaultDN": 25,
+      "dnRange": [
+        15,
+        50
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 50,
+          "unit": "mm"
+        },
+        {
+          "key": "setpoint",
+          "type": "number",
+          "min": 0,
+          "max": 200
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "ChlorineContainer",
+      "name": "Chlorine container 900 kg",
+      "vi": "Bình clo lỏng 900 kg",
+      "category": "Treatment",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "stores",
+        "treats"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        25
+      ],
+      "hasStatus": false,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 25,
+          "unit": "mm"
+        },
+        {
+          "key": "capacityM3",
+          "type": "number",
+          "min": 0,
+          "max": 10000000,
+          "unit": "m³"
+        }
+      ]
+    },
+    {
+      "code": "Scrubber",
+      "name": "Chlorine scrubber",
+      "vi": "Tháp trung hòa khí clo",
+      "category": "Treatment",
+      "role": "facility",
+      "kind": "Node",
+      "host": "none",
+      "functions": [
+        "treats"
+      ],
+      "defaultDN": 200,
+      "dnRange": [
+        100,
+        400
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 100,
+          "max": 400,
+          "unit": "mm"
+        },
+        {
+          "key": "elevationM",
+          "type": "number",
+          "min": -500,
+          "max": 9000,
+          "unit": "m"
+        }
+      ]
+    },
+    {
+      "code": "VFDPanel",
+      "name": "Variable frequency drive",
+      "vi": "Tủ biến tần",
+      "category": "Electrical & automation",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "automates"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "setpoint",
+          "type": "number",
+          "min": 0,
+          "max": 200
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "MCC",
+      "name": "Motor control centre",
+      "vi": "Tủ điều khiển động cơ (MCC)",
+      "category": "Electrical & automation",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "automates"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "PLCPanel",
+      "name": "PLC control panel",
+      "vi": "Tủ điều khiển PLC",
+      "category": "Electrical & automation",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "automates"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "HMIPanel",
+      "name": "Local HMI operator panel",
+      "vi": "Màn hình vận hành tại chỗ (HMI)",
+      "category": "Electrical & automation",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "automates"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "SCADAWorkstation",
+      "name": "SCADA operator workstation",
+      "vi": "Trạm vận hành SCADA",
+      "category": "Electrical & automation",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "automates"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "code": "Transformer",
+      "name": "Distribution transformer",
+      "vi": "Máy biến áp",
+      "category": "Electrical & automation",
+      "role": "nodeDevice",
+      "kind": "Device",
+      "host": "node",
+      "functions": [
+        "automates"
+      ],
+      "defaultDN": 15,
+      "dnRange": [
+        15,
+        15
+      ],
+      "hasStatus": true,
+      "properties": [
+        {
+          "key": "dma",
+          "type": "string"
+        },
+        {
+          "key": "year",
+          "type": "int",
+          "min": 1850,
+          "max": 2100
+        },
+        {
+          "key": "condition",
+          "type": "enum",
+          "values": [
+            "good",
+            "fair",
+            "poor",
+            "critical"
+          ]
+        },
+        {
+          "key": "manufacturer",
+          "type": "string"
+        },
+        {
+          "key": "model",
+          "type": "string"
+        },
+        {
+          "key": "serial",
+          "type": "string"
+        },
+        {
+          "key": "dn",
+          "type": "int",
+          "min": 15,
+          "max": 15,
+          "unit": "mm"
+        },
+        {
+          "key": "tag",
+          "type": "string"
+        },
+        {
+          "key": "protocol",
+          "type": "enum",
+          "values": [
+            "ModbusTCP",
+            "ModbusRTU",
+            "Profinet",
+            "EtherNetIP",
+            "OPCUA",
+            "IEC104",
+            "MQTT"
+          ]
+        },
+        {
+          "key": "ipAddress",
+          "type": "string"
+        }
+      ]
     }
   ]
 }
