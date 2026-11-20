@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as GisRouteImport } from './routes/gis'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as TwinRouteImport } from './routes/twin'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TwinRoute = TwinRouteImport.update({
+  id: '/twin',
+  path: '/twin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/gis': typeof GisRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/twin': typeof TwinRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/gis': typeof GisRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/twin': typeof TwinRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/gis': typeof GisRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/twin': typeof TwinRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/gis' | '/login' | '/register'
+  fullPaths: '/' | '/gis' | '/login' | '/register' | '/twin'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/gis' | '/login' | '/register'
-  id: '__root__' | '/' | '/gis' | '/login' | '/register'
+  to: '/' | '/gis' | '/login' | '/register' | '/twin'
+  id: '__root__' | '/' | '/gis' | '/login' | '/register' | '/twin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   GisRoute: typeof GisRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  TwinRoute: typeof TwinRoute
 }
 
 declare module '@tanstack/solid-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/twin': {
+      id: '/twin'
+      path: '/twin'
+      fullPath: '/twin'
+      preLoaderRoute: typeof TwinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   GisRoute: GisRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  TwinRoute: TwinRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

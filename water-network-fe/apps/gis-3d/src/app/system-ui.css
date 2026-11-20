@@ -172,6 +172,20 @@
 .sx-seg button:hover {
   background: var(--line-2);
 }
+/* link out of the GIS shell (Bản đồ số 3D) styled as one more segment */
+.sx-seg a {
+  min-height: 32px;
+  padding: 5px 10px;
+  border-left: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink);
+  white-space: nowrap;
+  font: 700 14px/1 var(--f-label);
+  text-decoration: none;
+}
+.sx-seg a:hover {
+  background: var(--line-2);
+}
 .sx-seg button[aria-pressed='true'] {
   background: var(--accent);
   color: var(--accent-ink);

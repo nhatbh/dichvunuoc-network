@@ -196,6 +196,13 @@ function TopBar(props: {
         >
           Import
         </button>
+        <a
+          href="/twin"
+          title="Bản đồ số 3D: mạng lưới + nhà máy nước, LoD, vận hành nhà máy"
+          style={{ display: 'inline-flex', 'align-items': 'center' }}
+        >
+          Bản đồ số 3D
+        </a>
       </div>
       <button
         type="button"
