@@ -92,6 +92,8 @@ const KIND_LABEL: Record<NetPipe['kind'], string> = {
 
 type MapFly = 'overview' | 'layers' | 'catalog' | 'perf' | 'alarms' | null
 /** sensors that carry a live callout on the map */
+/** the opening waits for the map's first tiles this long at most (ms) */
+const MAP_WAIT_MS = 10_000
 const CALLOUTS = NET_DEVICES.filter(d => d.code === 'PressureSensor' || d.code === 'ChlorineAnalyser' || d.id === 'FT-VT3' || d.id === 'AL-3').map(d => d.id)
 /** the inlet station's sensors sit metres apart: from afar the zone reading stands for them */
 const INLET_STATION = new Set(['FT-VT3', 'PT-VT3-01', 'AIT-VT3'])
@@ -347,21 +349,26 @@ export function MapScreen(props: {
     if (import.meta.env.DEV) (window as unknown as { __twin: unknown }).__twin = { map, layer, sim }
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right')
     map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right')
-    map.on('load', () => {
+    // ready once the first tiles and the 3D layer have drawn, but never wait longer than MAP_WAIT_MS: where the
+    // basemap tiles do not load (blocked or slow network) the app opens anyway, on the 3D network over a blank ground
+    let told = false
+    const tell = () => {
+      if (told) return
+      told = true
+      props.onReady()
+    }
+    // counted from when the opening screen appeared (it shows before the app's code has loaded)
+    const shown = performance.now() - (window.__twinBootAt ?? performance.now())
+    const waited = window.setTimeout(tell, Math.max(0, MAP_WAIT_MS - shown))
+    onCleanup(() => window.clearTimeout(waited))
+    // the style is local (raster sources only), so it is there at once; 'load' would also wait for the tiles
+    map.once('style.load', () => {
       map!.addLayer(layer)
       applyVis(vis())
       solve()
       far = new FarOverlay(map!, pickDevice)
       void far.add().then(updateFar)
-      // ready once the first tiles and the 3D layer have drawn (or after a while, whatever the network does)
-      let told = false
-      const tell = () => {
-        if (told) return
-        told = true
-        props.onReady()
-      }
       map!.once('idle', tell)
-      window.setTimeout(tell, 15000)
     })
     map.on('zoom', () => setZoom(Math.round(map!.getZoom() * 10) / 10))
     plantMarker = new maplibregl.Marker({ element: markerEl(PLANT.name, () => enter('plant')), anchor: 'bottom', offset: [0, -40] })
