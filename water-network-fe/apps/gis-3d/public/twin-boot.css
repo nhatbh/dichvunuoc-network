@@ -1,0 +1,387 @@
+/*
+ * The /twin opening screen (the logo: two hands catching a drop of water). Loaded before the app's code by
+ * /twin-boot.js, so the logo shows at once; the app's Splash (src/pages/twin/ui/intro.tsx) then drives it.
+ */
+.tw-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(110% 85% at 50% 42%, #ffffff 0%, #eef6fc 48%, #d6e8f5 100%) !important;
+  transition:
+    opacity 0.6s ease,
+    background 0.6s ease;
+}
+.tw-splash.leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+.tw-splash-mark {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+  margin-top: -5vh;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tw-splash.leaving .tw-splash-mark {
+  transform: scale(1.12);
+}
+.tw-logo-anim {
+  width: min(230px, 46vw);
+  filter: drop-shadow(0 18px 30px rgba(22, 120, 196, 0.18));
+  height: auto;
+  overflow: visible;
+}
+.tw-logo-anim .ring {
+  fill: none;
+  stroke: #2aa7e6;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 580;
+  stroke-dashoffset: 580;
+  transform: rotate(-90deg);
+  transform-origin: 100px 100px;
+  animation: tw-ring 0.9s 0.1s cubic-bezier(0.6, 0, 0.3, 1) forwards;
+}
+.tw-logo-anim .hand path:not(.crease) {
+  fill: url(#tw-hand);
+}
+.tw-logo-anim .hand .crease {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.tw-logo-anim .hand {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 100px 150px;
+}
+.tw-logo-anim .hand.left {
+  animation: tw-hand-l 0.8s 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.tw-logo-anim .hand.right {
+  animation: tw-hand-r 0.8s 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.tw-logo-anim .drop {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 100px 118px;
+  animation: tw-drop-fall 0.95s 1.2s cubic-bezier(0.5, 0, 0.6, 1) forwards;
+}
+.tw-logo-anim .drop .body {
+  fill: url(#tw-drop);
+}
+.tw-logo-anim .drop .shine {
+  fill: rgba(255, 255, 255, 0.45);
+  transform: translateX(-60px) skewX(-18deg);
+}
+.tw-logo-anim .drop .glint {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.tw-logo-anim .ripple ellipse {
+  fill: none;
+  stroke: #2aa7e6;
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tw-ripple 0.9s 2s ease-out forwards;
+}
+.tw-splash-name {
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  opacity: 0;
+  animation: tw-rise 0.6s 1.9s ease forwards;
+}
+.tw-splash-name b {
+  font: 650 40px/1.05 var(--f-label, 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif);
+  color: #12324d;
+}
+.tw-splash-name span {
+  font: 500 15px/1.35 var(--f-body, 'Be Vietnam Pro', system-ui, 'Segoe UI', Roboto, sans-serif);
+  color: #4d6577;
+}
+.tw-splash-load {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 18px;
+  font: 500 12.5px/1 var(--f-body, 'Be Vietnam Pro', system-ui, 'Segoe UI', Roboto, sans-serif);
+  color: #5c7486;
+}
+.tw-splash-load i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #2aa7e6;
+  animation: tw-dot 1.2s ease-in-out infinite;
+}
+.tw-splash-load i:nth-of-type(2) {
+  animation-delay: 0.15s;
+}
+.tw-splash-load i:nth-of-type(3) {
+  animation-delay: 0.3s;
+}
+/* idle, while the map loads: the drop floats and catches the light, the hands breathe, the water rings */
+.tw-splash.idle .tw-logo-anim .drop {
+  opacity: 1;
+  animation: tw-drop-float 2.6s ease-in-out infinite;
+}
+.tw-splash.idle .tw-logo-anim .drop .shine {
+  animation: tw-shine 2.6s 0.4s ease-in-out infinite;
+}
+.tw-splash.idle .tw-logo-anim .hand {
+  opacity: 1;
+  animation: tw-hand-breathe 2.6s ease-in-out infinite;
+}
+.tw-splash.idle .tw-logo-anim .ripple ellipse {
+  animation: tw-ripple 2.6s 0.9s ease-out infinite;
+}
+.tw-splash.idle .tw-logo-anim .ring {
+  stroke-dashoffset: 0;
+  animation: none;
+}
+.tw-splash.idle .tw-splash-name {
+  opacity: 1;
+  animation: none;
+}
+@keyframes tw-ring {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes tw-hand-l {
+  from {
+    opacity: 0;
+    transform: translate(-34px, 8px) rotate(-14deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes tw-hand-r {
+  from {
+    opacity: 0;
+    transform: translate(34px, 8px) rotate(14deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes tw-drop-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-90px) scale(0.55, 0.7);
+  }
+  25% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(6px) scale(1.06, 0.9);
+  }
+  85% {
+    transform: translateY(-4px) scale(0.97, 1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes tw-drop-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes tw-shine {
+  0% {
+    transform: translateX(-60px) skewX(-18deg);
+  }
+  55%,
+  100% {
+    transform: translateX(110px) skewX(-18deg);
+  }
+}
+@keyframes tw-hand-breathe {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateY(1.5px) scale(1.012);
+  }
+}
+@keyframes tw-ripple {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+@keyframes tw-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes tw-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-splash *,
+  .tw-splash {
+    animation: none !important;
+    transition: none !important;
+  }
+  .tw-splash .tw-logo-anim .ring {
+    stroke-dashoffset: 0;
+  }
+  .tw-splash .tw-logo-anim .hand,
+  .tw-splash .tw-logo-anim .drop,
+  .tw-splash .tw-splash-name {
+    opacity: 1;
+  }
+}
+
+/* ───── around the logo: a glow, the water, the progress ───── */
+.tw-splash-glow {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  z-index: 1;
+  width: min(760px, 120vw);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.78) 45%, rgba(255, 255, 255, 0));
+}
+.tw-splash-waves {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 200%;
+  height: 18vh;
+}
+.tw-splash-waves path {
+  animation: tw-wave 9s linear infinite;
+}
+.tw-splash-waves .w1 {
+  fill: rgba(42, 167, 230, 0.12);
+}
+.tw-splash-waves .w2 {
+  fill: rgba(29, 120, 196, 0.12);
+  transform: translateY(14px);
+  animation-duration: 13s;
+  animation-direction: reverse;
+}
+.tw-splash-waves .w3 {
+  fill: rgba(22, 100, 170, 0.14);
+  transform: translateY(30px);
+  animation-duration: 17s;
+}
+.tw-splash-progress {
+  position: relative;
+  width: min(280px, 60vw);
+  height: 4px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(29, 108, 174, 0.12);
+  opacity: 0;
+  animation: tw-rise 0.6s 2s ease forwards;
+}
+.tw-splash-progress i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 36%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #7fd0f6, #1678c4);
+  animation: tw-progress 1.6s ease-in-out infinite;
+}
+.tw-splash.idle .tw-splash-progress {
+  opacity: 1;
+  animation: none;
+}
+/* the map is ready: the bar fills */
+.tw-splash.leaving .tw-splash-progress i {
+  width: 100%;
+  animation: none;
+  transform: none;
+}
+.tw-splash-foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 22px;
+  z-index: 2;
+  text-align: center;
+  font: 500 12.5px/1.2 var(--f-body, 'Be Vietnam Pro', system-ui, 'Segoe UI', Roboto, sans-serif);
+  color: #4d6c84;
+  opacity: 0;
+  animation: tw-rise 0.6s 2.2s ease forwards;
+}
+.tw-splash.idle .tw-splash-foot {
+  opacity: 1;
+  animation: none;
+}
+@keyframes tw-wave {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: -50% 0;
+  }
+}
+@keyframes tw-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(280%);
+  }
+}
+@media (max-width: 600px) {
+  .tw-splash-name b {
+    font-size: 30px;
+  }
+  .tw-splash-foot {
+    padding: 0 16px;
+  }
+}
+.tw-splash-name span {
+  max-width: 92vw;
+  padding: 0 16px;
+  text-wrap: balance;
+}

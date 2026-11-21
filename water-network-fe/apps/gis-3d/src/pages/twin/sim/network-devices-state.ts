@@ -17,6 +17,9 @@ export interface Reading {
 const f1 = (n: number) => n.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 const f2 = (n: number) => n.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const f0 = (n: number) => Math.round(n).toLocaleString('vi-VN')
+/** a part's size: the HDPE outside diameter it joins with its DN ("D63 (DN50)"), else its DN */
+const size = (od: number | undefined, dn: number) => (od ? `D${od} (DN${dn})` : `DN${dn}`)
+
 /** stable pseudo-random 0..1 per id */
 const hash = (s: string) => {
   let h = 2166136261
@@ -86,8 +89,8 @@ export function deviceReadings(id: string, sol: NetworkSolution | null, sim: Pla
     case 'SamplingPoint':
       return [{ k: 'Lấy mẫu gần nhất', v: `${1 + Math.floor(hash(id) * 18)}/11/2026` }, { k: 'Clo dư (mẫu)', v: f2(sim.clRes * 0.9), u: 'mg/L' }]
     case 'TappingSaddle':
-      return [{ k: 'Ống chính × nhánh', v: `DN${d.dn} × D${d.dn2 ?? 50}` }, { k: 'Áp lực tại điểm', v: f1(p), u: 'm' }]
+      return [{ k: 'Ống phân phối × ống dịch vụ', v: `${size(d.od, d.dn)} × ${size(d.od2, d.dn2 ?? 40)}` }, { k: 'Áp lực tại điểm', v: f1(p), u: 'm' }]
     default:
-      return [{ k: 'Đường kính', v: `DN${d.dn}${d.dn2 ? ' × ' + d.dn2 : ''}` }, { k: 'Áp lực tại nút', v: f1(p), u: 'm' }]
+      return [{ k: 'Đường kính', v: d.dn2 ? `${size(d.od, d.dn)} × ${size(d.od2, d.dn2)}` : size(d.od, d.dn) }, { k: 'Áp lực tại nút', v: f1(p), u: 'm' }]
   }
 }

@@ -25,7 +25,7 @@ import {
   iconMaintenance,
   iconRefresh,
 } from '@siemens/ix-icons/icons'
-import { createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch, type JSX } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, Match, on, onCleanup, onMount, Show, Switch, type JSX } from 'solid-js'
 import { setupIx } from './ix'
 import { EChart, gaugeOption, trendOption } from './ix-charts'
 import { IxFaceplate } from './ix-faceplate'
@@ -80,10 +80,43 @@ export function ScadaWindow(props: { target: HmiTarget; onClose: () => void }) {
   const local = () => props.target.mode === 'local'
   const tabs = () => (local() ? SCREENS.filter(s => (LOCAL_SCREENS[props.target.screen] ?? [first, 'alarms']).includes(s.id)) : SCREENS)
   const station = () => (props.target.station ? EQUIPMENT_BY_TAG[props.target.station] : undefined)
+  // closing plays the window's exit (hmi.css .closing) before it is removed
+  const [closing, setClosing] = createSignal(false)
+  const close = () => {
+    if (closing()) return
+    setClosing(true)
+    window.setTimeout(() => props.onClose(), 230)
+  }
+  const [faceClosing, setFaceClosing] = createSignal(false)
+  const closeFace = () => {
+    if (!face() || faceClosing()) return
+    setFaceClosing(true)
+    window.setTimeout(() => {
+      setFace(null)
+      setFaceClosing(false)
+    }, 190)
+  }
+  // a new screen slides in from the side of the tab it came from
+  let body!: HTMLDivElement
+  let prevIdx = 0
+  createEffect(
+    on(
+      screen,
+      s => {
+        const i = Math.max(0, SCREENS.findIndex(x => x.id === s))
+        body.style.setProperty('--dir', i >= prevIdx ? '1' : '-1')
+        prevIdx = i
+        body.classList.remove('swap')
+        void body.offsetWidth // restart the animation
+        body.classList.add('swap')
+      },
+      { defer: true },
+    ),
+  )
   const onKey = (e: KeyboardEvent) => {
     if (e.key !== 'Escape') return
-    if (face()) setFace(null)
-    else props.onClose()
+    if (face()) closeFace()
+    else close()
   }
   onMount(() => window.addEventListener('keydown', onKey))
   onCleanup(() => window.removeEventListener('keydown', onKey))
@@ -93,7 +126,7 @@ export function ScadaWindow(props: { target: HmiTarget; onClose: () => void }) {
   const count = () => (v(), sim.activeAlarms.length)
   const svgScreen = () => !['alarms', 'network', 'trends'].includes(screen())
   return (
-    <div class="hm-backdrop" role="dialog" aria-modal="true" aria-label={local() ? 'Màn hình HMI tại chỗ' : 'SCADA trung tâm'}>
+    <div class="hm-backdrop" classList={{ closing: closing() }} role="dialog" aria-modal="true" aria-label={local() ? 'Màn hình HMI tại chỗ' : 'SCADA trung tâm'}>
       <div class={local() ? 'hm-bezel' : 'hm-full'}>
         <Show when={local()}>
           <div class="hm-bezel-top">
@@ -125,7 +158,7 @@ export function ScadaWindow(props: { target: HmiTarget; onClose: () => void }) {
             <ix-chip variant={crit() ? 'alarm' : count() ? 'warning' : 'neutral'} icon={iconAlarmBell} onClick={() => setScreen('alarms')}>
               {count()} báo động
             </ix-chip>
-            <ix-icon-button icon={iconClose} variant="subtle-tertiary" onClick={() => props.onClose()} aria-label="Đóng màn hình" />
+            <ix-icon-button icon={iconClose} variant="subtle-tertiary" onClick={close} aria-label="Đóng màn hình" />
           </header>
           <div class="hx-tabs">
             <ix-tabs prop:activeTabKey={screen()} small>
@@ -152,7 +185,7 @@ export function ScadaWindow(props: { target: HmiTarget; onClose: () => void }) {
               <ix-kpi label="Điện năng" value={(v(), f2(sim.specificEnergy))} unit="kWh/m³" />
             </div>
           </Show>
-          <div class="hm-body">
+          <div class="hm-body" ref={body}>
             <Switch>
               <Match when={screen() === 'alarms'}>
                 <AlarmScreen onOpen={open} />
@@ -196,8 +229,8 @@ export function ScadaWindow(props: { target: HmiTarget; onClose: () => void }) {
             </Show>
             <Show when={face()}>
               {t => (
-                <aside class="hm-face">
-                  <IxFaceplate tag={t()} onClose={() => setFace(null)} />
+                <aside class="hm-face" classList={{ closing: faceClosing() }}>
+                  <IxFaceplate tag={t()} onClose={closeFace} />
                 </aside>
               )}
             </Show>

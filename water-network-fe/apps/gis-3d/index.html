@@ -6,9 +6,13 @@
     <meta name="theme-color" content="#1d6cae" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mạng lưới cấp nước — GIS</title>
+    <!-- the /twin opening screen (public/twin-boot.js); small, and loaded on every page so it is styled at once
+         when /twin is reached from another page -->
+    <link id="tw-boot-css" rel="stylesheet" href="/twin-boot.css" />
   </head>
   <body>
     <div id="root"></div>
+    <script src="/twin-boot.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

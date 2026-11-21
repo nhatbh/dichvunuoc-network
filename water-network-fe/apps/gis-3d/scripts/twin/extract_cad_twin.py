@@ -6,11 +6,13 @@ Inputs are DXF conversions of the project drawings (LibreDWG `dwg2dxf`, see READ
   site    "1. QH Tổng Mặt bằng Dinh vi Nha May.dwg"   Sông Hồng clean-water plant (29,000 m³/ngđ), site plan
           with its own coordinate table and the Xref "Xr.Binh do" (VN-2000 survey) → exact geo-reference
   intake  "Xref Nen toa do.dwg"                        survey around the river intake (block CTT)
-  service "2. MB Ong Dich vu- Vinh Thinh 123.dwg"      service pipes D50/D63 and meter clusters (kt1…)
+  service "2. MB Ong Dich vu- Vinh Thinh 123.dwg"      service pipes D50/D63, their fittings and tapping saddles
+          (kt1…), connected to the network below (service_network.py)
   network scripts/local-stack/networks/vinh-thinh-dot3.drafts.json (the CAD import of "1.MB-PP-Vinh Thinh - Dot 3.dwg")
 
 Run (Python ≥ 3.10 with ezdxf + pyproj):
   python scripts/twin/extract_cad_twin.py --site <site.dxf> --intake <intake.dxf> --service <service.dxf>
+  (--site / --intake may be left out to keep those sections of the current cad-twin.json)
 
 Everything not in the drawings (heights, process pipe routes, raw/treated transmission-main routes, equipment
 counts per building) is added by the app and marked `assumed` there; this script only emits what the drawings hold.
@@ -32,6 +34,8 @@ VN2000_VP = ('+proj=tmerc +lat_0=0 +lon_0=105 +k=0.9999 +x_0=500000 +y_0=0 +ellp
              '+towgs84=-191.90441429,-39.30318279,-111.45032835,-0.00928836,0.01975479,-0.00427372,0.252906278 '
              '+units=m +no_defs')
 TO_WGS = Transformer.from_crs(VN2000_VP, 'EPSG:4326', always_xy=True)
+TO_VN = Transformer.from_crs('EPSG:4326', VN2000_VP, always_xy=True)
+TO_MERC = Transformer.from_crs('EPSG:4326', 'EPSG:3857', always_xy=True)
 
 
 def lonlat(e, n):
@@ -191,20 +195,41 @@ def intake(path):
     }
 
 
-def service(path):
-    doc, _ = recover.readfile(path)
-    msp = doc.modelspace()
-    lines, meters = [], []
-    for e in msp:
-        lay = e.dxf.layer
-        if lay in ('50', '63') and e.dxftype() in ('LWPOLYLINE', 'POLYLINE'):
-            pts = [(p[0], p[1]) for p in (e.get_points('xy') if e.dxftype() == 'LWPOLYLINE' else e.points())]
-            if len(pts) >= 2:
-                lines.append({'dn': int(lay), 'path': [lonlat(*p) for p in pts]})
-        elif lay == 'ten dai khoi thuy' and e.dxftype() == 'INSERT':
-            meters.append(lonlat(e.dxf.insert[0], e.dxf.insert[1]))
-    return {'source': '2. MB Ong Dich vu- Vinh Thinh 123.dwg (layers 50, 63, ten dai khoi thuy)',
-            'lines': lines, 'meterClusters': meters}
+def service(path, network_path=NETWORK):
+    """service pipes of the service drawing, processed and hung off the CAD-import pipes (service_network.py)"""
+    sys.path.insert(0, str(HERE))
+    import service_network as sn
+    from tcvn3 import decode
+    d = json.loads(Path(network_path).read_text(encoding='utf8'))
+    mains = [{'id': a['clientRef'], 'dn': int(a['attributes'].get('diameterMm') or 110),
+              'path': [TO_VN.transform(*c) for c in a['geometry']['coordinates']]} for a in d['assets'] if a['kind'] == 'Pipe']
+    lines, blocks, labels = sn.read(path, decode)
+    pieces, fittings, saddles = sn.build(lines, blocks, labels, mains)
+
+    def ll(p):
+        return lonlat(p[0], p[1])
+
+    def heading(at, h):
+        """grid bearing (VN-2000) → bearing on the web-mercator map the twin draws on"""
+        a = TO_MERC.transform(*TO_WGS.transform(at[0], at[1]))
+        b = TO_MERC.transform(*TO_WGS.transform(at[0] + math.cos(h), at[1] + math.sin(h)))
+        return round(math.atan2(b[1] - a[1], b[0] - a[0]), 4)
+
+    def opt(o, **kw):
+        o.update({k: v for k, v in kw.items() if v})
+        return o
+
+    return {
+        'source': '2. MB Ong Dich vu- Vinh Thinh 123.dwg (layers 50, 63; blocks Daudai, bit, con, pt; '
+                  'connected to the CAD import of 1.MB-PP-Vinh Thinh - Dot 3.dwg)',
+        'pipes': [opt({'id': f'SV-{i + 1}', 'dn': p['dn'], 'from': p['from'], 'to': p['to'], 'path': [ll(q) for q in p['path']]},
+                      assumed=p['assumed']) for i, p in enumerate(pieces)],
+        'fittings': [opt({'id': f['id'], 'kind': f['kind'], 'dn': f['dn'], 'at': ll(f['at']), 'heading': heading(f['at'], f['heading'])},
+                         dn2=f.get('dn2'), angle=f.get('angle'), assumed=f.get('assumed')) for f in fittings],
+        'saddles': [opt({'id': s['id'], 'tag': s['tag'], 'main': s['main'], 'dn': s['mainDn'], 'dn2': s.get('dn2', 50),
+                         'at': ll(s['at']), 'heading': heading(s['at'], s['heading'])}, assumed=s.get('assumed'))
+                    for s in saddles],
+    }
 
 
 def network(path):
@@ -229,14 +254,17 @@ def network(path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--site', required=True)
-    ap.add_argument('--intake', required=True)
+    ap.add_argument('--site', help='site plan DXF; without it the plant section of the current JSON is kept')
+    ap.add_argument('--intake', help='intake survey DXF; without it the intake section of the current JSON is kept')
     ap.add_argument('--service', required=True)
     a = ap.parse_args()
+    cur = json.loads(OUT.read_text(encoding='utf8')) if OUT.exists() else {}
+    if not (a.site or 'plant' in cur) or not (a.intake or 'intake' in cur):
+        ap.error('--site and --intake are needed when there is no cad-twin.json to keep them from')
     out = {
         'crs': 'VN-2000 / KT 105°00′ (Vĩnh Phúc) → WGS84',
-        'plant': site(a.site),
-        'intake': intake(a.intake),
+        'plant': site(a.site) if a.site else cur['plant'],
+        'intake': intake(a.intake) if a.intake else cur['intake'],
         'network': network(NETWORK),
         'service': service(a.service),
     }
@@ -246,8 +274,9 @@ def main():
     print('plant origin', p['origin'], 'x-axis', round(math.degrees(p['xAxisRad']), 3), '°',
           'structures', len(p['structures']), 'unmatched', [s['id'] for s in p['structures'] if not s['fromDrawing']],
           'trees', len(p['trees']), 'roads', len(p['roads']))
+    sv = out['service']
     print('intake', out['intake']['origin'], 'network pipes', len(out['network']['pipes']),
-          'service lines', len(out['service']['lines']), 'meter clusters', len(out['service']['meterClusters']))
+          'service pipes', len(sv['pipes']), 'fittings', len(sv['fittings']), 'saddles', len(sv['saddles']))
     print('wrote', OUT, OUT.stat().st_size, 'bytes')
 
 

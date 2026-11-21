@@ -119,7 +119,7 @@ export function IxFaceplate(props: { tag: string; onClose: () => void }) {
         </Show>
         <Show when={auto()}>
           <ix-typography format="body-xs" text-color="soft">
-            Đang ở TỰ ĐỘNG: lệnh bị khóa, chuyển sang TAY để điều khiển.
+            Chuyển sang TAY để điều khiển.
           </ix-typography>
         </Show>
       </Show>

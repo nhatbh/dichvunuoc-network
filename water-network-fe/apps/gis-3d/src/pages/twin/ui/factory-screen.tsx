@@ -1,357 +1,245 @@
-import { ArrowLeft } from 'lucide-solid'
-import { createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch } from 'solid-js'
-import { Faceplate, stateOf } from './faceplate'
-import { f0, f1, f2, useSim } from './sim-context'
-import { AlarmBadge, Kpi, Row, SimClock, Spark } from './widgets'
-import { EQUIPMENT, EQUIPMENT_BY_TAG, PLANT, rectOf, STRUCTURE_BY_ID, UNITS } from '../data/plant-model'
+/**
+ * The plant's 3D view with its overlay: process strip (top), area / equipment explorers in rail flyouts (left),
+ * live charts (right, foldable to chips), faceplate or area card in a drawer, view toggles (bottom right).
+ */
+import { ArrowLeft, CircleHelp, Hand, House, LayoutGrid, MonitorCog, Scan, Tag, Waves, Wrench } from 'lucide-solid'
+import { createEffect, createSignal, Match, on, onCleanup, onMount, Show, Switch } from 'solid-js'
+import { basemap, RASTERS } from './basemap'
+import { Faceplate } from './faceplate'
+import { CloudVeil, DESCENT_MS } from './intro'
+import { AreaList, EquipList, UnitCard } from './plant-explorer'
+import { ProcessStrip } from './process-strip'
+import { director, TourButton } from './tour'
+import { AlarmBell, AlarmPanel, ChartStack, Drawer, Flyout, HintBar, isNarrow, persisted, Rail, SimControl, ThemeButton, TopBar, type ChartDef } from './shell'
+import { useSim } from './sim-context'
+import { EQUIPMENT, EQUIPMENT_BY_TAG, PLANT } from '../data/plant-model'
 import { FactoryView } from '../factory/factory-view'
-import { fmtClock } from '../sim/plant-sim'
 import type { HmiTarget } from './hmi/scada'
 
-export function FactoryScreen(props: { site: 'plant' | 'tb1'; onBack: () => void; onOpenHmi: (t: HmiTarget) => void }) {
-  const { sim, v } = useSim()
+type Fly = 'areas' | 'equip' | 'alarms' | null
+
+/**
+ * The plant's 3D view. It is built once, in the background while the page opens (`onReady` when it has drawn), and
+ * kept: showing it (`active`) only starts its descent out of the cloud, so going in from the map never stalls.
+ */
+export function FactoryScreen(props: {
+  active: boolean
+  site: 'plant' | 'tb1'
+  onReady: () => void
+  onBack: () => void
+  onOpenHmi: (t: HmiTarget) => void
+}) {
+  const { sim } = useSim()
   let el!: HTMLDivElement
   let view: FactoryView | null = null
   const [tag, setTag] = createSignal<string | null>(null)
   const [unit, setUnit] = createSignal<string | null>(null)
-  const [roofs, setRoofs] = createSignal(false)
-  const [labels, setLabels] = createSignal(true)
-  const [flow, setFlow] = createSignal(true)
-  const [query, setQuery] = createSignal('')
-  const [open, setOpen] = createSignal<Record<string, boolean>>({ S07: true, S05: true })
-  const [showLog, setShowLog] = createSignal(false)
-  // eslint-disable-next-line solid/reactivity
-  const [site, setSite] = createSignal<'plant' | 'tb1'>(props.site)
+  const [fly, setFly] = persisted<Fly>('fly.factory', null)
+  const [roofs, setRoofs] = persisted('factory.roofs', true)
+  const [labels, setLabels] = persisted('factory.labels', true)
+  const [flow, setFlow] = persisted('factory.flow', true)
+  const [hints, setHints] = persisted('hints.factory.v2', false)
 
+  /** the 3D view opens out of the cloud the map closed into, panels sliding in */
+  const [veil, setVeil] = createSignal<'clear' | null>(null)
+  const [entering, setEntering] = createSignal(false)
+  let enterTimer = 0
+  createEffect(
+    on(
+      () => props.active,
+      a => {
+        if (view) view.active = a
+        if (!a || !view) return
+        if (props.site === 'tb1') setUnit('TB1')
+        // out of the white the map faded to, the camera descending as the white clears
+        view.intro(props.site, DESCENT_MS / 1000)
+        setVeil(null)
+        queueMicrotask(() => setVeil('clear'))
+        setEntering(true)
+        window.clearTimeout(enterTimer)
+        enterTimer = window.setTimeout(() => setEntering(false), DESCENT_MS + 1200)
+      },
+      { defer: true },
+    ),
+  )
   onMount(() => {
     view = new FactoryView(el, sim)
+    if (import.meta.env.DEV) Object.assign((window as unknown as { __twin: object }).__twin ?? {}, { factory: view })
+    view.setRoofs(roofs())
+    view.setLabels(labels())
+    view.showFlow = flow()
     view.onPick = (t, u) => {
       setTag(t)
       setUnit(u)
-      if (u) {
-        setOpen(o => ({ ...o, [u]: true }))
-        setSite(u === 'TB1' ? 'tb1' : 'plant')
-      }
+      if (u && isNarrow()) setFly(null)
     }
-    if (props.site === 'tb1') {
-      view.focusSite('tb1')
-      setUnit('TB1')
-      setOpen(o => ({ ...o, TB1: true }))
-    } else view.intro()
+    director.factory = {
+      lock: on => view?.setTourMode(on),
+      overview: site => view?.focusSite(site),
+      pickUnit,
+      pickTag,
+      closeDrawer,
+      setFly,
+    }
+    // built in the background: it draws its warm-up frames out of sight, then waits until it is shown
+    view.active = props.active
+    view.intro(props.site, DESCENT_MS / 1000)
+    requestAnimationFrame(() => requestAnimationFrame(() => props.onReady()))
   })
   onCleanup(() => view?.dispose())
+  // the ground is the same basemap as the network map's
+  createEffect(on(basemap, b => view?.setBasemap(RASTERS[b])))
+  createEffect(on(roofs, r => view?.setRoofs(r), { defer: true }))
+  createEffect(on(labels, l => view?.setLabels(l), { defer: true }))
+  createEffect(
+    on(
+      flow,
+      f => {
+        if (view) view.showFlow = f
+      },
+      { defer: true },
+    ),
+  )
+  // the focused building opens up (its roof is cut away) so its equipment stays visible
+  createEffect(() => view?.setCutaway(unit()))
 
   const pickTag = (t: string) => {
+    const e = EQUIPMENT_BY_TAG[t]
     setTag(t)
-    setUnit(EQUIPMENT_BY_TAG[t]?.unit ?? null)
-    setSite(EQUIPMENT_BY_TAG[t]?.unit === 'TB1' ? 'tb1' : 'plant')
+    setUnit(e?.unit ?? null)
     view?.select(t)
     view?.focusTag(t)
+    if (isNarrow()) setFly(null)
   }
   const pickUnit = (u: string) => {
-    setOpen(o => ({ ...o, [u]: !o[u] || unit() !== u }))
     setUnit(u)
     setTag(null)
-    setSite(u === 'TB1' ? 'tb1' : 'plant')
     view?.select(null)
     view?.focusUnit(u)
+    if (isNarrow()) setFly(null)
   }
+  const closeDrawer = () => {
+    setTag(null)
+    setUnit(null)
+    view?.select(null)
+  }
+  const openScreen = (screen: HmiTarget['screen'], local = false, station?: string) => props.onOpenHmi({ mode: local ? 'local' : 'scada', screen, station })
 
-  const filtered = createMemo(() => {
-    const q = query().trim().toLowerCase()
-    return UNITS.map(u => ({
-      ...u,
-      items: EQUIPMENT.filter(e => e.unit === u.id && (!q || e.tag.toLowerCase().includes(q) || e.name.toLowerCase().includes(q))),
-    })).filter(u => !q || u.items.length)
-  })
+  const H = sim.history
+  const charts: ChartDef[] = [
+    { id: 'pOut', label: 'Áp lực ra mạng', unit: 'bar', digits: 2, value: () => sim.pOut, data: () => H.pOut, color: '#2f86d6', band: [3.6, 4.8], level: () => (sim.pOut < 2.5 ? 'crit' : sim.pOut < 3.6 ? 'warn' : null), onFocus: () => pickUnit('S07'), focusLabel: 'Xem trạm bơm nước sạch' },
+    { id: 'qOut', label: 'Lưu lượng phát', unit: 'm³/h', digits: 0, value: () => sim.qOut, data: () => H.qOut, color: '#1d6cae', min: 0, note: () => `nhu cầu ${Math.round(sim.qDemand)}`, onFocus: () => pickUnit('S07'), focusLabel: 'Xem trạm bơm nước sạch' },
+    { id: 'res', label: 'Mực nước bể chứa', unit: '%', digits: 0, value: () => sim.reservoirPct, data: () => H.res, color: '#2fa36b', band: [30, 95], min: 0, max: 100, level: () => (sim.reservoirPct < 8 ? 'crit' : sim.reservoirPct < 20 ? 'warn' : null), onFocus: () => pickUnit('S06'), focusLabel: 'Xem bể chứa' },
+    { id: 'turb', label: 'Độ đục sau lọc', unit: 'NTU', digits: 2, value: () => sim.filteredTurb, data: () => H.turb, color: '#d9822b', band: [0, 1], min: 0, level: () => (sim.filteredTurb > 2 ? 'crit' : sim.filteredTurb > 1 ? 'warn' : null), onFocus: () => pickUnit('S05'), focusLabel: 'Xem cụm bể lọc' },
+    { id: 'cl', label: 'Clo dư', unit: 'mg/L', digits: 2, value: () => sim.clRes, data: () => H.cl, color: '#6aa82e', band: [0.3, 1.0], min: 0, level: () => (sim.clRes < 0.2 ? 'crit' : sim.clRes < 0.3 ? 'warn' : null), onFocus: () => pickUnit('S09'), focusLabel: 'Xem nhà clo' },
+    { id: 'raw', label: 'Độ đục nước thô', unit: 'NTU', digits: 0, value: () => sim.rawTurb, data: () => H.raw, color: '#9c7a4a', min: 0, level: () => (sim.rawTurb > 400 ? 'crit' : sim.rawTurb > 180 ? 'warn' : null), onFocus: () => pickUnit('TB1'), focusLabel: 'Xem trạm bơm TB1' },
+  ]
 
+  const drawerOpen = () => !!(tag() || unit())
   return (
-    <div class="tw-stage">
+    <div class="tw-stage tw-screen factory" classList={{ 'tw-hidden': !props.active, 'tw-enter': entering() }} data-fly={fly() ?? undefined} data-drawer={drawerOpen() ? '' : undefined}>
       <div ref={el} class="tw-stage" />
 
-      {/* top bar */}
-      <header class="tw-top tw-glass">
-        <button type="button" class="tw-btn" onClick={() => props.onBack()} title="Về bản đồ mạng lưới">
-          <ArrowLeft size={16} /> Bản đồ
+      <TopBar crumbs={[{ label: 'Bản đồ số 3D', icon: ArrowLeft, onClick: props.onBack, title: 'Về bản đồ mạng lưới' }, { label: PLANT.name }]}>
+        <SimControl
+          scenarios={[
+            { label: 'Rò rỉ clo', hint: 'Đầu dò khí GD-901 báo rò, quạt khử độc tự chạy', run: () => sim.injectLeak() },
+            { label: 'Lũ, nước thô đục cao', hint: 'Độ đục sông tăng mạnh trong 6 giờ, PAC tăng theo', run: () => sim.injectFlood() },
+            { label: 'Sự cố bơm P-NS-01', hint: 'Bơm nước sạch số 1 dừng, bơm dự phòng tự chạy', run: () => sim.command('P-NS-01', 'fault') },
+          ]}
+        />
+        <AlarmBell pressed={fly() === 'alarms'} onClick={() => setFly(f => (f === 'alarms' ? null : 'alarms'))} />
+        <button type="button" class="tw-btn primary" onClick={() => openScreen('overview')}>
+          <MonitorCog size={16} />
+          <span class="tw-hide-narrow">SCADA</span>
         </button>
-        <div class="tw-brand">
-          <div>
-            <h1>{PLANT.name}</h1>
-            <small>
-              {PLANT.capacity} · mô hình 3D dựng từ bản vẽ CAD tổng mặt bằng · {(v(), sim.clock)}
-            </small>
-          </div>
-        </div>
-        <div class="tw-spacer" />
-        <AlarmBadge />
-        <button type="button" class="tw-btn primary" onClick={() => props.onOpenHmi({ mode: 'scada', screen: 'overview' })} title="Màn hình SCADA trung tâm">
-          SCADA
-        </button>
-        <div class="tw-seg" role="group" aria-label="Khu vực">
-          <button
-            type="button"
-            aria-pressed={site() !== 'tb1'}
-            onClick={() => {
-              setSite('plant')
-              view?.focusSite('plant')
-            }}
-          >
-            Nhà máy
-          </button>
-          <button
-            type="button"
-            aria-pressed={site() === 'tb1'}
-            onClick={() => {
-              setSite('tb1')
-              view?.focusSite('tb1')
-              setUnit('TB1')
-            }}
-          >
-            TB1 nước thô
-          </button>
-        </div>
-      </header>
+        <TourButton />
+        <ThemeButton />
+      </TopBar>
 
-      {/* KPI strip */}
-      <div class="tw-strip tw-glass">
-        <Kpi k="Nước thô vào" v={(v(), f0(sim.qRaw))} u="m³/h" />
-        <Kpi k="Qua xử lý" v={(v(), f0(sim.qTransfer))} u="m³/h" />
-        <Kpi k="Phát ra mạng" v={(v(), f0(sim.qOut))} u="m³/h" />
-        <Kpi k="Áp lực ra" v={(v(), f2(sim.pOut))} u="bar" level={(v(), sim.pOut < 2.5 ? 'crit' : null)} />
-        <Kpi k="Bể chứa" v={(v(), f0(sim.reservoirPct))} u="%" level={(v(), sim.reservoirPct < 20 ? 'warn' : null)} />
-        <Kpi k="Đục thô → lọc" v={(v(), `${f0(sim.rawTurb)} → ${f2(sim.filteredTurb)}`)} u="NTU" level={(v(), sim.filteredTurb > 1 ? 'warn' : null)} />
-        <Kpi k="Clo dư" v={(v(), f2(sim.clRes))} u="mg/L" />
-        <Kpi k="Công suất điện" v={(v(), f0(sim.powerKw))} u="kW" />
-      </div>
+      <ProcessStrip unit={unit()} onPick={pickUnit} onNetwork={props.onBack} />
 
-      {/* tree */}
-      <aside class="tw-panel tw-left tw-glass tw-tree" aria-label="Hạng mục và thiết bị">
-        <input class="tw-search" placeholder="Tìm thiết bị (P-NS, van, clo…)" value={query()} onInput={e => setQuery(e.currentTarget.value)} />
-        <For each={filtered()}>
-          {u => {
-            const s = STRUCTURE_BY_ID[u.id]
-            const bad = () => (v(), u.items.some(e => sim.dev[e.tag]?.fault))
-            return (
-              <div>
-                <button type="button" class="unit" classList={{ sel: unit() === u.id && !tag() }} onClick={() => pickUnit(u.id)}>
-                  <span style={{ width: '12px' }}>{open()[u.id] || query() ? '▾' : '▸'}</span>
-                  <span style={{ flex: 1 }}>
-                    {s ? `${s.no}. ` : ''}
-                    {u.name}
-                  </span>
-                  <Show when={bad()}>
-                    <span class="tw-dot fault" />
-                  </Show>
-                </button>
-                <Show when={open()[u.id] || query()}>
-                  <For each={u.items}>
-                    {e => {
-                      const st = () => (v(), stateOf(sim.dev[e.tag], e))
-                      const r = () => (v(), sim.readings(e.tag)[0])
-                      return (
-                        <button type="button" class="item" classList={{ sel: tag() === e.tag }} onClick={() => pickTag(e.tag)} title={e.name}>
-                          <span class={`tw-dot ${st()}`} />
-                          <span class="t">
-                            <b>{e.tag}</b>
-                            {e.name}
-                          </span>
-                          <span class="r">{r() ? `${r()!.v}${r()!.u ? ' ' + r()!.u : ''}` : ''}</span>
-                        </button>
-                      )
-                    }}
-                  </For>
-                </Show>
-              </div>
-            )
-          }}
-        </For>
-      </aside>
+      <Rail
+        active={fly()}
+        onSelect={id => setFly(id as Fly)}
+        items={[
+          { id: 'areas', label: 'Khu vực', icon: LayoutGrid },
+          { id: 'equip', label: 'Thiết bị', icon: Wrench },
+        ]}
+        foot={[{ id: 'help', label: 'Hướng dẫn', icon: CircleHelp, pressed: hints, onClick: () => setHints(x => !x) }]}
+      />
+      <Switch>
+        <Match when={fly() === 'areas'}>
+          <Flyout title="Khu vực" onClose={() => setFly(null)}>
+            <AreaList unit={unit()} onPick={pickUnit} />
+          </Flyout>
+        </Match>
+        <Match when={fly() === 'equip'}>
+          <Flyout title="Thiết bị" sub={`${EQUIPMENT.length} thiết bị`} onClose={() => setFly(null)}>
+            <EquipList tag={tag()} onPick={pickTag} />
+          </Flyout>
+        </Match>
+        <Match when={fly() === 'alarms'}>
+          <Flyout title="Báo động" onClose={() => setFly(null)}>
+            <AlarmPanel onTag={pickTag} />
+          </Flyout>
+        </Match>
+      </Switch>
 
-      {/* faceplate / unit / trends */}
-      <aside class="tw-panel tw-right tw-glass" aria-label="Bảng điều khiển thiết bị">
-        <Switch fallback={<Trends />}>
-          <Match when={tag()}>{t => <Faceplate tag={t()} onClose={() => (setTag(null), view?.select(null))} onOpenScreen={(screen, local, tg) => props.onOpenHmi({ mode: local ? 'local' : 'scada', screen, station: local ? tg : undefined })} />}</Match>
-          <Match when={unit()}>{u => <UnitCard id={u()} onPick={pickTag} />}</Match>
-        </Switch>
-      </aside>
+      <ChartStack store="factory" title="Theo dõi nhà máy" charts={charts} compact={drawerOpen()} defaultClosed={['raw']} />
 
-      {/* alarms / log */}
-      <Show when={(v(), sim.activeAlarms.length > 0 || showLog())}>
-        <div class="tw-alarms tw-glass" role="log" aria-label="Báo động">
-          <div class="tw-row" style={{ padding: '0 2px 4px' }}>
-            <b>{showLog() ? 'Nhật ký vận hành' : 'Báo động đang hoạt động'}</b>
-            <span style={{ display: 'flex', gap: '6px' }}>
-              <button type="button" class="tw-btn sm" onClick={() => setShowLog(x => !x)}>
-                {showLog() ? 'Báo động' : 'Nhật ký'}
-              </button>
-              <button type="button" class="tw-btn sm" onClick={() => sim.ackAll()}>
-                Xác nhận tất cả
-              </button>
-            </span>
-          </div>
-          <Show
-            when={showLog()}
-            fallback={
-              <For each={(v(), sim.activeAlarms.slice(0, 12))}>
-                {a => (
-                  <div class="tw-alarm" classList={{ unacked: !a.acked }}>
-                    <span>{fmtClock(a.t)}</span>
-                    <span class={`lv ${a.level}`} />
-                    <button type="button" class="tw-btn sm" style={{ height: '20px' }} onClick={() => EQUIPMENT_BY_TAG[a.tag] && pickTag(a.tag)}>
-                      {a.tag}
-                    </button>
-                    <span class="msg">{a.msg}</span>
-                    <span>{a.acked ? '✓' : ''}</span>
-                  </div>
-                )}
-              </For>
-            }
-          >
-            <For each={(v(), sim.log.slice(0, 30))}>
-              {l => (
-                <div class="tw-alarm">
-                  <span>{fmtClock(l.t)}</span>
-                  <span class="lv" style={{ background: l.who === 'op' ? 'var(--accent)' : l.who === 'auto' ? 'var(--good)' : 'var(--muted)' }} />
-                  <span class="tg">{l.tag}</span>
-                  <span>{l.msg}</span>
-                  <span>{l.who === 'op' ? 'VH' : l.who === 'auto' ? 'TĐ' : 'HT'}</span>
-                </div>
+      <Show when={drawerOpen()}>
+        <Drawer label="Thông tin và điều khiển" onClose={() => (tag() ? (setTag(null), view?.select(null)) : closeDrawer())}>
+          <Switch>
+            <Match when={tag()}>
+              {t => (
+                <Faceplate
+                  tag={t()}
+                  onClose={() => {
+                    setTag(null)
+                    view?.select(null)
+                  }}
+                  onOpenScreen={(screen, local, tg) => openScreen(screen, local, local ? tg : undefined)}
+                />
               )}
-            </For>
-          </Show>
-        </div>
+            </Match>
+            <Match when={unit()}>{u => <UnitCard id={u()} tag={tag()} onPick={pickTag} onClose={closeDrawer} onOpenScreen={s => openScreen(s)} />}</Match>
+          </Switch>
+        </Drawer>
       </Show>
 
-      <div class="tw-bottom tw-glass" style={{ left: 'calc(50% - 60px)' }}>
-        <SimClock
-          extra={
-            <>
-              <button type="button" class="tw-btn sm" onClick={() => sim.injectLeak()}>
-                Rò rỉ clo
-              </button>
-              <button type="button" class="tw-btn sm" onClick={() => sim.injectFlood()}>
-                Lũ – đục cao
-              </button>
-              <Show when={!sim.activeAlarms.length}>
-                <button type="button" class="tw-btn sm" onClick={() => setShowLog(x => !x)}>
-                  Nhật ký
-                </button>
-              </Show>
-            </>
-          }
+      <div class="tw-tools tw-glass" role="toolbar" aria-label="Hiển thị cảnh 3D">
+        <button type="button" class="tw-tk" onClick={() => view?.focusSite('plant')} title="Nhìn toàn cảnh nhà máy">
+          <Scan size={17} />
+          <span>Toàn cảnh</span>
+        </button>
+        <button type="button" class="tw-tk" aria-pressed={roofs()} onClick={() => setRoofs(x => !x)} title={roofs() ? 'Ẩn mái các nhà' : 'Hiện mái các nhà'}>
+          <House size={17} />
+          <span>Mái</span>
+        </button>
+        <button type="button" class="tw-tk" aria-pressed={labels()} onClick={() => setLabels(x => !x)} title={labels() ? 'Ẩn nhãn' : 'Hiện nhãn'}>
+          <Tag size={17} />
+          <span>Nhãn</span>
+        </button>
+        <button type="button" class="tw-tk" aria-pressed={flow()} onClick={() => setFlow(x => !x)} title={flow() ? 'Ẩn dòng chảy trong ống' : 'Hiện dòng chảy trong ống'}>
+          <Waves size={17} />
+          <span>Dòng chảy</span>
+        </button>
+      </div>
+
+      <small class="tw-attrib">{RASTERS[basemap()].attribution}</small>
+      <Show when={props.active && veil()} keyed>
+        {m => <CloudVeil mode={m} onDone={() => setVeil(null)} />}
+      </Show>
+
+      <Show when={hints()}>
+        <HintBar
+          onHide={() => setHints(false)}
+          hints={[
+            { icon: Hand, text: 'Kéo để xoay, chuột phải để dời' },
+          ]}
         />
-      </div>
-      <div class="tw-tools tw-glass" style={{ bottom: '64px' }}>
-        <button type="button" class="tw-btn sm" aria-pressed={roofs()} onClick={() => (setRoofs(x => !x), view?.setRoofs(roofs()))}>
-          {roofs() ? 'Ẩn mái' : 'Hiện mái'}
-        </button>
-        <button type="button" class="tw-btn sm" onClick={() => (setLabels(x => !x), view?.setLabels(labels()))}>
-          {labels() ? 'Ẩn nhãn' : 'Hiện nhãn'}
-        </button>
-        <button
-          type="button"
-          class="tw-btn sm"
-          onClick={() => {
-            setFlow(x => !x)
-            if (view) view.showFlow = flow()
-          }}
-        >
-          {flow() ? 'Ẩn dòng chảy' : 'Hiện dòng chảy'}
-        </button>
-        <button type="button" class="tw-btn sm" onClick={() => view?.overview()}>
-          Toàn cảnh
-        </button>
-      </div>
+      </Show>
     </div>
   )
-}
-
-function Trends() {
-  const { sim, v } = useSim()
-  return (
-    <>
-      <div class="tw-h">Xu hướng 24 giờ</div>
-      <For
-        each={[
-          ['Áp lực đầu ra', 'pOut', 'bar', 'var(--accent)', [3.6, 4.8]],
-          ['Lưu lượng phát', 'qOut', 'm³/h', '#2f86d6', null],
-          ['Mực nước bể chứa', 'res', '%', '#2fb36a', [30, 95]],
-          ['Độ đục sau lọc', 'turb', 'NTU', '#e07a2a', [0, 1]],
-          ['Clo dư', 'cl', 'mg/L', '#8fc93a', [0.3, 1.0]],
-          ['Độ đục nước thô', 'raw', 'NTU', '#9c7a4a', null],
-        ] as const}
-      >
-        {([k, key, u, c, band]) => {
-          const d = () => (v(), sim.history[key])
-          return (
-            <div class="tw-trend">
-              <span class="k">{k}</span>
-              <span class="v">
-                {(() => {
-                  const a = d()
-                  const x = a[a.length - 1] ?? 0
-                  return `${key === 'qOut' || key === 'res' || key === 'raw' ? f0(x) : f2(x)} ${u}`
-                })()}
-              </span>
-              <Spark data={d()} color={c} band={band ? [band[0], band[1]] : undefined} min={key === 'turb' ? 0 : undefined} />
-            </div>
-          )
-        }}
-      </For>
-      <div class="tw-hint">Nhấp một hạng mục hoặc thiết bị trong cảnh 3D (hay trong danh sách bên trái) để xem trạng thái và điều khiển.</div>
-    </>
-  )
-}
-
-function UnitCard(props: { id: string; onPick: (t: string) => void }) {
-  const { sim, v } = useSim()
-  const s = () => STRUCTURE_BY_ID[props.id]
-  const name = () => UNITS.find(u => u.id === props.id)?.name ?? s()?.name ?? props.id
-  const items = () => EQUIPMENT.filter(e => e.unit === props.id)
-  return (
-    <>
-      <div class="tw-fp-head">
-        <div>
-          <h2>{name()}</h2>
-          <p>{s() ? `Hạng mục số ${s()!.no} trên tổng mặt bằng` : 'Trạm bơm nước thô bên sông'}</p>
-        </div>
-      </div>
-      <Show when={s()}>
-        {st => {
-          const r = rectOf(st().poly)
-          return (
-            <>
-              <div class="tw-h">Từ bản vẽ CAD</div>
-              <Row k="Kích thước mặt bằng" v={st().kind === 'pond' ? `${f0(polyArea(st().poly))} m²` : `${f1(r.w)} × ${f1(r.h)} m`} />
-              <Row k="Diện tích" v={`${f0(polyArea(st().poly))} m²`} />
-              <Row k="Đường bao" v={st().fromDrawing ? 'Khớp polyline trong bản vẽ' : 'Ước theo nhãn phòng (gần đúng)'} />
-              <Row k="Chiều cao (giả định)" v={`${f1(st().height)} m`} />
-            </>
-          )
-        }}
-      </Show>
-      <div class="tw-h">Thiết bị ({items().length})</div>
-      <For each={items()}>
-        {e => {
-          const r = () => (v(), sim.readings(e.tag).slice(0, 2))
-          const st = () => (v(), stateOf(sim.dev[e.tag], e))
-          return (
-            <button type="button" class="tw-btn" style={{ width: '100%', 'justify-content': 'flex-start', 'margin-bottom': '4px', height: 'auto', padding: '6px 8px' }} onClick={() => props.onPick(e.tag)}>
-              <span class={`tw-dot ${st()}`} />
-              <span style={{ flex: 1, 'text-align': 'left' }}>
-                <b>{e.tag}</b> <span style={{ 'font-weight': 450 }}>{e.name}</span>
-              </span>
-              <span style={{ 'font-size': '11.5px', color: 'var(--muted)' }}>{r().map(x => `${x.v}${x.u ? ' ' + x.u : ''}`).join(' · ')}</span>
-            </button>
-          )
-        }}
-      </For>
-    </>
-  )
-}
-
-function polyArea(p: Array<[number, number]>) {
-  let a = 0
-  for (let i = 0; i < p.length; i++) a += p[i]![0] * p[(i + 1) % p.length]![1] - p[(i + 1) % p.length]![0] * p[i]![1]
-  return Math.abs(a) / 2
 }

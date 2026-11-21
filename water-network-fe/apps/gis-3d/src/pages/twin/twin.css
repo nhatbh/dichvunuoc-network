@@ -1,12 +1,20 @@
-/* Bản đồ số 3D — integrated map + plant view. Built on the SYSTEM 3D tokens (app/system-ui.css). */
+/*
+ * Bản đồ số 3D: integrated map + plant view, on the SYSTEM 3D tokens (app/system-ui.css).
+ *
+ * Layout: the 3D view fills the screen; everything else floats over it and folds to an icon.
+ *   top bar (where am I, simulation, alarms, SCADA) · icon rail + one flyout (left) · live charts (right)
+ *   · inspector drawer (right, charts fold to chips beside it) · hints + view tools (bottom).
+ * Phones: the rail becomes a bottom tab bar, flyouts and the drawer become bottom sheets.
+ */
 .tw-root {
   position: fixed;
   inset: 0;
   overflow: hidden;
   background: var(--scene-bg);
   color: var(--ink);
-  font-family: inherit;
+  font-family: var(--f-body);
   font-size: 13px;
+  line-height: 1.4;
 }
 .tw-stage {
   position: absolute;
@@ -19,51 +27,42 @@
   visibility: hidden;
   pointer-events: none;
 }
+.tw-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.tw-screen {
+  --edge: 10px;
+  --gap: 8px;
+  --top-h: 52px;
+  --rail-w: 66px;
+  --fly-w: 332px;
+  --stack-w: 272px;
+  --drawer-w: 372px;
+  --below-top: calc(var(--edge) + var(--top-h) + var(--gap));
+  --fly-x: calc(var(--edge) + var(--rail-w) + var(--gap));
+  --stage-raw: #9c7a4a;
+  --stage-treat: #4f9a91;
+  --stage-clean: #2f86d6;
+}
 .tw-glass {
   background: var(--glass);
   backdrop-filter: blur(14px) saturate(1.2);
   -webkit-backdrop-filter: blur(14px) saturate(1.2);
   border: 1px solid var(--glass-line);
   box-shadow: var(--glass-shadow);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
 }
-.tw-top {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 10px;
-  z-index: 20;
+.tw-root :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
-.tw-brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-width: 0;
-}
-.tw-brand img {
-  width: 30px;
-  height: 30px;
-}
-.tw-brand h1 {
-  font-size: 15px;
-  font-weight: 650;
-  margin: 0;
-  white-space: nowrap;
-}
-.tw-brand small {
-  display: block;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 450;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+
+/* ───────────── buttons and small controls ───────────── */
 .tw-spacer {
   flex: 1;
 }
@@ -72,16 +71,17 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 11px;
-  border-radius: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 9px;
   border: 1px solid var(--glass-line);
   background: var(--glass-2);
   color: var(--ink);
   font: inherit;
-  font-weight: 550;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  text-decoration: none;
 }
 .tw-btn:hover {
   background: var(--hover);
@@ -95,6 +95,16 @@
   color: var(--accent-ink);
   border-color: transparent;
 }
+.tw-btn.primary:hover {
+  background: color-mix(in srgb, var(--accent) 86%, var(--ink));
+}
+.tw-btn.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.tw-btn.ghost:hover {
+  background: var(--hover);
+}
 .tw-btn.danger {
   background: var(--critical);
   color: #fff;
@@ -106,99 +116,1045 @@
   border-color: transparent;
 }
 .tw-btn.sm {
-  height: 26px;
-  padding: 0 8px;
+  height: 28px;
+  padding: 0 9px;
   font-size: 12px;
 }
 .tw-btn.icon {
-  width: 32px;
+  width: 34px;
   padding: 0;
+}
+.tw-btn.wide {
+  width: 100%;
+  justify-content: flex-start;
+  margin: 10px 0 2px;
+}
+.tw-x {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.tw-x:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+.tw-linkbtn {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
 }
 .tw-seg {
   display: inline-flex;
   border: 1px solid var(--glass-line);
-  border-radius: 8px;
+  border-radius: 9px;
   overflow: hidden;
   background: var(--glass-2);
+}
+.tw-seg.wide {
+  display: flex;
+}
+.tw-seg.wide button {
+  flex: 1;
 }
 .tw-seg button {
   border: 0;
   background: transparent;
   color: var(--ink-2);
   font: inherit;
-  font-size: 12px;
-  font-weight: 550;
-  padding: 5px 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 10px;
   cursor: pointer;
+  white-space: nowrap;
 }
 .tw-seg button + button {
   border-left: 1px solid var(--glass-line);
+}
+.tw-seg button:hover {
+  background: var(--hover);
 }
 .tw-seg button[aria-pressed='true'] {
   background: var(--accent);
   color: var(--accent-ink);
 }
-.tw-panel {
+.tw-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--critical);
+  box-shadow: 0 0 0 2px var(--surface);
+  color: #fff;
+  font: 700 10.5px/17px var(--f-body);
+  text-align: center;
+}
+.tw-live {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.tw-live.on {
+  background: var(--good);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 60%, transparent);
+  animation: tw-live 2s ease-out infinite;
+}
+@keyframes tw-live {
+  70% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+/* ───────────── top bar ───────────── */
+.tw-top {
+  position: absolute;
+  z-index: 25;
+  top: var(--edge);
+  left: var(--edge);
+  right: var(--edge);
+  height: var(--top-h);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 0 9px;
+}
+.tw-logo {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+.tw-logo:hover {
+  background: var(--hover);
+}
+.tw-logo img {
+  width: 28px;
+  height: 28px;
+}
+.tw-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.tw-crumbs .sep {
+  color: var(--muted);
+  font-size: 15px;
+}
+.tw-crumb {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 18px/1 var(--f-label);
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+}
+.tw-crumb.last {
+  color: var(--ink);
+}
+.tw-crumb.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 9px 0 7px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+}
+.tw-crumb.link:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+/* simulation pill + popover */
+.tw-sim {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 34px;
+  border: 1px solid var(--glass-line);
+  border-radius: 10px;
+  background: var(--glass-2);
+}
+.tw-sim > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.tw-sim > button:hover {
+  background: var(--hover);
+}
+.tw-sim-play {
+  width: 34px;
+  justify-content: center;
+  border-radius: 10px 0 0 10px;
+  border-right: 1px solid var(--glass-line) !important;
+}
+.tw-sim-clock {
+  padding: 0 9px 0 10px;
+  border-radius: 0 10px 10px 0;
+}
+.tw-sim-clock .t {
+  font: 600 19px/1 var(--f-label);
+  font-variant-numeric: tabular-nums;
+  min-width: 42px;
+}
+.tw-sim-clock .x {
+  color: var(--muted);
+  font: 600 13px/1 var(--f-label);
+}
+.tw-pop {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 300px;
+  padding: 12px;
+  background: var(--glass-2);
+}
+.tw-pop-h {
+  margin: 10px 0 6px;
+  color: var(--ink-2);
+  font: 600 14px/1.2 var(--f-label);
+}
+.tw-pop-h:first-child {
+  margin-top: 0;
+}
+.tw-scn {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 7px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tw-scn:hover {
+  border-color: var(--accent);
+}
+.tw-scn span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.tw-pop-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+/* alarm bell */
+.tw-bell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 34px;
+  border: 1px solid var(--glass-line);
+  border-radius: 10px;
+  background: var(--glass-2);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.tw-bell:hover,
+.tw-bell[aria-pressed='true'] {
+  background: var(--hover);
+  color: var(--ink);
+}
+.tw-bell .tw-badge {
+  top: -6px;
+  right: -6px;
+}
+.tw-bell.warn {
+  color: var(--warn-ink);
+}
+.tw-bell.warn .tw-badge {
+  background: var(--warning);
+  color: #1a1200;
+}
+.tw-bell.crit {
+  color: var(--critical-ink);
+  border-color: color-mix(in srgb, var(--critical) 50%, transparent);
+}
+.tw-bell.ring svg {
+  animation: tw-ring 2.4s ease-in-out infinite;
+  transform-origin: 50% 10%;
+}
+@keyframes tw-ring {
+  0%,
+  80%,
+  100% {
+    transform: rotate(0);
+  }
+  84% {
+    transform: rotate(14deg);
+  }
+  90% {
+    transform: rotate(-12deg);
+  }
+  95% {
+    transform: rotate(6deg);
+  }
+}
+
+/* ───────────── rail + flyouts ───────────── */
+.tw-rail {
+  position: absolute;
+  z-index: 21;
+  top: var(--below-top);
+  left: var(--edge);
+  width: var(--rail-w);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px;
+}
+.tw-rail .sep {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--line);
+}
+.tw-rk {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 54px;
+  padding: 7px 2px 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  font: 600 12.5px/1.05 var(--f-label);
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+.tw-rk .l {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.tw-rk:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+.tw-rk[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+/* on/off items (hints) read as a switch, not as an open panel */
+.tw-rk.toggle[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+.tw-fly {
+  position: absolute;
+  z-index: 20;
+  top: var(--below-top);
+  left: var(--fly-x);
+  width: var(--fly-w);
+  max-height: calc(100% - var(--below-top) - 74px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: tw-in 0.16s ease-out;
+}
+@keyframes tw-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+}
+.tw-fly-h {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 10px 8px 14px;
+  border-bottom: 1px solid var(--line-2);
+}
+.tw-fly-t {
+  flex: 1;
+  min-width: 0;
+}
+.tw-fly-h h2 {
+  margin: 0;
+  font: 600 20px/1.1 var(--f-label);
+}
+.tw-fly-h p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.tw-fly-b {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 12px 14px;
+}
+.tw-fly-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.tw-fly-tools.col {
+  flex-direction: column;
+  align-items: stretch;
+  position: sticky;
+  top: -8px;
+  z-index: 2;
+  margin: -8px -12px 6px;
+  padding: 8px 12px 8px;
+  background: var(--glass-2);
+  border-bottom: 1px solid var(--line-2);
+}
+.tw-fly-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tw-sec {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 14px 0 6px;
+  color: var(--ink);
+  font: 600 15px/1.2 var(--f-label);
+  letter-spacing: 0.01em;
+}
+.tw-sec:first-child {
+  margin-top: 4px;
+}
+.tw-sec .sw {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.tw-sec .cnt,
+.tw-h .cnt {
+  margin-left: auto;
+  color: var(--muted);
+  font: 500 12px var(--f-body);
+}
+.tw-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.tw-empty {
+  margin: 18px 4px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+/* search, filters */
+.tw-searchbox {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--muted);
+}
+.tw-searchbox:focus-within {
+  border-color: var(--accent);
+}
+.tw-searchbox input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+}
+.tw-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.tw-filter button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tw-filter button span {
+  color: var(--muted);
+  font-weight: 500;
+}
+.tw-filter button[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--accent-ink);
+}
+.tw-filter button[aria-pressed='true'] span {
+  color: inherit;
+  opacity: 0.8;
+}
+.tw-select {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12.5px;
+}
+.tw-fly-row .tw-check {
+  flex: none;
+  font-size: 12.5px;
+}
+
+/* area rows (grouped by stage) */
+.tw-area,
+.tw-eq {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tw-area {
+  grid-template-columns: 10px 1fr auto;
+  padding: 7px 8px;
+}
+.tw-area:hover,
+.tw-eq:hover {
+  background: var(--hover);
+}
+.tw-area.sel,
+.tw-eq.sel {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.tw-area .n,
+.tw-eq .t {
+  display: grid;
+  min-width: 0;
+}
+.tw-area .n b,
+.tw-eq .t b {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tw-area .n small,
+.tw-eq .t small {
+  color: var(--muted);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tw-area .m {
+  display: grid;
+  justify-items: end;
+}
+.tw-area .m small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.tw-area .m b {
+  font: 600 17px/1 var(--f-label);
+  font-variant-numeric: tabular-nums;
+}
+.tw-area .m b i {
+  margin-left: 3px;
+  color: var(--muted);
+  font: 500 11.5px var(--f-body);
+}
+.tw-area .m.warn b {
+  color: var(--critical-ink);
+}
+.tw-eq {
+  grid-template-columns: 10px 1fr auto;
+  padding: 5px 8px;
+}
+.tw-eq .r {
+  color: var(--ink-2);
+  font: 600 13.5px var(--f-label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tw-eq.warn .r {
+  color: var(--critical-ink);
+}
+.tw-eqg + .tw-eqg {
+  margin-top: 4px;
+}
+
+/* ───────────── live chart column ───────────── */
+.tw-stack {
   position: absolute;
   z-index: 15;
-  padding: 12px;
-  overflow: auto;
-  max-height: calc(100% - 140px);
+  top: var(--below-top);
+  right: var(--edge);
+  width: var(--stack-w);
+  max-height: calc(100% - var(--below-top) - 80px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  pointer-events: none;
 }
-.tw-left {
-  top: 70px;
-  left: 10px;
-  width: 300px;
+.tw-stack::-webkit-scrollbar {
+  display: none;
 }
-.tw-right {
-  top: 70px;
-  right: 10px;
-  width: 340px;
+.tw-stack > * {
+  pointer-events: auto;
 }
-.tw-h {
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.tw-stack-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 4px 0 12px;
+  border-radius: 12px;
+}
+.tw-stack-h h2 {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+  font: 600 15px/1 var(--f-label);
+  letter-spacing: 0.01em;
+}
+.tw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.tw-chips.col {
+  flex-direction: column;
+  align-items: stretch;
+}
+.tw-mchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 3px 10px 3px 8px;
+  border: 1px solid var(--glass-line);
+  border-radius: 15px;
+  background: var(--glass-2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--glass-shadow);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tw-mchip:hover {
+  border-color: var(--accent);
+}
+.tw-mchip .sw {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.tw-mchip .l {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tw-mchip .v {
+  margin-left: auto;
+  font: 600 14px/1 var(--f-label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tw-mchip .v small {
+  margin-left: 2px;
   color: var(--muted);
-  font-weight: 650;
-  margin: 12px 0 6px;
+  font: 500 10.5px var(--f-body);
+}
+.tw-mchip.warn {
+  border-color: var(--warning);
+}
+.tw-mchip.crit {
+  border-color: var(--critical);
+  background: color-mix(in srgb, var(--critical) 14%, var(--glass-2));
+}
+.tw-cards {
+  display: grid;
+  gap: 6px;
+}
+.tw-card {
+  position: relative;
+  padding: 9px 10px 7px 12px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.tw-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+}
+.tw-card.warn::before {
+  background: var(--warning);
+}
+.tw-card.crit::before {
+  background: var(--critical);
+}
+.tw-card.crit {
+  background: color-mix(in srgb, var(--critical) 9%, var(--glass));
+}
+.tw-card-top {
   display: flex;
   align-items: center;
   gap: 6px;
 }
+.tw-card-top h3 {
+  flex: 1;
+  margin: 0;
+  color: var(--ink-2);
+  font: 600 14px/1.1 var(--f-label);
+  letter-spacing: 0.01em;
+}
+.tw-fold {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: -3px -4px -3px 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tw-fold:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+.tw-card-val {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: 1px;
+}
+.tw-card-val b {
+  font: 600 27px/1 var(--f-label);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.tw-card-val small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.tw-card-val .note {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.tw-card.warn .tw-card-val b {
+  color: var(--warn-ink);
+}
+.tw-card.crit .tw-card-val b,
+.tw-card.crit .tw-card-val .note {
+  color: var(--critical-ink);
+}
+.tw-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 4px;
+  overflow: visible;
+}
+.tw-chart-band {
+  fill: var(--good);
+  opacity: 0.1;
+}
+.tw-chart-dot {
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+.tw-chart-wait {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.tw-card-chart {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: zoom-in;
+}
+.tw-card-chart:hover {
+  background: var(--hover);
+}
+.tw-card-axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+.tw-stack-fab {
+  position: absolute;
+  z-index: 15;
+  top: var(--below-top);
+  right: var(--edge);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: var(--ink);
+  font: 600 15px/1 var(--f-label);
+  cursor: pointer;
+}
+.tw-stack-fab .n {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font: 600 12px/20px var(--f-body);
+  text-align: center;
+}
+.tw-stack-fab.warn {
+  border-color: var(--warning);
+}
+.tw-stack-fab.crit {
+  border-color: var(--critical);
+  color: var(--critical-ink);
+}
+.tw-stack-fab:hover {
+  border-color: var(--accent);
+}
+/* an inspector is open: the column narrows to chips beside it */
+.tw-screen[data-drawer] .tw-stack,
+.tw-screen[data-drawer] .tw-stack-fab {
+  right: calc(var(--edge) + var(--drawer-w) + var(--gap));
+}
+.tw-screen[data-drawer] .tw-stack {
+  width: 214px;
+}
+
+/* ───────────── drawer (inspector / faceplate / area card) ───────────── */
+.tw-drawer {
+  position: absolute;
+  z-index: 18;
+  top: var(--below-top);
+  right: var(--edge);
+  width: var(--drawer-w);
+  max-height: calc(100% - var(--below-top) - var(--edge));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 14px 16px;
+  animation: tw-in-r 0.16s ease-out;
+}
+@keyframes tw-in-r {
+  from {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+}
+.tw-fp-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.tw-fp-head h2 {
+  margin: 0;
+  font: 600 22px/1.1 var(--f-label);
+  letter-spacing: 0.01em;
+}
+.tw-fp-head p {
+  margin: 3px 0 0;
+  color: var(--ink-2);
+  font-size: 12.5px;
+}
+.tw-stage-sw {
+  flex: none;
+  width: 6px;
+  align-self: stretch;
+  border-radius: 3px;
+}
+.tw-big {
+  display: grid;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 11px;
+  background: var(--surface-2);
+}
+.tw-big > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.tw-big b {
+  font: 600 30px/1.05 var(--f-label);
+  font-variant-numeric: tabular-nums;
+}
+.tw-big b small {
+  margin-left: 4px;
+  color: var(--muted);
+  font: 500 13px var(--f-body);
+}
+.tw-big b.warn {
+  color: var(--critical-ink);
+}
+.tw-spec {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.tw-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.tw-h {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 16px 0 6px;
+  color: var(--ink);
+  font: 600 15px/1.2 var(--f-label);
+  letter-spacing: 0.01em;
+}
 .tw-h:first-child {
   margin-top: 0;
 }
+.tw-hint {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.tw-slider {
+  display: grid;
+  grid-template-columns: 1fr 64px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.tw-slider input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.tw-slider output {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.tw-progress {
+  height: 6px;
+  margin-top: 4px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--line-2);
+}
+.tw-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+/* rows, KPIs, chips, dots */
 .tw-kpis {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
 }
 .tw-kpi {
-  background: var(--surface-2);
+  min-width: 0;
+  padding: 7px 9px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  padding: 7px 9px;
-  min-width: 0;
+  background: var(--surface-2);
 }
 .tw-kpi .k {
-  font-size: 11px;
-  color: var(--muted);
-  white-space: nowrap;
   overflow: hidden;
+  color: var(--muted);
+  font-size: 11.5px;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .tw-kpi .v {
-  font-size: 18px;
-  font-weight: 650;
+  font: 600 21px/1.15 var(--f-label);
   font-variant-numeric: tabular-nums;
-  line-height: 1.25;
 }
 .tw-kpi .v small {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--muted);
   margin-left: 3px;
+  color: var(--muted);
+  font: 500 11px var(--f-body);
 }
 .tw-kpi.warn {
   border-color: var(--warning);
@@ -210,12 +1166,12 @@
 .tw-row {
   display: flex;
   align-items: center;
-  gap: 8px;
   justify-content: space-between;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 5px 0;
 }
 .tw-row + .tw-row {
-  border-top: 1px dashed var(--line-2);
+  border-top: 1px solid var(--line-2);
 }
 .tw-row .k {
   color: var(--ink-2);
@@ -228,29 +1184,39 @@
 .tw-row .v.warn {
   color: var(--critical-ink);
 }
+.tw-ic {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
 .tw-check {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 3px 0;
+  padding: 4px 0;
   cursor: pointer;
   user-select: none;
+}
+.tw-check.static {
+  cursor: default;
 }
 .tw-check input {
   accent-color: var(--accent);
 }
 .tw-swatch {
-  width: 18px;
-  height: 4px;
-  border-radius: 2px;
   display: inline-block;
+  flex: none;
+  width: 18px;
+  height: 5px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
 }
 .tw-dot {
+  display: inline-block;
+  flex: none;
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  display: inline-block;
-  flex: none;
 }
 .tw-dot.run {
   background: var(--good);
@@ -263,7 +1229,7 @@
 }
 .tw-dot.fault {
   background: var(--critical);
-  animation: tw-blink 0.8s infinite;
+  animation: tw-blink 0.9s infinite;
 }
 .tw-dot.na {
   background: transparent;
@@ -278,13 +1244,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: 11px;
-  font-size: 11.5px;
-  font-weight: 650;
-  background: var(--surface-2);
+  height: 24px;
+  padding: 0 9px;
   border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
 }
 .tw-chip.run {
@@ -307,40 +1273,312 @@
   color: var(--chip-ink);
   border-color: transparent;
 }
-.tw-bottom {
+
+/* alarms */
+.tw-alist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tw-alist li {
+  display: grid;
+  grid-template-columns: 40px 8px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  padding: 6px 2px;
+  border-top: 1px solid var(--line-2);
+  font-size: 12.5px;
+}
+.tw-alist li:first-child {
+  border-top: 0;
+}
+.tw-alist time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.tw-alist .lv {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--muted);
+}
+.tw-alist .lv.crit {
+  background: var(--critical);
+}
+.tw-alist .lv.warn {
+  background: var(--warning);
+}
+.tw-alist .lv.op {
+  background: var(--accent);
+}
+.tw-alist .lv.auto {
+  background: var(--good);
+}
+.tw-alist li.unacked .msg {
+  font-weight: 600;
+}
+.tw-alist .ack {
+  grid-column: 3;
+  color: var(--muted);
+  font-size: 11px;
+}
+.tw-taglink {
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tw-taglink:hover {
+  border-color: var(--accent);
+}
+
+/* ───────────── process strip (factory) ───────────── */
+.tw-process {
   position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 18;
+  z-index: 16;
+  top: var(--below-top);
+  left: var(--fly-x);
+  right: calc(var(--edge) + var(--stack-w) + var(--gap));
+  width: fit-content;
+  max-width: calc(100% - var(--fly-x) - var(--stack-w) - var(--edge) - var(--gap));
+  margin: 0 auto;
+  display: flex;
+  align-items: stretch;
+  padding: 5px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.tw-screen[data-fly] .tw-process {
+  left: calc(var(--fly-x) + var(--fly-w) + var(--gap));
+  max-width: calc(100% - var(--fly-x) - var(--fly-w) - var(--gap) - var(--stack-w) - var(--edge) - var(--gap));
+}
+.tw-screen[data-drawer] .tw-process {
+  right: calc(var(--edge) + var(--drawer-w) + var(--gap));
+  max-width: calc(100% - var(--fly-x) - var(--drawer-w) - var(--edge) - var(--gap));
+}
+.tw-screen[data-fly][data-drawer] .tw-process {
+  max-width: calc(100% - var(--fly-x) - var(--fly-w) - var(--gap) - var(--drawer-w) - var(--edge) - var(--gap));
+}
+/* chips beside the drawer start below the strip */
+.tw-screen.factory[data-drawer] .tw-stack,
+.tw-screen.factory[data-drawer] .tw-stack-fab {
+  top: calc(var(--below-top) + 84px);
+}
+.tw-pn {
+  flex: none;
+  display: grid;
+  gap: 1px;
+  min-width: 92px;
+  padding: 6px 9px 6px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tw-pn:hover {
+  background: var(--hover);
+}
+.tw-pn.sel {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.tw-pn .top {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  max-width: calc(100% - 20px);
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 5px;
 }
-.tw-clock {
-  font-size: 18px;
-  font-weight: 700;
+.tw-pn .name {
+  color: var(--ink-2);
+  font: 600 13.5px/1.1 var(--f-label);
+  white-space: nowrap;
+}
+.tw-pn .val b {
+  font: 600 21px/1.05 var(--f-label);
   font-variant-numeric: tabular-nums;
-  min-width: 56px;
-  text-align: center;
+}
+.tw-pn .val small {
+  margin-left: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.tw-pn .sub {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.tw-pn.warn .val b {
+  color: var(--critical-ink);
+}
+.tw-pn[data-state='fault'] {
+  border-color: color-mix(in srgb, var(--critical) 60%, transparent);
+}
+/* the pipe between two steps: stage colour, moving while water flows */
+.tw-pipe {
+  flex: none;
+  align-self: center;
+  width: 16px;
+  height: 6px;
+  margin: 0 -2px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(90deg, var(--c) 0 6px, color-mix(in srgb, var(--c) 55%, #fff) 6px 9px);
+  background-size: 9px 100%;
+  animation: tw-flow 0.8s linear infinite;
+}
+.tw-pipe.still {
+  animation: none;
+  background: color-mix(in srgb, var(--c) 45%, var(--line));
+}
+@keyframes tw-flow {
+  to {
+    background-position: 9px 0;
+  }
+}
+
+/* ───────────── bottom: hints, factory view tools ───────────── */
+.tw-hints {
+  position: absolute;
+  z-index: 16;
+  bottom: var(--edge);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 2 * var(--fly-x));
+  display: flex;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 6px 6px 6px 14px;
+  border-radius: 12px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+}
+.tw-hint-i {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.tw-hint-i svg {
+  flex: none;
+  color: var(--accent);
+}
+.tw-tools {
+  position: absolute;
+  z-index: 17;
+  right: var(--edge);
+  bottom: var(--edge);
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 12px;
+}
+.tw-screen[data-drawer] .tw-hints {
+  display: none;
+}
+/* tile credits of the basemap under the plant (the map screen shows MapLibre's own) */
+.tw-attrib {
+  position: absolute;
+  z-index: 12;
+  left: var(--fly-x);
+  bottom: 2px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+.tw-tk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 58px;
+  padding: 5px 4px 4px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-2);
+  font: 600 12px/1 var(--f-label);
+  cursor: pointer;
+}
+.tw-tk:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+.tw-tk[aria-pressed='true'] {
+  color: var(--accent);
+}
+.tw-tk[aria-pressed='false'] {
+  color: var(--muted);
+}
+.tw-screen.factory[data-drawer] .tw-tools {
+  right: calc(var(--edge) + var(--drawer-w) + var(--gap));
+}
+
+/* ───────────── map: legend, markers, callouts, tooltip ───────────── */
+.tw-legend,
+.tw-legend-chip {
+  position: absolute;
+  z-index: 14;
+  left: var(--fly-x);
+  bottom: var(--edge);
 }
 .tw-legend {
-  position: absolute;
-  left: 320px;
-  bottom: 66px;
-  z-index: 16;
-  padding: 9px 11px;
-  font-size: 11.5px;
-  min-width: 190px;
+  width: 220px;
+  padding: 8px 8px 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.tw-legend header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.tw-legend header b {
+  font: 600 14px/1 var(--f-label);
+}
+.tw-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px 0 10px;
+  border-radius: 12px;
+  color: var(--ink-2);
+  font: 600 13.5px/1 var(--f-label);
+  cursor: pointer;
+}
+.tw-legend-chip .mini {
+  width: 34px;
+  height: 7px;
+  border-radius: 4px;
+}
+.tw-legend-chip:hover {
+  color: var(--ink);
+}
+.tw-legend-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 10px;
+  margin: 4px 0;
+}
+.tw-legend-grid > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .tw-ramp {
   height: 8px;
+  margin: 6px 0 3px;
   border-radius: 4px;
-  margin: 5px 0 3px;
 }
 .tw-ramp-l {
   display: flex;
@@ -354,9 +1592,9 @@
 .tw-lod .bar {
   display: flex;
   height: 8px;
-  border-radius: 4px;
-  overflow: hidden;
   margin: 6px 0;
+  overflow: hidden;
+  border-radius: 4px;
   background: var(--line-2);
 }
 .tw-lod .bar span {
@@ -364,33 +1602,34 @@
   height: 100%;
 }
 .tw-marker {
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
+  cursor: pointer;
   transform: translateY(-6px);
 }
 .tw-marker .card {
-  background: var(--glass-2);
+  display: grid;
+  gap: 2px;
+  padding: 7px 10px 8px;
   border: 1px solid var(--glass-line);
+  border-radius: 11px;
+  background: var(--glass-2);
   box-shadow: var(--glass-shadow);
-  border-radius: 9px;
-  padding: 5px 9px;
+  color: var(--ink);
   font-size: 12px;
   white-space: nowrap;
-  color: var(--ink);
 }
 .tw-marker .card b {
-  display: block;
-  font-size: 12.5px;
+  font: 600 15px/1.1 var(--f-label);
 }
-.tw-marker .card span {
-  color: var(--muted);
+.tw-marker .card .vals {
+  color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
 .tw-marker .pin {
   width: 2px;
-  height: 18px;
+  height: 20px;
   background: var(--accent);
 }
 .tw-marker .pin::after {
@@ -398,29 +1637,149 @@
   display: block;
   width: 10px;
   height: 10px;
+  border: 2px solid #fff;
   border-radius: 50%;
   background: var(--accent);
-  border: 2px solid #fff;
-  transform: translate(-4px, 14px);
+  transform: translate(-4px, 16px);
+  animation: tw-pin 2.4s ease-out infinite;
+}
+@keyframes tw-pin {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 12px transparent;
+  }
 }
 .tw-marker.alarm .card {
   border-color: var(--critical);
 }
-.tw-marker:hover .card {
-  background: var(--accent);
-  color: var(--accent-ink);
+.tw-marker:hover .card,
+.tw-marker:focus-visible .card {
+  border-color: var(--accent);
 }
-.tw-marker:hover .card span {
-  color: inherit;
+.tw-callout {
+  /* a MapLibre marker: it must stay absolutely placed (relative would put it in the page flow, off its point) */
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 9px 0 0;
+  overflow: visible;
+  border: 1px solid var(--glass-line);
+  border-radius: 8px;
+  background: var(--glass-2);
+  box-shadow: var(--glass-shadow);
+  color: var(--ink);
+  font: 12px/1 var(--f-body);
+  cursor: pointer;
+}
+.tw-callout::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid var(--glass-line);
+  border-bottom: 1px solid var(--glass-line);
+  background: var(--glass-2);
+  transform: translateX(-50%) rotate(45deg);
+}
+.tw-callout i {
+  align-self: stretch;
+  width: 4px;
+  border-radius: 8px 0 0 8px;
+  background: var(--good);
+}
+.tw-callout b {
+  color: var(--ink-2);
+  font: 600 12.5px/1 var(--f-label);
+}
+.tw-callout span {
+  font: 600 14px/1 var(--f-label);
+  font-variant-numeric: tabular-nums;
+}
+.tw-callout[data-st='warning'] i {
+  background: var(--warning);
+}
+.tw-callout[data-st='critical'] i {
+  background: var(--critical);
+}
+.tw-callout[data-st='critical'] {
+  border-color: var(--critical);
+}
+.tw-callout[data-st='offline'] i {
+  background: #8a948f;
+}
+.tw-callout:hover {
+  border-color: var(--accent);
+}
+/* far zoom: pipe size + flow on the mains and the longest pipe of each size */
+.tw-pipelabel {
+  padding: 2px 6px;
+  border: 1px solid var(--glass-line);
+  border-radius: 6px;
+  background: var(--glass-2);
+  color: var(--ink-2);
+  font: 600 11px/1.2 var(--f-label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.tw-pipelabel[data-kind='transmission'] {
+  border-left: 3px solid #123e7a;
+}
+.tw-pipelabel[data-kind='raw'] {
+  border-left: 3px solid #9c7a4a;
+}
+.tw-pipelabel[data-kind='trunk'],
+.tw-pipelabel[data-kind='dist'] {
+  border-left: 3px solid #3d8fd1;
+}
+/* far zoom: the zone's inlet reading, standing for the inlet station's sensors */
+.tw-zonelabel {
+  display: grid;
+  gap: 2px;
+  padding: 5px 9px;
+  border: 1px solid var(--glass-line);
+  border-left: 4px solid var(--good);
+  border-radius: 8px;
+  background: var(--glass-2);
+  box-shadow: var(--glass-shadow);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.tw-zonelabel b {
+  font: 600 12.5px/1 var(--f-label);
+  color: var(--ink-2);
+}
+.tw-zonelabel span {
+  font: 600 13.5px/1.1 var(--f-label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tw-zonelabel[data-st='warn'] {
+  border-left-color: var(--warning);
+}
+.tw-zonelabel[data-st='crit'] {
+  border-left-color: var(--critical);
+}
+.tw-zonelabel:hover {
+  border-color: var(--accent);
 }
 .tw-tip {
   position: absolute;
   z-index: 30;
-  pointer-events: none;
-  padding: 5px 8px;
+  padding: 6px 9px;
+  border-radius: 9px;
   font-size: 12px;
   white-space: nowrap;
-  transform: translate(12px, 12px);
+  pointer-events: none;
+  transform: translate(14px, 14px);
 }
 .tw-fade {
   position: absolute;
@@ -434,177 +1793,57 @@
 .tw-fade.on {
   opacity: 1;
 }
-/* factory */
-.tw-tree {
-  font-size: 12.5px;
+.tw-screen.map .maplibregl-ctrl-bottom-right {
+  bottom: 54px;
 }
-.tw-tree .unit {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-weight: 650;
-  text-align: left;
-  padding: 6px 4px;
-  border-radius: 6px;
-  cursor: pointer;
+.tw-screen.tw-hidden .maplibregl-control-container {
+  display: none;
 }
-.tw-tree .unit:hover,
-.tw-tree .item:hover {
-  background: var(--hover);
+.tw-screen.map[data-drawer] .maplibregl-ctrl-bottom-right {
+  right: calc(var(--drawer-w) + var(--gap));
 }
-.tw-tree .unit.sel {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-}
-.tw-tree .item {
-  display: grid;
-  grid-template-columns: 10px 1fr auto;
-  align-items: center;
-  gap: 7px;
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  padding: 4px 4px 4px 18px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.tw-tree .item.sel {
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-.tw-tree .item .t {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tw-tree .item .t b {
-  font-weight: 650;
-  margin-right: 5px;
-}
-.tw-tree .item .r {
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-  font-size: 11.5px;
-}
-.tw-tree .item.sel .r {
-  color: inherit;
-}
-.tw-fp-head {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-.tw-fp-head h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-}
-.tw-fp-head p {
-  margin: 2px 0 0;
-  color: var(--ink-2);
-  font-size: 12.5px;
-}
-.tw-spec {
-  color: var(--muted);
-  font-size: 12px;
-  margin-top: 6px;
-}
-.tw-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-}
-.tw-slider {
-  display: grid;
-  grid-template-columns: 1fr 64px;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-}
-.tw-slider input[type='range'] {
-  width: 100%;
-  accent-color: var(--accent);
-}
-.tw-slider output {
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-.tw-hint {
-  font-size: 11.5px;
-  color: var(--muted);
-  margin-top: 6px;
-}
-.tw-alarms {
-  position: absolute;
-  bottom: 62px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(720px, calc(100% - 700px));
-  min-width: 320px;
-  z-index: 17;
-  padding: 6px 8px;
-  max-height: 150px;
-  overflow: auto;
-}
-.tw-alarm {
-  display: grid;
-  grid-template-columns: 46px 10px 76px 1fr auto;
-  gap: 8px;
-  align-items: center;
-  font-size: 12px;
-  padding: 3px 2px;
-}
-.tw-alarm .tg {
-  font-weight: 650;
-}
-.tw-alarm.unacked .msg {
-  font-weight: 650;
-}
-.tw-alarm .lv {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-}
-.tw-alarm .lv.crit {
-  background: var(--critical);
-}
-.tw-alarm .lv.warn {
-  background: var(--warning);
-}
+
+/* ───────────── labels in the plant's 3D scene ───────────── */
 .tw-unit-label {
-  font-size: 11px;
-  font-weight: 650;
-  color: var(--ink);
-  background: var(--glass-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px 2px 2px;
   border: 1px solid var(--glass-line);
-  border-radius: 6px;
-  padding: 2px 7px;
+  border-radius: 12px;
+  background: var(--glass-2);
+  box-shadow: 0 1px 4px rgba(16, 24, 22, 0.18);
+  color: var(--ink);
+  font: 600 13px/1 var(--f-label);
   white-space: nowrap;
   pointer-events: none;
+}
+.tw-unit-label i {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--surface);
+  font: 700 11px/1 var(--f-body);
+  font-style: normal;
 }
 .tw-tag {
   display: flex;
-  gap: 5px;
   align-items: center;
-  font-size: 10.5px;
-  line-height: 1;
-  background: rgba(16, 24, 22, 0.78);
-  color: #fff;
-  border-radius: 5px;
+  gap: 5px;
   padding: 3px 6px;
-  white-space: nowrap;
   border-left: 3px solid #8a948f;
-  pointer-events: none;
+  border-radius: 5px;
+  background: rgba(16, 24, 22, 0.8);
+  color: #fff;
+  font-size: 10.5px;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .tw-tag span {
   opacity: 0.85;
@@ -617,7 +1856,7 @@
 }
 .tw-tag[data-state='fault'] {
   border-left-color: #e0443c;
-  background: rgba(150, 20, 20, 0.85);
+  background: rgba(150, 20, 20, 0.88);
 }
 .tw-tag[data-state='na'] {
   border-left-color: #4b9be0;
@@ -630,104 +1869,585 @@
   width: 100%;
   height: 34px;
 }
-.tw-trend {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 8px;
-  align-items: end;
-  margin-bottom: 8px;
+
+/* ───────────── narrower screens ───────────── */
+@media (max-width: 1280px) {
+  .tw-screen {
+    --fly-w: 300px;
+    --stack-w: 248px;
+    --drawer-w: 340px;
+  }
+  .tw-hints .tw-hint-i:nth-child(3) {
+    display: none;
+  }
 }
-.tw-trend .k {
-  font-size: 11.5px;
+@media (max-width: 1024px) {
+  .tw-hints {
+    display: none;
+  }
+  .tw-pn .sub {
+    display: none;
+  }
+}
+
+/* phones: bottom tab bar, bottom sheets, charts start folded */
+@media (max-width: 760px) {
+  .tw-screen {
+    --edge: 6px;
+    --top-h: 48px;
+    --tab-h: 60px;
+    --sheet-bottom: calc(var(--edge) + var(--tab-h) + var(--gap));
+  }
+  .tw-hide-narrow {
+    display: none !important;
+  }
+  .tw-top {
+    gap: 5px;
+    padding: 0 5px;
+  }
+  .tw-logo {
+    display: none;
+  }
+  .tw-crumbs .sep,
+  .tw-crumb:not(.last):not(.link) {
+    display: none;
+  }
+  .tw-crumb.link span {
+    display: none;
+  }
+  .tw-crumb {
+    font-size: 16px;
+  }
+  .tw-sim-clock .x,
+  .tw-sim-clock svg {
+    display: none;
+  }
+  .tw-sim-clock .t {
+    font-size: 16px;
+    min-width: 0;
+  }
+  .tw-pop {
+    position: fixed;
+    top: calc(var(--edge) + var(--top-h) + 6px);
+    left: var(--edge);
+    right: var(--edge);
+    width: auto;
+  }
+  .tw-rail {
+    top: auto;
+    bottom: var(--edge);
+    left: var(--edge);
+    right: var(--edge);
+    width: auto;
+    height: var(--tab-h);
+    flex-direction: row;
+    padding: 4px;
+  }
+  .tw-rail .sep {
+    width: 1px;
+    height: auto;
+    margin: 8px 2px;
+  }
+  .tw-rk {
+    flex: 1;
+    min-height: 0;
+  }
+  .tw-fly,
+  .tw-drawer {
+    top: auto;
+    left: var(--edge);
+    right: var(--edge);
+    bottom: var(--sheet-bottom);
+    width: auto;
+    max-height: min(62%, 560px);
+    animation-name: tw-up;
+  }
+  .tw-drawer {
+    z-index: 22;
+  }
+  @keyframes tw-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+  .tw-stack,
+  .tw-stack-fab,
+  .tw-screen[data-drawer] .tw-stack,
+  .tw-screen[data-drawer] .tw-stack-fab {
+    right: var(--edge);
+  }
+  .tw-stack,
+  .tw-screen[data-drawer] .tw-stack {
+    left: var(--edge);
+    width: auto;
+    max-height: calc(100% - var(--below-top) - var(--tab-h) - 3 * var(--edge));
+  }
+  .tw-stack-fab {
+    height: 36px;
+    font-size: 14px;
+  }
+  .tw-screen[data-drawer] .tw-stack {
+    display: none;
+  }
+  .tw-process,
+  .tw-screen[data-fly] .tw-process,
+  .tw-screen[data-drawer] .tw-process,
+  .tw-screen[data-fly][data-drawer] .tw-process {
+    left: var(--edge);
+    right: calc(var(--edge) + 112px);
+    max-width: none;
+    width: auto;
+    margin: 0;
+  }
+  .tw-pn {
+    min-width: 0;
+    padding: 4px 7px;
+  }
+  .tw-pn .val b {
+    font-size: 17px;
+  }
+  .tw-screen.factory .tw-stack,
+  .tw-screen.factory[data-drawer] .tw-stack {
+    top: calc(var(--below-top) + 64px);
+  }
+  .tw-screen.factory .tw-stack-fab,
+  .tw-screen.factory[data-drawer] .tw-stack-fab {
+    top: var(--below-top);
+  }
+  .tw-tools,
+  .tw-screen.factory[data-drawer] .tw-tools {
+    right: var(--edge);
+    bottom: var(--sheet-bottom);
+    flex-direction: column;
+  }
+  .tw-tk {
+    min-width: 50px;
+  }
+  .tw-hints {
+    display: flex;
+    left: var(--edge);
+    right: calc(var(--edge) + 66px);
+    bottom: var(--sheet-bottom);
+    transform: none;
+    max-width: none;
+    flex-wrap: wrap;
+    padding: 6px 4px 6px 10px;
+    font-size: 12px;
+  }
+  .tw-hint-i {
+    white-space: normal;
+  }
+  .tw-hints .tw-hint-i:nth-child(n + 2) {
+    display: none;
+  }
+  .tw-hints .tw-x {
+    margin-left: auto;
+  }
+  .tw-screen.map .tw-hints {
+    right: var(--edge);
+  }
+  .tw-attrib {
+    left: var(--edge);
+    bottom: calc(var(--edge) + var(--tab-h) + 2px);
+  }
+  .tw-legend,
+  .tw-legend-chip {
+    left: var(--edge);
+    bottom: auto;
+    top: var(--below-top);
+  }
+  .tw-legend-chip {
+    max-width: calc(100% - 150px);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .tw-screen.map .maplibregl-ctrl-bottom-right {
+    bottom: calc(var(--sheet-bottom) + 44px);
+  }
+  .tw-screen.map[data-drawer] .maplibregl-ctrl-bottom-right {
+    right: 0;
+  }
+  .tw-alist li {
+    grid-template-columns: 38px 8px 1fr;
+  }
+}
+
+/* ───────────── scene changes: a descent through cloud ───────────── */
+.tw-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  overflow: hidden;
+  pointer-events: none;
+}
+.tw-veil::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+}
+.tw-veil .cloud {
+  position: absolute;
+  width: var(--s);
+  height: calc(var(--s) * 0.62);
+  margin: calc(var(--s) * -0.31) 0 0 calc(var(--s) * -0.5);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.45) 50%, rgba(255, 255, 255, 0) 100%);
+  filter: blur(10px);
+}
+/* parting: the white sky thins first, the clouds swell and drift out past the edges as the camera comes down */
+.tw-veil.clear::before {
+  animation: tw-sky-clear calc(var(--veil-ms) * 0.3) ease-out forwards;
+}
+.tw-veil.clear .cloud {
+  animation: tw-cloud-part var(--veil-ms) var(--d) cubic-bezier(0.35, 0.1, 0.3, 1) forwards;
+}
+/* gathering: clouds close in from the edges and the sky whitens */
+.tw-veil.close::before {
+  opacity: 0;
+  animation: tw-sky-close var(--veil-ms) ease-in forwards;
+}
+.tw-veil.close .cloud {
+  animation: tw-cloud-gather var(--veil-ms) cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+@keyframes tw-sky-clear {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes tw-sky-close {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes tw-cloud-part {
+  0% {
+    opacity: 0.9;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(2);
+  }
+}
+@keyframes tw-cloud-gather {
+  0% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(2);
+  }
+  100% {
+    opacity: 0.9;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* until the opening is over the panels wait unseen (then tw-enter slides them in) */
+.tw-screen.tw-pre :is(.tw-top, .tw-rail, .tw-legend, .tw-legend-chip, .tw-hints, .tw-fly, .tw-stack, .tw-stack-fab, .tw-drawer, .tw-attrib, .maplibregl-ctrl-bottom-right) {
+  opacity: 0;
+}
+/* panels slide in from the sides as the camera descends (backwards fill: before the delay they wait off-screen,
+   after the slide they are back to their own transforms) */
+.tw-screen.tw-enter .tw-top {
+  animation: tw-in-top 0.7s var(--enter-delay, 1.2s) cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.tw-screen.tw-enter .tw-rail,
+.tw-screen.tw-enter .tw-legend,
+.tw-screen.tw-enter .tw-legend-chip,
+.tw-screen.tw-enter .tw-hints,
+.tw-screen.tw-enter .tw-fly {
+  animation: tw-in-left 0.75s calc(var(--enter-delay, 1.2s) + 0.15s) cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.tw-screen.tw-enter .tw-stack,
+.tw-screen.tw-enter .tw-stack-fab,
+.tw-screen.tw-enter .tw-drawer,
+.tw-screen.tw-enter .tw-tools,
+.tw-screen.tw-enter .tw-attrib,
+.tw-screen.tw-enter .maplibregl-ctrl-bottom-right {
+  animation: tw-in-right 0.75s calc(var(--enter-delay, 1.2s) + 0.25s) cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.tw-screen.tw-enter .tw-process {
+  animation: tw-in-bottom 0.7s calc(var(--enter-delay, 1.2s) + 0.4s) cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+@keyframes tw-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+}
+@keyframes tw-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+@keyframes tw-in-top {
+  from {
+    opacity: 0;
+    transform: translateY(-140%);
+  }
+}
+@keyframes tw-in-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(160%);
+  }
+}
+
+
+/* ───────────── Live Demo (ui/tour.tsx) ─────────────
+ * While the tour runs, the screens' panels slide out to their sides; a step lists the ones it shows in data-tour. */
+.tw-root[data-tour] :is(.tw-top, .tw-rail, .tw-fly, .tw-legend, .tw-legend-chip, .tw-hints, .tw-stack, .tw-stack-fab, .tw-drawer, .tw-tools, .tw-process, .tw-attrib, .maplibregl-ctrl-bottom-right),
+.tw-root.tw-tour-out :is(.tw-top, .tw-rail, .tw-fly, .tw-legend, .tw-legend-chip, .tw-hints, .tw-stack, .tw-stack-fab, .tw-drawer, .tw-tools, .tw-process, .tw-attrib, .maplibregl-ctrl-bottom-right) {
+  transition:
+    transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.4s ease;
+}
+.tw-root[data-tour] :is(.tw-rail, .tw-fly, .tw-legend, .tw-legend-chip, .tw-hints) {
+  transform: translateX(-130%);
+  opacity: 0;
+  pointer-events: none;
+}
+.tw-root[data-tour] :is(.tw-stack, .tw-stack-fab, .tw-drawer, .tw-tools, .tw-attrib, .maplibregl-ctrl-bottom-right) {
+  transform: translateX(130%);
+  opacity: 0;
+  pointer-events: none;
+}
+.tw-root[data-tour] .tw-top {
+  transform: translateY(-150%);
+  opacity: 0;
+  pointer-events: none;
+}
+.tw-root[data-tour] .tw-process {
+  transform: translateY(-180%);
+  opacity: 0;
+  pointer-events: none;
+}
+.tw-root[data-tour~='top'] .tw-top,
+.tw-root[data-tour~='rail'] .tw-rail,
+.tw-root[data-tour~='fly'] .tw-fly,
+.tw-root[data-tour~='legend'] :is(.tw-legend, .tw-legend-chip),
+.tw-root[data-tour~='charts'] :is(.tw-stack, .tw-stack-fab),
+.tw-root[data-tour~='drawer'] .tw-drawer,
+.tw-root[data-tour~='tools'] .tw-tools,
+.tw-root[data-tour~='process'] .tw-process {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+/* panels that come back while the top bar stays away start higher */
+.tw-root[data-tour]:not([data-tour~='top']) :is(.tw-drawer, .tw-stack, .tw-fly, .tw-rail, .tw-process) {
+  top: var(--edge);
+}
+
+.tw-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+}
+.tw-tour-card {
+  position: absolute;
+  top: 18px;
+  width: min(380px, calc(100vw - 32px));
+  max-height: calc(100vh - 140px);
+  overflow: auto;
+  padding: 16px 18px 14px;
+  border-radius: 14px;
+  pointer-events: auto;
+  animation: tw-card-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* below the process strip while it shows */
+.tw-root[data-tour~='process'] ~ .tw-tour .tw-tour-card {
+  top: 104px;
+}
+.tw-tour-card.right {
+  right: 18px;
+}
+.tw-tour-card.left {
+  left: 18px;
+  --from: -40px;
+}
+.tw-tour-chapter {
+  font: 600 12px/1 var(--f-label);
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.tw-tour-card h2 {
+  margin: 6px 0 8px;
+  font: 650 22px/1.15 var(--f-label);
+  color: var(--ink);
+}
+.tw-tour-card p {
+  margin: 0 0 8px;
+  font: 400 14px/1.5 var(--f-body);
   color: var(--ink-2);
 }
-.tw-trend .v {
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-}
-.tw-trend svg {
-  grid-column: 1 / -1;
-}
-.tw-progress {
-  height: 6px;
-  border-radius: 3px;
-  background: var(--line-2);
-  overflow: hidden;
-  margin-top: 4px;
-}
-.tw-progress span {
-  display: block;
-  height: 100%;
-  background: var(--accent);
-}
-.tw-search {
-  width: 100%;
-  height: 30px;
+.tw-tour-live {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  margin: 10px 0 4px;
+  padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid var(--glass-line);
-  background: var(--surface);
-  color: var(--ink);
-  padding: 0 9px;
-  font: inherit;
-  margin-bottom: 6px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
-.tw-strip {
+.tw-tour-live dt {
+  font: 500 13px/1.3 var(--f-body);
+  color: var(--ink-2);
+}
+.tw-tour-live dd {
+  margin: 0;
+  font: 650 15px/1.3 var(--f-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  text-align: right;
+}
+.tw-tour-tip {
+  margin-top: 10px !important;
+  padding-top: 8px;
+  border-top: 1px solid var(--glass-line);
+  font-size: 13px !important;
+}
+.tw-tour-bar {
   position: absolute;
-  top: 70px;
   left: 50%;
-  transform: translateX(-50%);
-  z-index: 15;
+  bottom: 18px;
   display: flex;
-  gap: 6px;
-  padding: 6px;
-  max-width: calc(100% - 700px);
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 24px);
+  padding: 8px 8px 8px 10px;
+  border-radius: 14px;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  animation: tw-bar-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.tw-tour-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--glass-line);
+  border-radius: 9px;
+  background: var(--glass-2);
+  color: var(--ink);
+  font: 600 14px/1 var(--f-body);
+  cursor: pointer;
+}
+.tw-tour-nav:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.tw-tour-nav.primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink, #fff);
+}
+.tw-tour-steps {
+  display: flex;
+  gap: 14px;
   overflow-x: auto;
 }
-.tw-strip .tw-kpi {
-  min-width: 100px;
+.tw-tour-ch {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  opacity: 0.55;
+  transition: opacity 0.3s;
 }
-.tw-strip .tw-kpi .v {
-  font-size: 16px;
+.tw-tour-ch.on {
+  opacity: 1;
 }
-.tw-tools {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  z-index: 18;
+.tw-tour-ch .name {
+  font: 600 11.5px/1 var(--f-label);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.tw-tour-ch .dots {
   display: flex;
-  gap: 6px;
-  padding: 6px;
-  flex-wrap: wrap;
+  gap: 4px;
 }
-.maplibregl-ctrl-bottom-right {
-  bottom: 56px !important;
+.tw-tour-ch .dots button {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  cursor: pointer;
+  transition:
+    width 0.3s,
+    background 0.3s;
 }
-@media (max-width: 1100px) {
-  .tw-left,
-  .tw-right {
-    width: 270px;
+.tw-tour-ch .dots button.done {
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.tw-tour-ch .dots button.cur {
+  width: 22px;
+  border-radius: 5px;
+  background: var(--accent);
+}
+.tw-tour-count {
+  font: 600 13px/1 var(--f-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.tw-tour-x {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.tw-tour-x:hover {
+  background: var(--glass-2);
+}
+@keyframes tw-card-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--from, 40px));
   }
-  .tw-strip,
-  .tw-alarms {
-    display: none;
+}
+@keyframes tw-bar-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 30px);
   }
 }
 @media (max-width: 760px) {
-  .tw-left {
-    display: none;
-  }
-  .tw-right {
-    left: 10px;
-    right: 10px;
-    width: auto;
+  .tw-tour-card {
     top: auto;
-    bottom: 64px;
-    max-height: 45%;
+    bottom: 84px;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto;
+    max-height: 45vh;
   }
-  .tw-legend {
+  .tw-tour-steps .name {
     display: none;
   }
-  .tw-brand small {
+  .tw-tour-nav span {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-root *,
+  .tw-root *::before,
+  .tw-root *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

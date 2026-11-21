@@ -63,11 +63,15 @@ export function equipmentModel(e: Equipment, ctx: { flocPitch?: number }): THREE
   return g
 }
 
-/** Glow every material of an equipment group (hover / selection). Materials are per model, so only it lights up. */
+/**
+ * Glow every material of an equipment group (hover / selection). Materials are per model, so only it lights up.
+ * The level-of-detail proxy shares one material across all items and is skipped (a highlighted item is always
+ * shown at full detail).
+ */
 export function setHighlight(g: THREE.Object3D, level: 0 | 1 | 2) {
   g.traverse(o => {
     const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined
-    if (!m || !(m instanceof THREE.MeshStandardMaterial) || o.userData.part === 'status') return
+    if (!m || !(m instanceof THREE.MeshStandardMaterial) || o.userData.part === 'status' || o.userData.part === 'proxy') return
     if (m.userData.baseEmissive === undefined) {
       m.userData.baseEmissive = m.emissive.getHex()
       m.userData.baseIntensity = m.emissiveIntensity

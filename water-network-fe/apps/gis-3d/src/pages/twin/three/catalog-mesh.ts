@@ -9,22 +9,53 @@
  *  - `symbolInstances`: the catalog's flat symbols, lying on the ground (mid-distance LoD).
  *  - `catalogModel`: a single Z-up model with its own materials (factory view: hover/selection glow per item).
  */
-import { createComponent, symbolTexture, toInstancedParts, type Status } from '@wn/component-models'
+import { createComponent, getPorts, symbolTexture, toInstancedParts, type Status } from '@wn/component-models'
 import * as THREE from 'three'
 
 export const STATUS_COLOR: Record<Status, number> = { normal: 0x2fb36b, warning: 0xe5a00d, critical: 0xe0453a, offline: 0x7d838a }
 const Y_TO_Z = new THREE.Matrix4().makeRotationX(Math.PI / 2)
 
 type Parts = ReturnType<typeof toInstancedParts>
+/** radial segments of the parts drawn on the map; the ports are read from the same build, since a bend's origin
+ *  (the middle point of its arc) moves with the segment count */
+export const PART_SEGMENTS = 10
 const partsCache = new Map<string, Parts>()
-export function catalogParts(code: string, dn: number, dn2?: number, segments = 10): Parts {
-  const key = `${code}|${dn}|${dn2 ?? ''}|${segments}`
+export function catalogParts(code: string, dn: number, dn2?: number, segments = PART_SEGMENTS, angle?: number): Parts {
+  const key = `${code}|${dn}|${dn2 ?? ''}|${segments}|${angle ?? ''}`
   let p = partsCache.get(key)
   if (!p) {
-    const g = createComponent(code, { dn, dn2, segments, handwheel: true })
+    const g = createComponent(code, { dn, dn2, segments, handwheel: true, angle })
     p = toInstancedParts(g)
     for (const part of p) part.geometry.applyMatrix4(Y_TO_Z)
     partsCache.set(key, p)
+  }
+  return p
+}
+
+/** a catalog model's connection port on the map (Z up, run along +X): where a pipe joins it, and which way it faces */
+export interface MapPort {
+  id: string
+  pos: THREE.Vector3
+  dir: THREE.Vector3
+  /** the size of pipe the port takes (mm): a drawn pipe is cut back to the port only if it fits that socket */
+  dn: number
+}
+const portsCache = new Map<string, MapPort[]>()
+/** the ports of a catalog model at unit scale, turned Z-up like the instanced parts */
+export function catalogPorts(code: string, dn: number, dn2?: number, angle?: number): MapPort[] {
+  const key = `${code}|${dn}|${dn2 ?? ''}|${angle ?? ''}`
+  let p = portsCache.get(key)
+  if (!p) {
+    const g = createComponent(code, { dn, dn2, segments: PART_SEGMENTS, angle })
+    const rot = new THREE.Matrix3().setFromMatrix4(Y_TO_Z)
+    p = getPorts(g).map(pt => ({
+      id: pt.id,
+      pos: pt.position.clone().applyMatrix4(Y_TO_Z),
+      dir: pt.direction.clone().applyMatrix3(rot).normalize(),
+      dn: pt.dn,
+    }))
+    g.traverse(o => (o as THREE.Mesh).geometry?.dispose())
+    portsCache.set(key, p)
   }
   return p
 }
@@ -34,6 +65,8 @@ export interface DeviceInstance {
   code: string
   dn: number
   dn2?: number
+  /** a bend's angle (degrees), rounded so bends share models */
+  angle?: number
   at: [number, number]
   z: number
   heading: number
@@ -56,7 +89,7 @@ export function instancedDevices(items: DeviceInstance[], castShadow = true): In
   const group = new THREE.Group()
   const groups = new Map<string, DeviceInstance[]>()
   for (const d of items) {
-    const k = `${d.code}|${d.dn}|${d.dn2 ?? ''}`
+    const k = `${d.code}|${d.dn}|${d.dn2 ?? ''}|${d.angle ?? ''}`
     ;(groups.get(k) ?? groups.set(k, []).get(k)!).push(d)
   }
   const meshes: Array<{ mesh: THREE.InstancedMesh; ids: string[]; status: boolean }> = []
@@ -65,7 +98,7 @@ export function instancedDevices(items: DeviceInstance[], castShadow = true): In
   const zAxis = new THREE.Vector3(0, 0, 1)
   for (const list of groups.values()) {
     const first = list[0]!
-    for (const part of catalogParts(first.code, first.dn, first.dn2)) {
+    for (const part of catalogParts(first.code, first.dn, first.dn2, PART_SEGMENTS, first.angle)) {
       const mat = part.status ? statusMat() : (part.material as THREE.Material).clone()
       const mesh = new THREE.InstancedMesh(part.geometry, mat, list.length)
       list.forEach((d, i) => {
@@ -95,7 +128,15 @@ export function instancedDevices(items: DeviceInstance[], castShadow = true): In
 }
 
 /** Catalog flat symbols lying on the ground, one InstancedMesh per (code, status). */
-export function symbolInstances(items: Array<{ id: string; code: string; at: [number, number]; heading: number; status: Status; size: number; align: boolean }>, z: number) {
+/**
+ * Flat catalog symbols lying on the map. `scale` (optional, shared) grows every symbol about its own centre each frame,
+ * so they keep pace with tubes thickened in the shader.
+ */
+export function symbolInstances(
+  items: Array<{ id: string; code: string; at: [number, number]; heading: number; status: Status; size: number; align: boolean }>,
+  z: number,
+  scale?: { value: number },
+) {
   const group = new THREE.Group()
   const groups = new Map<string, typeof items>()
   for (const d of items) {
@@ -109,6 +150,15 @@ export function symbolInstances(items: Array<{ id: string; code: string; at: [nu
   for (const list of groups.values()) {
     const f = list[0]!
     const mat = new THREE.MeshBasicMaterial({ map: symbolTexture(f.code, f.status === 'normal' ? undefined : f.status, 128), transparent: true, alphaTest: 0.05, depthWrite: false })
+    if (scale) {
+      mat.onBeforeCompile = shader => {
+        shader.uniforms.uSymScale = scale
+        shader.vertexShader = shader.vertexShader
+          .replace('#include <common>', '#include <common>\nuniform float uSymScale;')
+          .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.xy *= uSymScale;')
+      }
+      mat.customProgramCacheKey = () => 'scaled-symbol'
+    }
     const mesh = new THREE.InstancedMesh(plane, mat, list.length)
     list.forEach((d, i) => {
       q.setFromAxisAngle(zAxis, d.align ? d.heading : 0)

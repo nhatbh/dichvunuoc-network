@@ -1,6 +1,7 @@
 /** Faceplate of one plant item: live readings, mode, commands, catalog identity, link to its HMI / SCADA screen. */
 import { createSignal, For, Match, Show, Switch } from 'solid-js'
 import { CatalogBlock } from './catalog-info'
+import { CloseBtn } from './shell'
 import { f0, f1, f2, useSim } from './sim-context'
 import { Row } from './widgets'
 import { EQUIPMENT_BY_TAG, UNITS, type Equipment, type HmiScreenId } from '../data/plant-model'
@@ -51,9 +52,7 @@ export function Faceplate(props: { tag: string; onClose: () => void; onOpenScree
           <h2>{props.tag}</h2>
           <p>{e().name}</p>
         </div>
-        <button type="button" class="tw-btn icon sm" onClick={() => props.onClose()} aria-label="Đóng">
-          ✕
-        </button>
+        <CloseBtn onClick={props.onClose} label="Đóng bảng điều khiển thiết bị" />
       </div>
       <div class="tw-spec">
         {unitName()} · {e().spec}
@@ -121,7 +120,7 @@ export function Faceplate(props: { tag: string; onClose: () => void; onOpenScree
                 Rửa lọc ngay
               </button>
             </div>
-            <div class="tw-hint">Chu trình: hạ mực nước → sục khí (máy gió) → gió + nước → rửa nước (bơm rửa lọc) → làm đầy. Tự động rửa khi tổn thất &gt; 2,2 m hoặc lọc &gt; 48 h.</div>
+            <div class="tw-hint">Tự rửa khi tổn thất &gt; 2,2 m hoặc sau 48 h lọc.</div>
           </Match>
           <Match when={true}>
             <div class="tw-controls">
@@ -147,13 +146,13 @@ export function Faceplate(props: { tag: string; onClose: () => void; onOpenScree
           </Match>
         </Switch>
         <Show when={locked()}>
-          <div class="tw-hint">Đang ở TỰ ĐỘNG: lệnh bị khóa, chuyển sang TAY để điều khiển.</div>
+          <div class="tw-hint">Chuyển sang TAY để điều khiển.</div>
         </Show>
       </Show>
 
       <CatalogBlock code={e().code} dn={e().dn} />
       <Show when={(e().count ?? 1) > 1}>
-        <div class="tw-hint">Gồm {e().count} thiết bị cùng mã danh mục.</div>
+        <div class="tw-hint">{e().count} thiết bị.</div>
       </Show>
 
       <div class="tw-h">Bảo trì & sự cố</div>

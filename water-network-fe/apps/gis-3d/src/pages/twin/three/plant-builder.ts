@@ -89,6 +89,55 @@ const shrink = (r: Rect, d: number): XY[] => [
   [r.x1 - d, r.y1 - d],
   [r.x0 + d, r.y1 - d],
 ]
+const grow = (r: Rect, d: number): Rect => ({ ...r, x0: r.x0 - d, y0: r.y0 - d, x1: r.x1 + d, y1: r.y1 + d, w: r.w + 2 * d, h: r.h + 2 * d })
+/** handrail on top of a basin wall: posts every ~2 m, top and knee rails, set inside the outer face */
+function handrail(b: Batch, r: Rect, z: number, inset = 0.25, color = RAIL) {
+  const q = grow(r, -inset)
+  const corners: XY[] = [
+    [q.x0, q.y0],
+    [q.x1, q.y0],
+    [q.x1, q.y1],
+    [q.x0, q.y1],
+  ]
+  for (let i = 0; i < 4; i++) {
+    const a = corners[i]!
+    const c = corners[(i + 1) % 4]!
+    const len = Math.hypot(c[0] - a[0], c[1] - a[1])
+    const ang = Math.atan2(c[1] - a[1], c[0] - a[0])
+    const n = Math.max(1, Math.round(len / 2))
+    for (let k = 0; k < n; k++) b.box(0.06, 0.06, 1.05, a[0] + ((c[0] - a[0]) * k) / n, a[1] + ((c[1] - a[1]) * k) / n, z, color)
+    for (const hz of [0.5, 1.02]) b.box(len, 0.05, 0.05, (a[0] + c[0]) / 2, (a[1] + c[1]) / 2, z + hz, color, ang)
+  }
+}
+/** building skin: plinth, rows of windows with sills, a door with a canopy (front = y0 side), roller door for pump halls */
+function facade(b: Batch, s: Structure, r: Rect) {
+  walls(b, grow(r, 0.05), 0.45, 0.4, PLINTH)
+  const rows = s.height > 7.5 ? [1.2, 4.6] : s.height > 4 ? [1.4] : [1.0]
+  const winH = s.height > 4 ? 1.3 : 1.0
+  const along = (len: number, at: (t: number) => [number, number], rot: number, skip?: (t: number) => boolean) => {
+    const n = Math.floor((len - 2) / 3.2)
+    for (let i = 0; i < n; i++) {
+      const t = (i + 0.5) / n
+      if (skip?.(t)) continue
+      const [x, y] = at(t)
+      for (const z of rows) {
+        b.box(1.5, 0.1, winH, x, y, z, GLASS, rot)
+        b.box(1.75, 0.2, 0.07, x, y, z - 0.07, SILL, rot)
+      }
+    }
+  }
+  const doorAt = 0.5
+  along(r.w, t => [r.x0 + 1 + t * (r.w - 2), r.y0 - 0.02], 0, t => Math.abs(t - doorAt) < 1.6 / r.w)
+  along(r.w, t => [r.x0 + 1 + t * (r.w - 2), r.y1 + 0.02], 0)
+  if (r.h > 7) {
+    along(r.h, t => [r.x0 - 0.02, r.y0 + 1 + t * (r.h - 2)], Math.PI / 2)
+    along(r.h, t => [r.x1 + 0.02, r.y0 + 1 + t * (r.h - 2)], Math.PI / 2)
+  }
+  b.box(1.8, 0.12, 2.4, r.x0 + doorAt * r.w, r.y0 - 0.03, 0, DOOR)
+  b.box(2.8, 1.1, 0.14, r.x0 + doorAt * r.w, r.y0 - 0.5, 2.65, SILL)
+  if (s.id === 'S07B' || s.id === 'S03' || s.id === 'S07') b.box(3.6, 0.12, Math.min(3.8, s.height - 0.8), r.x0 + 0.25 * r.w, r.y1 + 0.03, 0, ROLLER)
+}
+
 /** inward offset of a simple polygon (miter, clamped) */
 export function offsetPolygon(poly: XY[], d: number): XY[] {
   const n = poly.length
@@ -178,10 +227,23 @@ export interface PlantModel {
 const ROOF = 0x8d6e5c
 const ROOF_FLAT = 0x9aa7ad
 const CONCRETE = 0xc4c2ba
+const COPING = 0xdedbd2
 const GROUND = 0xa9bf8f
-const ROAD = 0x6b7075
+const ROAD = 0x62676c
+const KERB = 0xc9c7bf
+const MARKING = 0xf1efe6
 const WATER = 0x3d8fd1
-const RAW_WATER = 0x6e8c8e
+const PLINTH = 0x8f938e
+const GLASS = 0x34505f
+const SILL = 0xe6e2d6
+const DOOR = 0x55626b
+const ROLLER = 0x8b969b
+const POLE = 0x6b7378
+const FENCE = 0x4f5d59
+const RAIL = 0xc9a23a
+/** water colour by process stage: raw (olive-brown) → settled (teal) → filtered / clean (blue), waste (brown) */
+export const STAGE_WATER = { raw: 0x7a8a72, mixing: 0x7f8a68, floc: 0x5f9a86, settled: 0x4f9a91, filtered: 0x3f95c9, clean: 0x2f86d6, waste: 0x7b6a52 }
+const RAW_WATER = STAGE_WATER.raw
 
 function isBuilding(s: Structure) {
   return s.roof === 'flat'
@@ -196,7 +258,18 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
   const factory = level === 'factory'
   const water: PlantModel['water'] = { filters: [], lamella: [] }
   const waterB = new Batch()
+  const fenceB = new Batch()
   const roofs: THREE.Object3D[] = []
+  /** factory: one roof mesh per structure, so the focused building can be opened up */
+  const roofBy = new Map<string, Batch>()
+  const roofOf = (id: string) => {
+    if (!factory) return roofB
+    let b = roofBy.get(id)
+    if (!b) roofBy.set(id, (b = new Batch()))
+    return b
+  }
+  const rects = PLANT.structures.map(x => rectOf(x.poly))
+  const inStructure = (x: number, y: number, m = 1.5) => rects.some(r => x > r.x0 - m && x < r.x1 + m && y > r.y0 - m && y < r.y1 + m)
 
   // site pad + boundary
   if (level !== 1) {
@@ -205,7 +278,19 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
       const a = PLANT.boundary[i]!
       const c = PLANT.boundary[(i + 1) % PLANT.boundary.length]!
       const len = Math.hypot(c[0] - a[0], c[1] - a[1])
-      solid.box(len, 0.25, detail ? 2.2 : 1.6, (a[0] + c[0]) / 2, (a[1] + c[1]) / 2, 0, 0xd8d4c8, Math.atan2(c[1] - a[1], c[0] - a[0]))
+      const ang = Math.atan2(c[1] - a[1], c[0] - a[0])
+      const mx = (a[0] + c[0]) / 2
+      const my = (a[1] + c[1]) / 2
+      if (!detail) {
+        solid.box(len, 0.25, 1.6, mx, my, 0, 0xd8d4c8, ang)
+        continue
+      }
+      // low plinth wall, steel posts every 3 m, top rail, see-through mesh panels
+      solid.box(len + 0.3, 0.3, 0.5, mx, my, 0, 0xd8d4c8, ang)
+      const n = Math.max(1, Math.round(len / 3))
+      for (let k = 0; k < n; k++) solid.box(0.12, 0.12, 2.3, a[0] + ((c[0] - a[0]) * k) / n, a[1] + ((c[1] - a[1]) * k) / n, 0, FENCE)
+      solid.box(len, 0.07, 0.07, mx, my, 2.22, FENCE, ang)
+      fenceB.box(len, 0.03, 1.7, mx, my, 0.5, FENCE, ang)
     }
     for (const r of PLANT.roads) {
       for (let i = 1; i < r.length; i++) {
@@ -213,18 +298,42 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
         const c = r[i]!
         const len = Math.hypot(c[0] - a[0], c[1] - a[1])
         if (len < 0.5) continue
-        solid.box(len + 1.8, 3.6, 0.06, (a[0] + c[0]) / 2, (a[1] + c[1]) / 2, 0.03, ROAD, Math.atan2(c[1] - a[1], c[0] - a[0]))
+        const ang = Math.atan2(c[1] - a[1], c[0] - a[0])
+        const ux = (c[0] - a[0]) / len
+        const uy = (c[1] - a[1]) / len
+        solid.box(len + 1.8, 3.6, 0.06, (a[0] + c[0]) / 2, (a[1] + c[1]) / 2, 0.03, ROAD, ang)
+        if (!detail) continue
+        // kerbs, dashed centre line, street lights on one side
+        for (const side of [-1, 1]) solid.box(len + 1.8, 0.22, 0.16, (a[0] + c[0]) / 2 - uy * side * 1.9, (a[1] + c[1]) / 2 + ux * side * 1.9, 0, KERB, ang)
+        for (let d = 2; d < len - 1.5; d += 6) solid.box(2.4, 0.14, 0.02, a[0] + ux * (d + 1.2), a[1] + uy * (d + 1.2), 0.09, MARKING, ang)
+        for (let d = 8; d < len - 4; d += 30) {
+          const px = a[0] + ux * d - uy * 2.6
+          const py = a[1] + uy * d + ux * 2.6
+          if (inStructure(px, py)) continue
+          solid.cyl(0.09, 7, px, py, 0, POLE, 8)
+          solid.box(1.5, 0.08, 0.08, px + uy * 0.75, py - ux * 0.75, 6.9, POLE, ang + Math.PI / 2)
+          solid.box(0.7, 0.28, 0.12, px + uy * 1.45, py - ux * 1.45, 6.8, 0xf4f1e0, ang + Math.PI / 2)
+        }
       }
     }
   } else {
     solid.prism(PLANT.boundary, 0, 0.15, 0xc7cfbf)
+  }
+  // the raw-water inlet chamber at the pond, where the D600 from TB1 ends: the main runs into a structure (sized for
+  // the main as the map draws it, thickened), not into bare ground
+  {
+    const [ox, oy] = PLANT.inletOutfall
+    solid.box(11, 11, 6.6, ox, oy, 0, 0xb4ae9f)
+    solid.box(12, 12, 0.45, ox, oy, 6.6, 0x7f8c93)
   }
 
   for (const s of PLANT.structures) {
     const r = rectOf(s.poly)
     if (s.kind === 'pond') {
       if (level === 1) {
-        solid.flat(s.poly, 0.2, RAW_WATER)
+        // a raised basin with its water, so the raw-water main visibly runs into a structure from afar
+        solid.prism(s.poly, 0, 2.2, 0x9c9a83)
+        solid.flat(offsetPolygon(s.poly, 3), 2.25, RAW_WATER)
         continue
       }
       const inner = offsetPolygon(s.poly, 4)
@@ -243,23 +352,29 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
     switch (s.roof) {
       case 'open': {
         walls(solid, r, s.height, 0.45, CONCRETE)
-        if (!detail) waterB.flat(shrink(r, 0.4), s.height - (s.water ?? 0.5), WATER)
+        const wc = s.kind === 'filters' ? STAGE_WATER.filtered : s.kind === 'clarifier' ? STAGE_WATER.settled : s.kind === 'recovery' || s.kind === 'sludge' ? STAGE_WATER.waste : WATER
+        if (!detail || s.kind === 'recovery' || s.kind === 'sludge') waterB.flat(shrink(r, 0.4), s.height - (s.water ?? 0.5), wc)
+        if (detail) {
+          walls(solid, grow(r, 0.08), 0.14, 0.62, COPING, s.height)
+          handrail(solid, r, s.height + 0.14)
+        }
         break
       }
       case 'covered': {
         if (s.kind === 'reservoir') {
           if (factory) {
             walls(solid, r, s.height + 0.2, 0.5, CONCRETE)
-            const wm = new THREE.Mesh(new THREE.PlaneGeometry(r.w - 1, r.h - 1), waterMaterial(0x2f86d6, 0.8))
+            const wm = new THREE.Mesh(new THREE.PlaneGeometry(r.w - 1, r.h - 1), waterMaterial(STAGE_WATER.clean, 0.8))
             wm.position.set(r.cx, r.cy, 1)
             water.reservoir = wm
             group.add(wm)
-            roofB.prism(shrink(r, 0.0), s.height, s.height + 0.25, 0x8fa39a)
+            roofOf(s.id).prism(shrink(r, 0.0), s.height, s.height + 0.25, 0x8fa39a)
+            handrail(roofOf(s.id), r, s.height + 0.25, 0.4)
           } else {
             solid.prism(s.poly, 0, s.height, 0xb5c0b8)
             solid.prism(shrink(r, 0.6), s.height, s.height + 0.15, 0x8fa39a)
           }
-          if (detail) for (let i = 0; i < 6; i++) roofB.cyl(0.35, 0.9, r.x0 + 5 + (i % 3) * 15, r.y0 + 10 + Math.floor(i / 3) * 26, s.height, 0xd9d6cc, 10)
+          if (detail) for (let i = 0; i < 6; i++) roofOf(s.id).cyl(0.35, 0.9, r.x0 + 5 + (i % 3) * 15, r.y0 + 10 + Math.floor(i / 3) * 26, s.height + (factory ? 0.25 : 0), 0xd9d6cc, 10)
         } else {
           // parking canopy
           for (const [x, y] of [
@@ -269,26 +384,29 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
             [r.x1 - 0.3, r.y1 - 0.3],
           ] as const)
             solid.box(0.2, 0.2, s.height, x, y, 0, 0x6f777a)
-          ;(factory ? roofB : solid).prism(s.poly, s.height, s.height + 0.12, 0x5f7f8f)
+          ;(factory ? roofOf(s.id) : solid).prism(s.poly, s.height, s.height + 0.12, 0x5f7f8f)
         }
         break
       }
       case 'flat': {
         if (factory) {
-          // interior visible: floor + walls with a window band, roof on its own toggle
+          // interior visible: floor + walls; roof, parapet and roof units are one mesh per building (cut-away)
           solid.prism(shrink(r, 0.2), 0, 0.15, 0xbfc3bd)
           walls(solid, r, s.height, 0.3, s.color)
-          if (s.kind !== 'guard') {
-            for (const side of [0, 1]) solid.box(r.w * 0.86, 0.05, 1.0, r.cx, side ? r.y1 + 0.01 : r.y0 - 0.01, s.height * 0.55, 0x3a4d5a)
+          facade(solid, s, r)
+          const rb = roofOf(s.id)
+          rb.prism(s.poly, s.height, s.height + 0.3, s.kind === 'admin' ? ROOF : ROOF_FLAT)
+          rb.prism(s.poly.map(p => [p[0], p[1]] as XY), s.height + 0.3, s.height + 0.8, s.color, [shrink(r, 0.3).reverse()])
+          if (s.kind !== 'guard' && r.w > 6) {
+            rb.box(2.2, 1.6, 1.1, r.x1 - 3, r.cy, s.height + 0.3, 0xb7bcbf)
+            rb.box(1.2, 1.2, 0.7, r.x0 + 2.4, r.cy - 1, s.height + 0.3, 0xa9b0b3)
           }
-          roofB.prism(s.poly, s.height, s.height + 0.3, ROOF_FLAT)
-          roofB.prism(s.poly.map(p => [p[0], p[1]] as XY), s.height + 0.3, s.height + 0.8, s.color, [shrink(r, 0.3).reverse()])
         } else {
           solid.prism(s.poly, 0, s.height, s.color)
           solid.prism(s.poly, s.height, s.height + 0.6, s.color, [shrink(r, 0.3).reverse()])
           solid.prism(shrink(r, 0.3), s.height, s.height + 0.08, s.kind === 'admin' ? ROOF : ROOF_FLAT)
           if (detail) {
-            for (const side of [0, 1]) solid.box(r.w * 0.86, 0.05, 1.0, r.cx, side ? r.y1 + 0.01 : r.y0 - 0.01, s.height * 0.55, 0x3a4d5a)
+            facade(solid, s, r)
             solid.box(2.2, 1.6, 1.2, r.x1 - 3, r.cy, s.height + 0.08, 0xb7bcbf)
           }
         }
@@ -306,11 +424,11 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
     for (const c of S04.floc) {
       const r = rectOf(c)
       walls(solid, r, s4h, 0.25, 0xb8b6ae)
-      waterB.flat(shrink(r, 0.25), s4h - 0.45, 0x5d97b8)
+      waterB.flat(shrink(r, 0.25), s4h - 0.45, STAGE_WATER.floc)
     }
     const mix = rectOf(S04.mixing)
     walls(solid, mix, s4h, 0.25, 0xb8b6ae)
-    waterB.flat(shrink(mix, 0.25), s4h - 0.4, 0x6d8f86)
+    waterB.flat(shrink(mix, 0.25), s4h - 0.4, STAGE_WATER.mixing)
     for (const c of S04.lamella) {
       const r = rectOf(c)
       walls(solid, r, s4h, 0.3, 0xb8b6ae)
@@ -319,7 +437,7 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
       for (let i = 0; i < n; i++) solid.box(r.w - 0.8, 0.04, 0.95, r.cx, r.y0 + 1 + i * 0.55, s4h - 1.6, 0xe8e6dc, 0)
       // collection troughs
       for (let i = 0; i < 4; i++) solid.box(r.w - 0.8, 0.25, 0.35, r.cx, r.y0 + 2.5 + i * ((r.h - 5) / 3), s4h - 0.5, 0x9aa3a8)
-      const wm = new THREE.Mesh(new THREE.PlaneGeometry(r.w - 0.6, r.h - 0.6), waterMaterial(0x4d93b5, 0.55))
+      const wm = new THREE.Mesh(new THREE.PlaneGeometry(r.w - 0.6, r.h - 0.6), waterMaterial(STAGE_WATER.settled, 0.55))
       wm.position.set(r.cx, r.cy, s4h - 0.35)
       group.add(wm)
       water.lamella.push(wm)
@@ -335,7 +453,7 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
       walls(solid, r, s5h, 0.3, 0xb8b6ae)
       solid.prism(shrink(r, 0.3), 0.6, 1.6, 0xd8c59a) // sand bed
       for (let i = 1; i <= 2; i++) solid.box(0.5, r.h - 0.6, 0.45, r.x0 + (r.w * i) / 3, r.cy, s5h - 1.1, 0x9aa3a8) // wash troughs
-      const wm = new THREE.Mesh(new THREE.PlaneGeometry(r.w - 0.6, r.h - 0.6), waterMaterial(0x4f9fd8, 0.7))
+      const wm = new THREE.Mesh(new THREE.PlaneGeometry(r.w - 0.6, r.h - 0.6), waterMaterial(STAGE_WATER.filtered, 0.7))
       wm.position.set(r.cx, r.cy, s5h - 0.6)
       wm.userData.full = s5h - 0.6
       group.add(wm)
@@ -345,7 +463,7 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
     if (!factory) solid.prism(shrink(g, 0), 0, s5h + 1.8, 0xe2dccd)
     else {
       walls(solid, g, s5h + 1.8, 0.25, 0xe2dccd)
-      roofB.prism(shrink(g, 0), s5h + 1.8, s5h + 2.0, ROOF_FLAT)
+      roofOf('S05').prism(shrink(g, 0), s5h + 1.8, s5h + 2.0, ROOF_FLAT)
     }
 
     // process pipes (static colours)
@@ -414,16 +532,32 @@ export function buildPlant(level: 1 | 2 | 3 | 'factory'): PlantModel {
 
   const sm = solid.mesh(solidMaterial())
   if (sm) group.add(sm)
-  const wm = waterB.mesh(waterMaterial(WATER, 0.85))
+  const wmat = waterMaterial(0xffffff, 0.85)
+  wmat.vertexColors = true
+  const wm = waterB.mesh(wmat)
   if (wm) {
     wm.castShadow = false
     group.add(wm)
+  }
+  const fm = fenceB.mesh(new THREE.MeshStandardMaterial({ color: FENCE, roughness: 0.7, metalness: 0.3, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide }))
+  if (fm) {
+    fm.castShadow = false
+    group.add(fm)
   }
   const rm = roofB.mesh(solidMaterial())
   if (rm) {
     rm.name = 'roofs'
     roofs.push(rm)
     group.add(rm)
+  }
+  const roofMat = solidMaterial()
+  for (const [id, b] of roofBy) {
+    const m = b.mesh(roofMat)
+    if (!m) continue
+    m.name = `roof-${id}`
+    m.userData.unit = id
+    roofs.push(m)
+    group.add(m)
   }
 
   // equipment (factory only)
